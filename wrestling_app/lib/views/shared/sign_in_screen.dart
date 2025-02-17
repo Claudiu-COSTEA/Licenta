@@ -1,10 +1,61 @@
 import 'package:flutter/material.dart';
+import 'package:wrestling_app/services/user_apis_services.dart';
 import 'package:wrestling_app/views/shared/widgets/custom_buttons.dart';
 import 'package:wrestling_app/views/shared/widgets/custom_text_field.dart';
 import 'package:wrestling_app/views/shared/widgets/custom_label.dart';
+import 'package:wrestling_app/services/auth_service.dart';
+import 'package:wrestling_app/views/shared/invitations_lists_screen.dart';
+
+import '../../models/user_model.dart';
 
 class SignInScreen extends StatelessWidget {
-  const SignInScreen({super.key});
+  SignInScreen({super.key});
+
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final AuthService _authService = AuthService();
+  final UserService _userService = UserService(); // Create UserService instance
+
+  Future<void> _handleSignIn(BuildContext context) async {
+    String email = _emailController.text.trim();
+    String password = _passwordController.text.trim();
+
+    final user = await _authService.signIn(email, password);
+    if (user != null) {
+      UserModel? userModel = await _userService.fetchUserByEmail(email);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Successfully signed in!')),
+      );
+
+      // Navigate to the next screen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => InvitationsListsScreen(user: userModel)), // Replace HomePage with your destination
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to sign in')),
+      );
+    }
+  }
+
+  Future<void> _handleSignUp(BuildContext context) async {
+    final user = await _authService.signUp(
+      _emailController.text.trim(),
+      _passwordController.text.trim(),
+    );
+    if (user != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Successfully signed up!')),
+      );
+      // Navigate to the next screen (replace with your navigation logic)
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to sign up')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,9 +68,7 @@ class SignInScreen extends StatelessWidget {
             physics: BouncingScrollPhysics(),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                // Wrestling logo
                 Center(
                   child: Image.asset(
                     'assets/images/wrestling_logo.png',
@@ -27,8 +76,6 @@ class SignInScreen extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 10),
-
-                // Federation title
                 Center(
                   child: Text(
                     'Federatia Romana de Lupte',
@@ -39,18 +86,20 @@ class SignInScreen extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 40),
-
-                // Email Label and TextField
                 CustomLabel(text: 'Email'),
-                CustomTextField(obscureText: false, label: ''),
+                CustomTextField(
+                  controller: _emailController,
+                  obscureText: false,
+                  label: '',
+                ),
                 SizedBox(height: 16),
-
-                // Password Label and TextField
                 CustomLabel(text: 'Parola'),
-                CustomTextField(obscureText: true, label: ''),
+                CustomTextField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  label: '',
+                ),
                 SizedBox(height: 8),
-
-                // Forgot password text
                 Align(
                   alignment: Alignment.centerRight,
                   child: Text(
@@ -62,13 +111,17 @@ class SignInScreen extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 20),
-
-                // Authentication Buttons
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    CustomButton(label: 'Autentificare', onPressed: () {}),
-                    CustomButton(label: 'Inregistrare', onPressed: () {}),
+                    CustomButton(
+                      label: 'Autentificare',
+                      onPressed: () => _handleSignIn(context),
+                    ),
+                    CustomButton(
+                      label: 'Inregistrare',
+                      onPressed: () => _handleSignUp(context),
+                    ),
                   ],
                 ),
               ],
@@ -78,6 +131,4 @@ class SignInScreen extends StatelessWidget {
       ),
     );
   }
-
-
 }

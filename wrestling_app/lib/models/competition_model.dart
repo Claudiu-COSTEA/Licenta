@@ -1,35 +1,35 @@
 class Competition {
-  final String eventUUID;
-  final String eventName;
-  final DateTime eventStartDate;
-  final DateTime eventEndDate;
-  final String eventLocation;
+  final int competitionUUID;
+  final String competitionName;
+  final DateTime competitionStartDate;
+  final DateTime competitionEndDate;
+  final String competitionLocation;
 
   Competition({
-    required this.eventUUID,
-    required this.eventName,
-    required this.eventStartDate,
-    required this.eventEndDate,
-    required this.eventLocation,
+    required this.competitionUUID,
+    required this.competitionName,
+    required this.competitionStartDate,
+    required this.competitionEndDate,
+    required this.competitionLocation,
   });
 
   factory Competition.fromJson(Map<String, dynamic> json) {
     return Competition(
-      eventUUID: json['event_UUID'],
-      eventName: json['event_name'],
-      eventStartDate: DateTime.parse(json['event_start_date']),
-      eventEndDate: DateTime.parse(json['event_end_date']),
-      eventLocation: json['event_location'],
+      competitionUUID: json['competition_UUID'],
+      competitionName: json['competition_name'],
+      competitionStartDate: DateTime.parse(json['competition_start_date']),
+      competitionEndDate: DateTime.parse(json['competition_end_date']),
+      competitionLocation: json['competition_location'],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'event_UUID': eventUUID,
-      'event_name': eventName,
-      'event_start_date': eventStartDate.toIso8601String(),
-      'event_end_date': eventEndDate.toIso8601String(),
-      'event_location': eventLocation,
+      'competition_UUID': competitionUUID,
+      'competition_name': competitionName,
+      'competition_start_date': competitionStartDate.toIso8601String(),
+      'competition_end_date': competitionEndDate.toIso8601String(),
+      'competition_location': competitionLocation,
     };
   }
 }

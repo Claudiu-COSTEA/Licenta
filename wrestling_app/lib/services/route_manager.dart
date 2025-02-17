@@ -13,7 +13,7 @@ class RouteManager extends StatelessWidget {
           return Center(child: CircularProgressIndicator());
         } else if (snapshot.hasData) {
           final userRole = snapshot.data;
-          if (userRole == 'coach') {
+          if (userRole == 'Wrestling club') {
             Future.microtask(() => Navigator.pushReplacementNamed(context, '/coachDashboard'));
           } else if (userRole == 'wrestler') {
             Future.microtask(() => Navigator.pushReplacementNamed(context, '/wrestlerDashboard'));

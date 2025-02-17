@@ -1,13 +1,11 @@
 class Wrestler {
-  final String wrestlerUUID;
-  final String? coachUUID;
-  final String? wrestlingClubUUID;
-  final String wrestlingStyle;
+  final int wrestlerUUID;
+  final int coachUUID;
+  final String wrestlingStyle; // Greco Roman, Freestyle, Women
 
   Wrestler({
     required this.wrestlerUUID,
-    this.coachUUID,
-    this.wrestlingClubUUID,
+    required this.coachUUID,
     required this.wrestlingStyle,
   });
 
@@ -15,7 +13,6 @@ class Wrestler {
     return Wrestler(
       wrestlerUUID: json['wrestler_UUID'],
       coachUUID: json['coach_UUID'],
-      wrestlingClubUUID: json['wrestling_club_UUID'],
       wrestlingStyle: json['wrestling_style'],
     );
   }
@@ -24,7 +21,6 @@ class Wrestler {
     return {
       'wrestler_UUID': wrestlerUUID,
       'coach_UUID': coachUUID,
-      'wrestling_club_UUID': wrestlingClubUUID,
       'wrestling_style': wrestlingStyle,
     };
   }
