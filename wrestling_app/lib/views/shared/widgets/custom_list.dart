@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class CustomList extends StatelessWidget {
-  final List<String> items;
+  final List<Map<String, dynamic>> items; // List of competition invitations
 
   const CustomList({super.key, required this.items});
 
@@ -11,6 +11,10 @@ class CustomList extends StatelessWidget {
     return ListView.builder(
       itemCount: items.length,
       itemBuilder: (context, index) {
+        final item = items[index];
+        final competitionName = item['competition_name'] ?? 'Unknown Competition';
+        final invitationStatus = item['invitation_status'] ?? 'Unknown Status';
+
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Container(
@@ -20,15 +24,19 @@ class CustomList extends StatelessWidget {
             ),
             child: ListTile(
               title: Text(
-                items[index],
-                style: TextStyle(
+                competitionName,
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,  // White text for contrast
+                  color: Colors.white,
                 ),
+              ),
+              subtitle: Text(
+                'Status: $invitationStatus',
+                style: const TextStyle(color: Colors.white70),
               ),
               onTap: () {
                 if (kDebugMode) {
-                  print('Tapped on ${items[index]}');
+                  print('Tapped on $competitionName');
                 }
               },
             ),
