@@ -1,11 +1,11 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../wrestling_club/wrestling_club_competition_manage_screen.dart';
 
 class CustomList extends StatelessWidget {
   final List<Map<String, dynamic>> items; // List of competition invitations
+  final int userUUID;
 
-  const CustomList({super.key, required this.items});
+  const CustomList({super.key, required this.items, required this.userUUID});
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +38,7 @@ class CustomList extends StatelessWidget {
               onTap: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => WrestlingClubCompetitionManageScreen(competitionInvitation: item)), // Replace HomePage with your destination
+                  MaterialPageRoute(builder: (context) => WrestlingClubCompetitionManageScreen(competitionInvitation: item, userUUID: userUUID)), // Replace HomePage with your destination
                 );
               },
             ),

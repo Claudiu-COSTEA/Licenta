@@ -109,7 +109,7 @@ class _InvitationsListsScreenState extends State<InvitationsListsScreen> {
               ),
             ),
             Expanded(
-              child: CustomList(items: pendingCompetitions),
+              child: CustomList(items: pendingCompetitions, userUUID: widget.user!.userUUID),
             ),
             Center(
               child: Text(
@@ -122,7 +122,7 @@ class _InvitationsListsScreenState extends State<InvitationsListsScreen> {
               ),
             ),
             Expanded(
-              child: CustomList(items: respondedCompetitions),
+              child: CustomList(items: respondedCompetitions, userUUID: widget.user!.userUUID),
             ),
           ],
         ),

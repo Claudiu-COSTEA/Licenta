@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:wrestling_app/views/wrestling_club/coach_selection_list.dart';
+
 
 class WrestlingClubCompetitionManageScreen extends StatefulWidget {
   final Map<String, dynamic> competitionInvitation;
+  final int userUUID;
 
-  const WrestlingClubCompetitionManageScreen({required this.competitionInvitation, super.key});
+  const WrestlingClubCompetitionManageScreen({required this.competitionInvitation, super.key, required this.userUUID});
 
   @override
   State<WrestlingClubCompetitionManageScreen> createState() => _WrestlingClubCompetitionManageScreen();
@@ -83,7 +86,10 @@ class _WrestlingClubCompetitionManageScreen extends State<WrestlingClubCompetiti
 
             // Selection Button
             _buildActionButton("Selectia antrenorilor", () {
-              // TODO: Implement navigation or functionality
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => CoachSelectionList(widget.userUUID, competitionUUID: invitation['competition_UUID'], competitionDeadline: invitation['invitation_deadline'],)), // Replace HomePage with your destination
+              );
             }),
 
             const SizedBox(height: 15),
