@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:wrestling_app/views/shared/sign_in_screen.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -36,14 +38,21 @@ class AuthService {
     }
   }
 
-  // Sign Out
-  Future<void> signOut() async {
+  // ✅ Sign-out function (No Changes Needed Here)
+  Future<void> signOut(BuildContext context) async {
     try {
       await _auth.signOut();
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SignInScreen(),
+        ),
+      );
     } catch (e) {
       if (kDebugMode) {
         print('Sign-out error: $e');
       }
     }
   }
+
 }

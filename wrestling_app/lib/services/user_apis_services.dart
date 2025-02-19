@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/user_model.dart';
 
@@ -19,7 +20,9 @@ class UserService {
         throw Exception('Failed to load user. Status code: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching user: $e');
+      if (kDebugMode) {
+        print('Error fetching user: $e');
+      }
       return null;
     }
   }

@@ -2,13 +2,15 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
-class WrestlingClubService {
-  final String _baseUrl = 'http://192.168.0.154/wrestling_app/wrestling_club/get_wrestling_club_coaches.php';
+class CoachService {
+  final String _baseUrl =
+      'http://192.168.0.154/wrestling_app/coach/get_coache_wrestlers.php';
 
-  Future<List<Map<String, dynamic>>> fetchCoachesForClub(int wrestlingClubUUID, int competitionUUID) async {
+  Future<List<Map<String, dynamic>>> fetchWrestlersForCoach(
+      int coachUUID, int competitionUUID) async {
     try {
       final response = await http.get(
-        Uri.parse('$_baseUrl?wrestling_club_UUID=$wrestlingClubUUID&competition_UUID=$competitionUUID'),
+        Uri.parse('$_baseUrl?coach_UUID=$coachUUID&competition_UUID=$competitionUUID'),
       );
 
       if (response.statusCode == 200) {
@@ -21,16 +23,16 @@ class WrestlingClubService {
 
         // 🔹 Ensure it's a List before mapping
         if (decodedResponse is List) {
-          return decodedResponse.map((coach) => Map<String, dynamic>.from(coach)).toList();
+          return decodedResponse.map((wrestler) => Map<String, dynamic>.from(wrestler)).toList();
         } else {
           throw Exception("Unexpected API response format.");
         }
       } else {
-        throw Exception('Failed to load coaches. Status code: ${response.statusCode}');
+        throw Exception('Failed to load wrestlers. Status code: ${response.statusCode}');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error fetching coaches: $e');
+        print('Error fetching wrestlers: $e');
       }
       return [];
     }

@@ -3,53 +3,41 @@ import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-class CustomCoachesList extends StatefulWidget {
-  final List<Map<String, dynamic>> coaches;
+class CustomWrestlersList extends StatefulWidget {
+  final List<Map<String, dynamic>> wrestlers;
   final int userUUID;
   final int competitionUUID;
   final String competitionDeadline;
 
-  const CustomCoachesList({
+  const CustomWrestlersList({
     super.key,
-    required this.coaches,
+    required this.wrestlers,
     required this.userUUID,
     required this.competitionUUID,
     required this.competitionDeadline,
   });
 
   @override
-  State<CustomCoachesList> createState() => _CustomCoachesListState();
+  State<CustomWrestlersList> createState() => _CustomWrestlersListState();
 }
 
-class _CustomCoachesListState extends State<CustomCoachesList> {
-  String selectedStyle = "All"; // Default: Show all wrestling styles
+class _CustomWrestlersListState extends State<CustomWrestlersList> {
   String invitationFilter = "All"; // Default: Show all invitations
 
-  final List<String> wrestlingStyles = ["All", "Greco Roman", "Freestyle", "Women"];
   final List<String> invitationFilters = ["All", "Invited", "Not Invited"];
 
   @override
   Widget build(BuildContext context) {
     // Filter the list based on selected criteria
-    List<Map<String, dynamic>>  filteredCoaches = widget.coaches.where((coach) {
-      bool matchesStyle = selectedStyle == "All" || coach['wrestling_style'] == selectedStyle;
+    List<Map<String, dynamic>> filteredWrestlers = widget.wrestlers.where((wrestler) {
       bool matchesInvitation = (invitationFilter == "All") ||
-          (invitationFilter == "Invited" && coach['invitation_status'] != null) ||
-          (invitationFilter == "Not Invited" && coach['invitation_status'] == null);
-      return matchesStyle && matchesInvitation;
+          (invitationFilter == "Invited" && wrestler['invitation_status'] != null) ||
+          (invitationFilter == "Not Invited" && wrestler['invitation_status'] == null);
+      return matchesInvitation;
     }).toList();
 
     return Column(
       children: [
-        const SizedBox(height: 10),
-
-        // **Wrestling Style Filter Buttons**
-        _buildFilterButtons(wrestlingStyles, selectedStyle, (style) {
-          setState(() {
-            selectedStyle = style;
-          });
-        }),
-
         const SizedBox(height: 10),
 
         // **Invitation Status Filter Buttons**
@@ -61,19 +49,19 @@ class _CustomCoachesListState extends State<CustomCoachesList> {
 
         const SizedBox(height: 10),
 
-        // **Coaches ListView**
+        // **Wrestlers ListView**
         Expanded(
-          child: filteredCoaches.isEmpty
+          child: filteredWrestlers.isEmpty
               ? const Center(
             child: Text(
-              "Nu există antrenori disponibili.",
+              "Nu există sportivi disponibili.",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           )
               : ListView.builder(
-            itemCount: filteredCoaches.length,
+            itemCount: filteredWrestlers.length,
             itemBuilder: (context, index) {
-              final coach = filteredCoaches[index];
+              final wrestler = filteredWrestlers[index];
 
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -84,19 +72,19 @@ class _CustomCoachesListState extends State<CustomCoachesList> {
                   ),
                   child: ListTile(
                     title: Text(
-                      coach['coach_name'],
+                      wrestler['wrestler_name'],
                       style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
                     ),
                     subtitle: Text(
-                      "Style: ${coach['wrestling_style']}\nStatus: ${coach['invitation_status'] ?? "Not Invited"}",
+                      "Status: ${wrestler['invitation_status'] ?? "Not Invited"}",
                       style: const TextStyle(color: Colors.white70),
                     ),
                     trailing: ElevatedButton(
-                      onPressed: coach['invitation_status'] == null
-                          ? () => _onSelectCoach(context, coach['coach_UUID'])
+                      onPressed: wrestler['invitation_status'] == null
+                          ? () => _onSelectWrestler(context, wrestler['wrestler_UUID'])
                           : null, // Disable button if already invited
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: coach['invitation_status'] == null ? Colors.black : Colors.grey,
+                        backgroundColor: wrestler['invitation_status'] == null ? Colors.black : Colors.grey,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                       ),
                       child: const Text(
@@ -114,7 +102,7 @@ class _CustomCoachesListState extends State<CustomCoachesList> {
     );
   }
 
-  // **Builds Filter Buttons (For Style & Invitation Status)**
+  // **Builds Filter Buttons (For Invitation Status)**
   Widget _buildFilterButtons(List<String> options, String selected, Function(String) onTap) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -144,9 +132,9 @@ class _CustomCoachesListState extends State<CustomCoachesList> {
     );
   }
 
-  // **Handles Sending Coach Invitation**
-  void _onSelectCoach(BuildContext context, int coachUUID) async {
-    String apiUrl = "http://192.168.0.154/wrestling_app/wrestling_club/post_coach_invitation.php";
+  // **Handles Sending Wrestler Invitation**
+  void _onSelectWrestler(BuildContext context, int wrestlerUUID) async {
+    String apiUrl = "http://192.168.0.154/wrestling_app/coach/post_wrestler_invitation.php";
 
     try {
       // Convert String deadline to DateTime
@@ -170,7 +158,7 @@ class _CustomCoachesListState extends State<CustomCoachesList> {
         headers: {"Content-Type": "application/json"},
         body: json.encode({
           "competition_UUID": widget.competitionUUID,
-          "recipient_UUID": coachUUID,
+          "recipient_UUID": wrestlerUUID,
           "invitation_deadline": formattedDeadline,
         }),
       );
@@ -184,12 +172,11 @@ class _CustomCoachesListState extends State<CustomCoachesList> {
             SnackBar(content: Text(responseData["success"]), backgroundColor: Colors.green),
           );
           setState(() {
-            int index = widget.coaches.indexWhere((c) => c['coach_UUID'] == coachUUID);
+            int index = widget.wrestlers.indexWhere((c) => c['wrestler_UUID'] == wrestlerUUID);
             if (index != -1) {
-              widget.coaches[index]['invitation_status'] = "Pending"; // Update directly
+              widget.wrestlers[index]['invitation_status'] = "Pending"; // Update directly
             }
           });
-
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(responseData["error"] ?? "Unknown error"), backgroundColor: Colors.red),

@@ -5,20 +5,20 @@ import 'package:http/http.dart' as http;
 import 'package:wrestling_app/views/coach/wrestlers_selection_list.dart';
 import 'package:wrestling_app/views/wrestling_club/coach_selection_list.dart';
 
-import '../../services/google_maps_lunch.dart';
+import 'package:wrestling_app/services/google_maps_lunch.dart';
 
 
-class WrestlingClubCompetitionManageScreen extends StatefulWidget {
+class CoachCompetitionManageScreen extends StatefulWidget {
   final Map<String, dynamic> competitionInvitation;
   final int userUUID;
 
-  const WrestlingClubCompetitionManageScreen({required this.competitionInvitation, super.key, required this.userUUID});
+  const CoachCompetitionManageScreen({required this.competitionInvitation, super.key, required this.userUUID});
 
   @override
-  State<WrestlingClubCompetitionManageScreen> createState() => _WrestlingClubCompetitionManageScreen();
+  State<CoachCompetitionManageScreen> createState() => _CoachCompetitionManageScreen();
 }
 
-class _WrestlingClubCompetitionManageScreen extends State<WrestlingClubCompetitionManageScreen> {
+class _CoachCompetitionManageScreen extends State<CoachCompetitionManageScreen> {
   final bool _isLoading = false;
 
   @override
@@ -100,7 +100,7 @@ class _WrestlingClubCompetitionManageScreen extends State<WrestlingClubCompetiti
             const SizedBox(height: 100),
 
             // Selection Button
-            _buildActionButton("Selectia antrenorilor", () {
+            _buildActionButton("Selectia luptatorilor", () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => WrestlersSelectionList(widget.userUUID, competitionUUID: invitation['competition_UUID'], competitionDeadline: invitation['invitation_deadline'],)), // Replace HomePage with your destination

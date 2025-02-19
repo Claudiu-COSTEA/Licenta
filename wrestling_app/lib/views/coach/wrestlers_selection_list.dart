@@ -1,24 +1,25 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:wrestling_app/services/wrestling_clubs_apis_services.dart';
+import 'package:wrestling_app/services/coach_apis_services.dart';
+import 'package:wrestling_app/views/shared/widgets/custom_list_wrestlers.dart';
 import '../shared/widgets/custom_list_coaches.dart';
 
-class CoachSelectionList extends StatefulWidget {
+class WrestlersSelectionList extends StatefulWidget {
   final int userUUID;
   final int competitionUUID;
   final String competitionDeadline;
 
-  const CoachSelectionList(
+  const WrestlersSelectionList(
       this.userUUID, {super.key, required this.competitionUUID, required this.competitionDeadline}
       );
 
   @override
-  State<CoachSelectionList> createState() => _CoachSelectionListState();
+  State<WrestlersSelectionList> createState() => _WrestlersSelectionList();
 }
 
-class _CoachSelectionListState extends State<CoachSelectionList> {
-  final WrestlingClubService _wrestlingClubService = WrestlingClubService();
-  List<Map<String, dynamic>> wrestlingClubCoaches = [];
+class _WrestlersSelectionList extends State<WrestlersSelectionList> {
+  final CoachService _coachService = CoachService();
+  List<Map<String, dynamic>> coachWrestlers = [];
   bool _isLoading = true;
 
   @override
@@ -30,10 +31,10 @@ class _CoachSelectionListState extends State<CoachSelectionList> {
   Future<void> _fetchWrestlingClubCoaches() async {
     try {
       List<Map<String, dynamic>> fetchedCoaches =
-      await _wrestlingClubService.fetchCoachesForClub(widget.userUUID, widget.competitionUUID);
+      await _coachService.fetchWrestlersForCoach(widget.userUUID, widget.competitionUUID);
 
       setState(() {
-        wrestlingClubCoaches = fetchedCoaches;
+        coachWrestlers = fetchedCoaches;
       });
     } catch (e) {
       if (kDebugMode) {
@@ -72,7 +73,7 @@ class _CoachSelectionListState extends State<CoachSelectionList> {
 
             const Center(
               child: Text(
-                'Lista antrenorilor',
+                'Lista luptatorilor',
                 style: TextStyle(
                   fontSize: 25,
                   fontWeight: FontWeight.bold,
@@ -82,10 +83,10 @@ class _CoachSelectionListState extends State<CoachSelectionList> {
             ),
 
             Expanded(
-              child: CustomCoachesList(
+              child: CustomWrestlersList(
                 userUUID: widget.userUUID,
                 competitionUUID: widget.competitionUUID,
-                competitionDeadline: widget.competitionDeadline, coaches: wrestlingClubCoaches,
+                competitionDeadline: widget.competitionDeadline, wrestlers: coachWrestlers,
               ),
             ),
           ],

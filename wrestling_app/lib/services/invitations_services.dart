@@ -1,4 +1,5 @@
  import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/competition_invitation_model.dart';
 
@@ -12,11 +13,15 @@ class InvitationsService {
       );
 
       if (response.statusCode == 200) {
-        print('Raw API Response: ${response.body}');  // Debugging
+        if (kDebugMode) {
+          print('Raw API Response: ${response.body}');
+        }  // Debugging
 
         List<dynamic> jsonData = json.decode(response.body);
 
-        print('Decoded JSON: $jsonData');  // Debugging
+        if (kDebugMode) {
+          print('Decoded JSON: $jsonData');
+        }  // Debugging
 
         return jsonData
             .map((invitation) => CompetitionInvitation.fromJson(Map<String, dynamic>.from(invitation)))
@@ -25,7 +30,9 @@ class InvitationsService {
         throw Exception('Failed to load invitations. Status code: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching invitations: $e');
+      if (kDebugMode) {
+        print('Error fetching invitations: $e');
+      }
       return [];
     }
   }
