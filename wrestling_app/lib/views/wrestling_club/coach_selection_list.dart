@@ -1,15 +1,17 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:wrestling_app/services/wrestling_clubs_apis_services.dart';
+import 'package:wrestling_app/views/shared/widgets/custom_list_coaches_respond.dart';
 import '../shared/widgets/custom_list_coaches.dart';
 
 class CoachSelectionList extends StatefulWidget {
   final int userUUID;
   final int competitionUUID;
   final String competitionDeadline;
+  final String invitationStatus;
 
   const CoachSelectionList(
-      this.userUUID, {super.key, required this.competitionUUID, required this.competitionDeadline}
+      this.userUUID, {super.key, required this.competitionUUID, required this.competitionDeadline, required this.invitationStatus}
       );
 
   @override
@@ -50,46 +52,51 @@ class _CoachSelectionListState extends State<CoachSelectionList> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 40),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 40),
 
-            // ✅ Back Arrow Button
-            Align(
-              alignment: Alignment.centerLeft,
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.black, size: 28),
-                onPressed: () {
-                  Navigator.pop(context); // Go back to the previous screen
-                },
+          Align(
+            alignment: Alignment.centerLeft,
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.black, size: 28),
+              onPressed: () {
+                Navigator.pop(context); // Go back to the previous screen
+              },
+            ),
+          ),
+
+          const Center(
+            child: Text(
+              'Lista antrenorilor',
+              style: TextStyle(
+                fontSize: 25,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
               ),
             ),
+          ),
 
-            const Center(
-              child: Text(
-                'Lista antrenorilor',
-                style: TextStyle(
-                  fontSize: 25,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
+          if(widget.invitationStatus == 'Pending')
+          Expanded(
+            child: CustomCoachesList(
+              userUUID: widget.userUUID,
+              competitionUUID: widget.competitionUUID,
+              competitionDeadline: widget.competitionDeadline, coaches: wrestlingClubCoaches,
             ),
-
+          )
+          else
             Expanded(
-              child: CustomCoachesList(
+              child: CustomListCoachesRespond(
                 userUUID: widget.userUUID,
                 competitionUUID: widget.competitionUUID,
-                competitionDeadline: widget.competitionDeadline, coaches: wrestlingClubCoaches,
+                coaches: wrestlingClubCoaches,
               ),
             ),
-          ],
-        ),
+        ],
       ),
     );
   }

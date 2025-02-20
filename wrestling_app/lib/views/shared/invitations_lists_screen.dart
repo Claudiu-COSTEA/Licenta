@@ -88,6 +88,9 @@ class _InvitationsListsScreenState extends State<InvitationsListsScreen> {
         _isLoading = false;
       });
     }
+
+    setState(() {
+    });
   }
 
   @override
@@ -120,8 +123,10 @@ class _InvitationsListsScreenState extends State<InvitationsListsScreen> {
               ),
             ),
             Expanded(
-              child: CustomList(items: pendingCompetitions, userUUID: widget.user!.userUUID, userType: widget.user!.userType),
+              child: CustomList(items: pendingCompetitions, userUUID: widget.user!.userUUID, userType: widget.user!.userType, onRefresh: _fetchInvitations,),
             ),
+
+            const SizedBox(height: 10),
             const Center(
               child: Text(
                 'Lista invitații cu răspuns',
@@ -129,7 +134,7 @@ class _InvitationsListsScreenState extends State<InvitationsListsScreen> {
               ),
             ),
             Expanded(
-              child: CustomList(items: respondedCompetitions, userUUID: widget.user!.userUUID, userType: widget.user!.userType),
+              child: CustomList(items: respondedCompetitions, userUUID: widget.user!.userUUID, userType: widget.user!.userType, onRefresh: _fetchInvitations,),
             ),
           ],
         ),

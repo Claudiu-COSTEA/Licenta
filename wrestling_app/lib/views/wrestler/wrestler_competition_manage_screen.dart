@@ -9,17 +9,17 @@ import 'package:wrestling_app/views/wrestling_club/coach_selection_list.dart';
 import 'package:wrestling_app/services/google_maps_lunch.dart';
 
 
-class CoachCompetitionManageScreen extends StatefulWidget {
+class WrestlerCompetitionManageScreen extends StatefulWidget {
   final Map<String, dynamic> competitionInvitation;
   final int userUUID;
 
-  const CoachCompetitionManageScreen({required this.competitionInvitation, super.key, required this.userUUID});
+  const WrestlerCompetitionManageScreen({required this.competitionInvitation, super.key, required this.userUUID});
 
   @override
-  State<CoachCompetitionManageScreen> createState() => _CoachCompetitionManageScreen();
+  State<WrestlerCompetitionManageScreen> createState() => _WrestlerCompetitionManageScreen();
 }
 
-class _CoachCompetitionManageScreen extends State<CoachCompetitionManageScreen> {
+class _WrestlerCompetitionManageScreen extends State<WrestlerCompetitionManageScreen> {
 
   final CoachService _coachService = CoachService();
   final bool _isLoading = false;
@@ -43,7 +43,8 @@ class _CoachCompetitionManageScreen extends State<CoachCompetitionManageScreen> 
                 icon: const Icon(
                     Icons.arrow_back, color: Colors.black, size: 28),
                 onPressed: () {
-                  Navigator.pop(context); // Go back to the previous screen
+                  //Navigator.pop(context); // Go back to the previous screen
+                  Navigator.of(context).pop();
                 },
               ),
             ),
@@ -108,19 +109,6 @@ class _CoachCompetitionManageScreen extends State<CoachCompetitionManageScreen> 
             ),
 
             const SizedBox(height: 100),
-
-            // Selection Button
-            _buildActionButton( invitation['invitation_status'] == "Pending" ? "Selectia luptatorilor" : "Luptatori selectati", () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) =>
-                    WrestlersSelectionList(widget.userUUID,
-                      competitionUUID: invitation['competition_UUID'],
-                      competitionDeadline: invitation['invitation_deadline'],
-                      invitationStatus: invitation['invitation_status'],)), // Replace HomePage with your destination
-              );
-            }),
-
 
             const SizedBox(height: 15),
 

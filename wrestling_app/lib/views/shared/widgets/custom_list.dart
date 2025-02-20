@@ -6,8 +6,15 @@ class CustomList extends StatelessWidget {
   final List<Map<String, dynamic>> items; // List of competition invitations
   final int userUUID;
   final String userType;
+  final VoidCallback onRefresh; // ✅ Callback to refresh the parent screen
 
-  const CustomList({super.key, required this.items, required this.userUUID, required this.userType});
+  const CustomList({
+    super.key,
+    required this.items,
+    required this.userUUID,
+    required this.userType,
+    required this.onRefresh, // ✅ Receive callback
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +55,9 @@ class CustomList extends StatelessWidget {
                         userUUID: userUUID,
                       ),
                     ),
-                  );
+                  ).then((_) {
+                    onRefresh(); // ✅ Refresh parent screen after returning
+                  });
                 } else if (userType == "Coach") {
                   Navigator.push(
                     context,
@@ -58,7 +67,9 @@ class CustomList extends StatelessWidget {
                         userUUID: userUUID,
                       ),
                     ),
-                  );
+                  ).then((_) {
+                    onRefresh(); // ✅ Refresh parent screen after returning
+                  });
                 } else {
                   // Default fallback if userType doesn't match any known type
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -69,7 +80,6 @@ class CustomList extends StatelessWidget {
                   );
                 }
               },
-
             ),
           ),
         );

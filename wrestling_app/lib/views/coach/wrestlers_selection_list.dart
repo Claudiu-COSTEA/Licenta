@@ -3,14 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:wrestling_app/services/coach_apis_services.dart';
 import 'package:wrestling_app/views/shared/widgets/custom_list_wrestlers.dart';
 import '../shared/widgets/custom_list_coaches.dart';
+import '../shared/widgets/custom_list_wrestler_respond.dart';
 
 class WrestlersSelectionList extends StatefulWidget {
   final int userUUID;
   final int competitionUUID;
   final String competitionDeadline;
+  final String invitationStatus;
 
   const WrestlersSelectionList(
-      this.userUUID, {super.key, required this.competitionUUID, required this.competitionDeadline}
+      this.userUUID, {super.key, required this.competitionUUID, required this.competitionDeadline, required this.invitationStatus}
       );
 
   @override
@@ -82,13 +84,23 @@ class _WrestlersSelectionList extends State<WrestlersSelectionList> {
               ),
             ),
 
-            Expanded(
-              child: CustomWrestlersList(
-                userUUID: widget.userUUID,
-                competitionUUID: widget.competitionUUID,
-                competitionDeadline: widget.competitionDeadline, wrestlers: coachWrestlers,
+
+            if(widget.invitationStatus == 'Pending')
+              Expanded(
+                child: CustomWrestlersList(
+                  userUUID: widget.userUUID,
+                  competitionUUID: widget.competitionUUID,
+                  competitionDeadline: widget.competitionDeadline, wrestlers: coachWrestlers,
+                ),
+              )
+            else
+              Expanded(
+                child: CustomListWrestlerRespond(
+                  userUUID: widget.userUUID,
+                  competitionUUID: widget.competitionUUID,
+                  wrestlers: coachWrestlers,
+                ),
               ),
-            ),
           ],
         ),
       ),
