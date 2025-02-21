@@ -1,10 +1,5 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:wrestling_app/services/coach_apis_services.dart';
-import 'package:wrestling_app/views/coach/wrestlers_selection_list.dart';
-import 'package:wrestling_app/views/wrestling_club/coach_selection_list.dart';
+import 'package:wrestling_app/services/wrestler_apis_services.dart';
 
 import 'package:wrestling_app/services/google_maps_lunch.dart';
 
@@ -21,7 +16,7 @@ class WrestlerCompetitionManageScreen extends StatefulWidget {
 
 class _WrestlerCompetitionManageScreen extends State<WrestlerCompetitionManageScreen> {
 
-  final CoachService _coachService = CoachService();
+  final WrestlerService _wrestlerService = WrestlerService();
   final bool _isLoading = false;
 
   @override
@@ -87,6 +82,17 @@ class _WrestlerCompetitionManageScreen extends State<WrestlerCompetitionManageSc
 
             const SizedBox(height: 30),
 
+            // Invitation Deadline
+            _buildInfoBox(
+              child: Text(
+                "Categoria de greutate : ${invitation['weight_category']} Kg",
+                style: const TextStyle(
+                    fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+
+            const SizedBox(height: 30),
+
             // Location Button
             ElevatedButton.icon(
               onPressed: () {
@@ -119,7 +125,7 @@ class _WrestlerCompetitionManageScreen extends State<WrestlerCompetitionManageSc
                 children: [
                   Expanded( // Ensures buttons take equal width
                     child: _buildActionButton("Accepta", () {
-                      _coachService.updateCoachInvitationStatus(
+                      _wrestlerService.updateWrestlerInvitationStatus(
                         context: context,
                         competitionUUID: invitation['competition_UUID'],
                         recipientUUID: widget.userUUID,
@@ -131,7 +137,7 @@ class _WrestlerCompetitionManageScreen extends State<WrestlerCompetitionManageSc
                   const SizedBox(width: 10), // Spacing between buttons
                   Expanded(
                     child: _buildActionButton("Refuza", () {
-                      _coachService.updateCoachInvitationStatus(
+                      _wrestlerService.updateWrestlerInvitationStatus(
                         context: context,
                         competitionUUID: invitation['competition_UUID'],
                         recipientUUID: widget.userUUID,

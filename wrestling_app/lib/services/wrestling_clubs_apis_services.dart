@@ -42,6 +42,8 @@ class WrestlingClubService {
     }
   }
 
+
+
   Future<void> updateWrestlingClubInvitationStatus({
     required BuildContext context,
     required int competitionUUID,

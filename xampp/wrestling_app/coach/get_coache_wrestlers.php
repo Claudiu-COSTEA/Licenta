@@ -24,6 +24,7 @@ try {
             w.wrestler_UUID,
             u.user_full_name AS wrestler_name,
             w.wrestling_style,
+            ci.weight_category,
             ci.invitation_status
         FROM wrestlers w
         JOIN users u ON w.wrestler_UUID = u.user_UUID

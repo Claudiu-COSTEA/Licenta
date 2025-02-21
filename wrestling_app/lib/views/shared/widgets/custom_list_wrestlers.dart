@@ -62,6 +62,7 @@ class _CustomWrestlersListState extends State<CustomWrestlersList> {
             itemCount: filteredWrestlers.length,
             itemBuilder: (context, index) {
               final wrestler = filteredWrestlers[index];
+              TextEditingController weightController = TextEditingController(); // Controller for weight category
 
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -75,22 +76,83 @@ class _CustomWrestlersListState extends State<CustomWrestlersList> {
                       wrestler['wrestler_name'],
                       style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
                     ),
-                    subtitle: Text(
-                      "Status: ${wrestler['invitation_status'] ?? "Not Invited"}",
-                      style: const TextStyle(color: Colors.white70),
-                    ),
-                    trailing: ElevatedButton(
-                      onPressed: wrestler['invitation_status'] == null
-                          ? () => _onSelectWrestler(context, wrestler['wrestler_UUID'])
-                          : null, // Disable button if already invited
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: wrestler['invitation_status'] == null ? Colors.black : Colors.grey,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                      ),
-                      child: const Text(
-                        "Trimite invitație",
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                      ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start, // Ensures items align properly
+                          children: [
+                            Text(
+                              "Status: ${wrestler['invitation_status'] ?? "Not Invited"}",
+                              style: const TextStyle(color: Colors.white70),
+                            ),
+
+                            const SizedBox(width: 110), // Add spacing between status and weight category
+
+                            if (wrestler["weight_category"] != null)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: Colors.black,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  "${wrestler["weight_category"]} Kg", // Concatenated with "Kg"
+                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 5), // Space between status and input field
+
+                        // **Weight Category Input Field**
+                        if (wrestler["weight_category"] == null)
+                        TextField(
+                          controller: weightController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.white,
+                            hintText: "Introduceți categoria de greutate",
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: const BorderSide(color: Colors.black),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          ),
+                        ),
+
+                        const SizedBox(height: 10), // **⬆️ Space added here between input & button**
+
+                        // **Invitation Button (Now Moved Up)**
+                          if (wrestler["weight_category"] == null)
+                          ElevatedButton(
+                            onPressed: () {
+                              String weightCategory = weightController.text.trim();
+                              if (weightCategory.isNotEmpty) {
+                                _onSelectWrestler(context, wrestler['wrestler_UUID'], weightCategory);
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("Introduceți o categorie de greutate!"),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            }
+                                , // Disable button if already invited
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: wrestler['invitation_status'] == null ? Colors.black : Colors.grey,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                            ),
+                            child: const Text(
+                              "Trimite invitație",
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          const SizedBox(width: 96), // Add some spacing between button and weight category
+                      ],
                     ),
                   ),
                 ),
@@ -132,8 +194,7 @@ class _CustomWrestlersListState extends State<CustomWrestlersList> {
     );
   }
 
-  // **Handles Sending Wrestler Invitation**
-  void _onSelectWrestler(BuildContext context, int wrestlerUUID) async {
+  void _onSelectWrestler(BuildContext context, int wrestlerUUID, String weightCategory) async {
     String apiUrl = "http://192.168.0.154/wrestling_app/coach/post_wrestler_invitation.php";
 
     try {
@@ -160,6 +221,7 @@ class _CustomWrestlersListState extends State<CustomWrestlersList> {
           "competition_UUID": widget.competitionUUID,
           "recipient_UUID": wrestlerUUID,
           "invitation_deadline": formattedDeadline,
+          "weight_category": weightCategory, // Added weight category
         }),
       );
 
@@ -175,6 +237,7 @@ class _CustomWrestlersListState extends State<CustomWrestlersList> {
             int index = widget.wrestlers.indexWhere((c) => c['wrestler_UUID'] == wrestlerUUID);
             if (index != -1) {
               widget.wrestlers[index]['invitation_status'] = "Pending"; // Update directly
+              widget.wrestlers[index]['weight_category'] = weightCategory; // Update weight category
             }
           });
         } else {
@@ -196,4 +259,5 @@ class _CustomWrestlersListState extends State<CustomWrestlersList> {
       }
     }
   }
+
 }
