@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:wrestling_app/views/shared/widgets/custom_list.dart';
 import '../../models/competition_invitation_model.dart';
 import '../../services/invitations_services.dart'; // Adjust path if necessary
 import '../../models/user_model.dart';
+import 'package:wrestling_app/services/auth_service.dart';
 
 class InvitationsListsScreen extends StatefulWidget {
   final UserModel? user;
@@ -15,7 +17,7 @@ class InvitationsListsScreen extends StatefulWidget {
 
 class _InvitationsListsScreenState extends State<InvitationsListsScreen> {
   final InvitationsService _eventsService = InvitationsService();
-
+  final AuthService _authService = AuthService();
   List<Map<String, dynamic>> pendingCompetitions = [];
   List<Map<String, dynamic>> respondedCompetitions = [];
   bool _isLoading = true;
@@ -32,7 +34,9 @@ class _InvitationsListsScreenState extends State<InvitationsListsScreen> {
       List<CompetitionInvitation> invitations =
       await _eventsService.fetchInvitations(widget.user!.userUUID);
 
-      print(invitations);
+      if (kDebugMode) {
+        print(invitations);
+      }
 
       setState(() {
         // Separate pending invitations (invitationStatus == "Pending")
@@ -55,7 +59,6 @@ class _InvitationsListsScreenState extends State<InvitationsListsScreen> {
         })
             .toList();
 
-
         // Separate responded invitations (invitationStatus != "Pending")
         respondedCompetitions = invitations
             .where((invitation) => invitation.invitationStatus != 'Pending')
@@ -77,56 +80,66 @@ class _InvitationsListsScreenState extends State<InvitationsListsScreen> {
             .toList();
       });
     } catch (e) {
-      print('Error fetching invitations: $e');
+      if (kDebugMode) {
+        print('Error fetching invitations: $e');
+      }
     } finally {
       setState(() {
         _isLoading = false;
       });
     }
-  }
 
+    setState(() {
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.black),
+            onPressed: () => _authService.signOut(context), 
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: _isLoading
-            ? Center(child: CircularProgressIndicator())
+            ? const Center(child: CircularProgressIndicator())
             : Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: 40),
-            Center(
+            const SizedBox(height: 10),
+            const Center(
               child: Text(
-                'Lista invitatii fara raspuns',
-                style: TextStyle(
-                  fontSize: 25,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
+                'Lista invitații fără răspuns',
+                style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.black),
               ),
             ),
             Expanded(
-              child: CustomList(items: pendingCompetitions),
+              child: CustomList(items: pendingCompetitions, userUUID: widget.user!.userUUID, userType: widget.user!.userType, onRefresh: _fetchInvitations,),
             ),
-            Center(
+
+            const SizedBox(height: 10),
+            const Center(
               child: Text(
-                'Lista invitatii cu raspuns',
-                style: TextStyle(
-                  fontSize: 25,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
+                'Lista invitații cu răspuns',
+                style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.black),
               ),
             ),
             Expanded(
-              child: CustomList(items: respondedCompetitions),
+              child: CustomList(items: respondedCompetitions, userUUID: widget.user!.userUUID, userType: widget.user!.userType, onRefresh: _fetchInvitations,),
             ),
           ],
         ),
       ),
     );
   }
+
 }

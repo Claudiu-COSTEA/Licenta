@@ -1,57 +1,18 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-class WrestlingClubService {
-  final String _baseUrl = 'http://192.168.0.154/wrestling_app/wrestling_club/get_wrestling_club_coaches.php';
+class WrestlerService {
+  final String _baseUrl =
+      'http://192.168.0.154/wrestling_app/post_invitation_response.php';
 
-  Future<List<Map<String, dynamic>>> fetchCoachesForClub(int wrestlingClubUUID,
-      int competitionUUID) async {
-    try {
-      final response = await http.get(
-        Uri.parse(
-            '$_baseUrl?wrestling_club_UUID=$wrestlingClubUUID&competition_UUID=$competitionUUID'),
-      );
-
-      if (response.statusCode == 200) {
-        var decodedResponse = json.decode(response.body);
-
-        // 🔹 Check if the response contains an error message
-        if (decodedResponse is Map<String, dynamic> &&
-            decodedResponse.containsKey("error")) {
-          throw Exception(decodedResponse["error"]);
-        }
-
-        // 🔹 Ensure it's a List before mapping
-        if (decodedResponse is List) {
-          return decodedResponse.map((coach) =>
-          Map<String, dynamic>.from(coach)).toList();
-        } else {
-          throw Exception("Unexpected API response format.");
-        }
-      } else {
-        throw Exception(
-            'Failed to load coaches. Status code: ${response.statusCode}');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error fetching coaches: $e');
-      }
-      return [];
-    }
-  }
-
-
-
-  Future<void> updateWrestlingClubInvitationStatus({
+  Future<void> updateWrestlerInvitationStatus({
     required BuildContext context,
     required int competitionUUID,
     required int recipientUUID,
     required String recipientRole,
     required String invitationStatus,
   }) async {
-    String apiUrl = "http://192.168.0.154/wrestling_app/post_invitation_response.php"; // Update with your API URL
 
     try {
       // Show loading indicator
@@ -63,7 +24,7 @@ class WrestlingClubService {
 
       // Prepare request body
       final response = await http.post(
-        Uri.parse(apiUrl),
+        Uri.parse(_baseUrl),
         headers: {"Content-Type": "application/json"},
         body: json.encode({
           "competition_UUID": competitionUUID,
@@ -106,5 +67,4 @@ class WrestlingClubService {
       );
     }
   }
-
 }

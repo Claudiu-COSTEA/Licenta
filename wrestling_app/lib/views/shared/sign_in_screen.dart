@@ -29,7 +29,7 @@ class SignInScreen extends StatelessWidget {
       );
 
       // Navigate to the next screen
-      Navigator.pushReplacement(
+      Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => InvitationsListsScreen(user: userModel)), // Replace HomePage with your destination
       );
