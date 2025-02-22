@@ -138,4 +138,42 @@ class RefereeServices {
   }
 
 
+  Future<bool> updateRefereeVerification({
+    required int competitionUUID,
+    required int recipientUUID,
+    required String recipientRole,
+    required String refereeVerification, // Allowed values: "Confirmed", "Declined"
+  }) async {
+    final String url = '${AppConstants.baseUrl}/referee/post_wrestler_verification_status.php';
+
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {"Content-Type": "application/json"},
+        body: json.encode({
+          "competition_UUID": competitionUUID,
+          "recipient_UUID": recipientUUID,
+          "recipient_role": recipientRole,
+          "referee_verification": refereeVerification, // "Confirmed" or "Declined"
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+
+        if (responseData.containsKey("success")) {
+          return true; // Update successful
+        } else {
+          throw Exception(responseData["error"] ?? "Unknown error");
+        }
+      } else {
+        throw Exception("Failed to update referee verification. Status: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Error updating referee verification: $e");
+      return false;
+    }
+  }
+
+
 }

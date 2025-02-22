@@ -17,6 +17,7 @@ class CustomWrestlersVerificationList extends StatefulWidget {
 
 class _CustomWrestlersVerificationList extends State<CustomWrestlersVerificationList> {
   late Future<List<WrestlerVerification>> _wrestlers;
+  final RefereeServices _refereeServices = RefereeServices();
 
 
   @override
@@ -27,7 +28,7 @@ class _CustomWrestlersVerificationList extends State<CustomWrestlersVerification
 
   void _fetchWrestlers() {
     setState(() {
-      _wrestlers = RefereeServices().fetchWrestlers(widget.wrestlingStyle, widget.weightCategory, widget.competitionUUID);
+      _wrestlers = _refereeServices.fetchWrestlers(widget.wrestlingStyle, widget.weightCategory, widget.competitionUUID);
     });
   }
 
@@ -92,13 +93,16 @@ class _CustomWrestlersVerificationList extends State<CustomWrestlersVerification
                               const SizedBox(height: 10), // Space before buttons
 
                               // Buttons Row
-                              // Buttons Row
+                              if(wrestler.refereeVerification == null)
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: [
                                   Expanded(
                                     child: ElevatedButton(
-                                      onPressed: () => {}, // Add function here
+                                      onPressed: () => {
+                                        _refereeServices.updateRefereeVerification(competitionUUID: widget.competitionUUID,
+                                            recipientUUID: wrestler.wrestlerUUID, recipientRole: 'Wrestler', refereeVerification: "Confirmed")
+                                      }, // Add function here
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.black,
                                         // shape: RoundedRectangleBorder(
@@ -130,7 +134,17 @@ class _CustomWrestlersVerificationList extends State<CustomWrestlersVerification
                                     ),
                                   ),
                                 ],
-                              ),
+                              ) else if (wrestler.refereeVerification == 'Confirmed')
+                                Text(
+                                  'Status verificare: Confirmat',
+                                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 18),
+                                ) else if (wrestler.refereeVerification == 'Declined')
+                                  Text(
+                                    'Status verificare: Refuzat',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 18),
+                                  ),
+
+
                             ],
                           ),
                         ),

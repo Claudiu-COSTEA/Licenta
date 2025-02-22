@@ -9,6 +9,7 @@ class WrestlerVerification {
   final String wrestlingClubName;
   final int competitionUUID;
   final String competitionName;
+  final String? refereeVerification;
 
   WrestlerVerification({
     required this.wrestlerUUID,
@@ -21,6 +22,7 @@ class WrestlerVerification {
     required this.wrestlingClubName,
     required this.competitionUUID,
     required this.competitionName,
+    this.refereeVerification,
   });
 
   // Factory method to create a WrestlerVerification object from JSON
@@ -36,6 +38,7 @@ class WrestlerVerification {
       wrestlingClubName: json['wrestling_club_name'],
       competitionUUID: json['competition_UUID'],
       competitionName: json['competition_name'],
+      refereeVerification: json['referee_verification'],
     );
   }
 }

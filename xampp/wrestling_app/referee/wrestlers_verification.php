@@ -33,7 +33,8 @@ try {
             wu_club.user_full_name AS wrestling_club_name,
             comp.competition_UUID,
             comp.competition_name,
-            ci.invitation_status  -- ✅ Added invitation status field
+            ci.invitation_status,
+            ci.referee_verification
         FROM wrestlers w
         JOIN users wu ON w.wrestler_UUID = wu.user_UUID
         JOIN coaches c ON w.coach_UUID = c.coach_UUID
