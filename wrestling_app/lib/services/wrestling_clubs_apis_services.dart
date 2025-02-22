@@ -2,9 +2,10 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:wrestling_app/services/constants.dart';
 
 class WrestlingClubService {
-  final String _baseUrl = 'http://192.168.0.154/wrestling_app/wrestling_club/get_wrestling_club_coaches.php';
+  final String _baseUrl = '${AppConstants.baseUrl}/wrestling_club/get_wrestling_club_coaches.php';
 
   Future<List<Map<String, dynamic>>> fetchCoachesForClub(int wrestlingClubUUID,
       int competitionUUID) async {
@@ -51,7 +52,7 @@ class WrestlingClubService {
     required String recipientRole,
     required String invitationStatus,
   }) async {
-    String apiUrl = "http://192.168.0.154/wrestling_app/post_invitation_response.php"; // Update with your API URL
+    String apiUrl = '${AppConstants.baseUrl}/post_invitation_response.php'; // Update with your API URL
 
     try {
       // Show loading indicator
@@ -98,8 +99,10 @@ class WrestlingClubService {
         );
       }
     } catch (e) {
-      if (context.mounted) Navigator.pop(
+      if (context.mounted) {
+        Navigator.pop(
           context); // Close loading dialog if error occurs
+      }
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),

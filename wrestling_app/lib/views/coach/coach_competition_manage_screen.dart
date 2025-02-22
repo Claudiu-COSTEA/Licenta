@@ -1,11 +1,6 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:wrestling_app/services/coach_apis_services.dart';
 import 'package:wrestling_app/views/coach/wrestlers_selection_list.dart';
-import 'package:wrestling_app/views/wrestling_club/coach_selection_list.dart';
-
 import 'package:wrestling_app/services/google_maps_lunch.dart';
 
 

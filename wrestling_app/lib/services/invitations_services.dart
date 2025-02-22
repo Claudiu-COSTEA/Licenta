@@ -2,9 +2,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/competition_invitation_model.dart';
+import 'package:wrestling_app/services/constants.dart';
 
 class InvitationsService {
-  final String _baseUrl = 'http://192.168.0.154/wrestling_app/get_invitations.php';
+  final String _baseUrl = '${AppConstants.baseUrl}/get_invitations.php';
 
   Future<List<CompetitionInvitation>> fetchInvitations(int recipientUUID) async {
     try {

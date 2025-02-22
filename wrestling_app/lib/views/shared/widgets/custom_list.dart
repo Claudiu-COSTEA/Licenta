@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wrestling_app/views/referee/referee_competition_manage_screen.dart';
 import 'package:wrestling_app/views/wrestler/wrestler_competition_manage_screen.dart';
 import '../../coach/coach_competition_manage_screen.dart';
 import '../../wrestling_club/wrestling_club_competition_manage_screen.dart';
@@ -76,6 +77,18 @@ class CustomList extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (context) => WrestlerCompetitionManageScreen(
+                        competitionInvitation: item,
+                        userUUID: userUUID,
+                      ),
+                    ),
+                  ).then((_) {
+                    onRefresh(); // ✅ Refresh parent screen after returning
+                  });
+                } else if (userType == "Referee") {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => RefereeCompetitionManageScreen(
                         competitionInvitation: item,
                         userUUID: userUUID,
                       ),

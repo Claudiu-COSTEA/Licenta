@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:wrestling_app/services/constants.dart';
 
 class CustomCoachesList extends StatefulWidget {
   final List<Map<String, dynamic>> coaches;
@@ -146,7 +147,7 @@ class _CustomCoachesListState extends State<CustomCoachesList> {
 
   // **Handles Sending Coach Invitation**
   void _onSelectCoach(BuildContext context, int coachUUID) async {
-    String apiUrl = "http://192.168.0.154/wrestling_app/wrestling_club/post_coach_invitation.php";
+    String apiUrl = "'${AppConstants.baseUrl}/wrestling_club/post_coach_invitation.php";
 
     try {
       // Convert String deadline to DateTime

@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:wrestling_app/services/constants.dart';
 
 class CoachService {
-  final String _baseUrl =
-      'http://192.168.0.154/wrestling_app/coach/get_coache_wrestlers.php';
+  final String _baseUrl = '${AppConstants.baseUrl}/coach/get_coache_wrestlers.php';
 
   Future<List<Map<String, dynamic>>> fetchWrestlersForCoach(int coachUUID,
       int competitionUUID) async {

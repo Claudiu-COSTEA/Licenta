@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:wrestling_app/services/constants.dart';
 
 class WrestlerService {
-  final String _baseUrl =
-      'http://192.168.0.154/wrestling_app/post_invitation_response.php';
+  final String _baseUrl = '${AppConstants.baseUrl}/post_invitation_response.php';
 
   Future<void> updateWrestlerInvitationStatus({
     required BuildContext context,

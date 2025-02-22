@@ -195,7 +195,7 @@ class _CustomWrestlersListState extends State<CustomWrestlersList> {
   }
 
   void _onSelectWrestler(BuildContext context, int wrestlerUUID, String weightCategory) async {
-    String apiUrl = "http://192.168.0.154/wrestling_app/coach/post_wrestler_invitation.php";
+    String apiUrl = "http://192.168.0.181/wrestling_app/coach/post_wrestler_invitation.php";
 
     try {
       // Convert String deadline to DateTime

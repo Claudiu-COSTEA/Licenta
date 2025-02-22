@@ -2,9 +2,10 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/user_model.dart';
+import 'package:wrestling_app/services/constants.dart';
 
 class UserService {
-  final String _baseUrl = 'http://192.168.0.154/wrestling_app/get_user.php';
+  final String _baseUrl = '${AppConstants.baseUrl}/get_user.php';
 
   Future<UserModel?> fetchUserByEmail(String email) async {
     try {

@@ -14,7 +14,8 @@ try {
     $data = json_decode(file_get_contents("php://input"), true);
 
     // Check required fields
-    if (!isset($data['competition_UUID']) || !isset($data['recipient_UUID']) || !isset($data['invitation_deadline'])) {
+    if (!isset($data['competition_UUID']) || !isset($data['recipient_UUID']) || 
+        !isset($data['invitation_status']) || !isset($data['weight_category'])) {
         echo json_encode(["error" => "Missing required fields"]);
         exit;
     }
@@ -22,35 +23,49 @@ try {
     // Extract data from request
     $competitionUUID = $data['competition_UUID'];
     $recipientUUID = $data['recipient_UUID'];
-    $invitationDeadline = $data['invitation_deadline'];
-    $invitationDate = date('Y-m-d H:i:s'); // Current timestamp
-    $invitationStatus = "Pending"; // Default status
-    $recipientRole = "Wrestler"; // Since we're inviting a wrestler
+    $newInvitationStatus = $data['invitation_status'];
+    $newWeightCategory = $data['weight_category'];
+    $invitationResponseDate = date('Y-m-d H:i:s'); // Current timestamp
 
-    // Insert invitation into database
-    $stmt = $conn->prepare("
-        INSERT INTO competitions_invitations (
-            competition_UUID, recipient_UUID, recipient_role, 
-            invitation_status, invitation_date, invitation_deadline
-        ) VALUES (
-            :competitionUUID, :recipientUUID, :recipientRole, 
-            :invitationStatus, :invitationDate, :invitationDeadline
-        )
+    // Check if the invitation is in "Pending" status
+    $checkStmt = $conn->prepare("
+        SELECT invitation_status FROM competitions_invitations 
+        WHERE competition_UUID = :competitionUUID AND recipient_UUID = :recipientUUID AND recipient_role = 'Wrestler'
+    ");
+    $checkStmt->bindParam(':competitionUUID', $competitionUUID, PDO::PARAM_INT);
+    $checkStmt->bindParam(':recipientUUID', $recipientUUID, PDO::PARAM_INT);
+    $checkStmt->execute();
+    $currentInvitation = $checkStmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$currentInvitation) {
+        echo json_encode(["error" => "Invitation not found"]);
+        exit;
+    }
+
+    if ($currentInvitation['invitation_status'] !== "Pending") {
+        echo json_encode(["error" => "Invitation status is not 'Pending' and cannot be updated"]);
+        exit;
+    }
+
+    // Update the invitation status and weight category
+    $updateStmt = $conn->prepare("
+        UPDATE competitions_invitations 
+        SET invitation_status = :newInvitationStatus, 
+            weight_category = :newWeightCategory, 
+            invitation_response_date = :invitationResponseDate
+        WHERE competition_UUID = :competitionUUID AND recipient_UUID = :recipientUUID AND recipient_role = 'Wrestler'
     ");
 
-    // Bind parameters
-    $stmt->bindParam(':competitionUUID', $competitionUUID, PDO::PARAM_INT);
-    $stmt->bindParam(':recipientUUID', $recipientUUID, PDO::PARAM_INT);
-    $stmt->bindParam(':recipientRole', $recipientRole, PDO::PARAM_STR);
-    $stmt->bindParam(':invitationStatus', $invitationStatus, PDO::PARAM_STR);
-    $stmt->bindParam(':invitationDate', $invitationDate, PDO::PARAM_STR);
-    $stmt->bindParam(':invitationDeadline', $invitationDeadline, PDO::PARAM_STR);
+    $updateStmt->bindParam(':newInvitationStatus', $newInvitationStatus, PDO::PARAM_STR);
+    $updateStmt->bindParam(':newWeightCategory', $newWeightCategory, PDO::PARAM_STR);
+    $updateStmt->bindParam(':invitationResponseDate', $invitationResponseDate, PDO::PARAM_STR);
+    $updateStmt->bindParam(':competitionUUID', $competitionUUID, PDO::PARAM_INT);
+    $updateStmt->bindParam(':recipientUUID', $recipientUUID, PDO::PARAM_INT);
 
-    // Execute query
-    if ($stmt->execute()) {
-        echo json_encode(["success" => "Invitation sent successfully to wrestler"]);
+    if ($updateStmt->execute()) {
+        echo json_encode(["success" => "Invitation updated successfully"]);
     } else {
-        echo json_encode(["error" => "Failed to send invitation"]);
+        echo json_encode(["error" => "Failed to update invitation"]);
     }
 } catch (PDOException $e) {
     echo json_encode(["error" => $e->getMessage()]);

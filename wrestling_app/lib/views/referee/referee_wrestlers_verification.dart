@@ -1,0 +1,85 @@
+import 'package:flutter/material.dart';
+import 'package:wrestling_app/views/shared/widgets/custom_wrestlers_verification_list.dart';
+
+import '../../models/wrestler_verification_model.dart';
+import '../../services/referee_api_services.dart';
+
+class RefereeWrestlersVerification extends StatefulWidget {
+
+  final String wrestlerStyle;
+  final String wrestlerWeightCategory;
+  final int competitionUUID;
+
+  const RefereeWrestlersVerification({super.key, required this.wrestlerStyle, required this.wrestlerWeightCategory, required this.competitionUUID});
+
+  @override
+  State<RefereeWrestlersVerification> createState() => _RefereeWrestlersVerificationState();
+}
+
+class _RefereeWrestlersVerificationState extends State<RefereeWrestlersVerification> {
+
+  late bool _isLoading = false;
+
+  List<WrestlerVerification> wrestlerVerification = [];
+  final RefereeServices _refereeService = RefereeServices();
+
+
+  @override
+  void initState() {
+    super.initState();
+    fetchAndSetWeightCategories();
+  }
+
+  // ✅ Function to fetch weight categories and update state
+  Future<void> fetchAndSetWeightCategories() async {
+    try {
+      List<WrestlerVerification> wrestlers = await _refereeService.fetchWrestlers(widget.wrestlerStyle, widget.wrestlerWeightCategory, widget.competitionUUID);
+      setState(() {
+        wrestlerVerification = wrestlers;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      print('Error fetching weight categories: $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        backgroundColor: Colors.white,
+        body: Padding(
+        padding: const EdgeInsets.only(left: 16.0, top: 50.0, right: 16.0, bottom: 16.0),
+    child: _isLoading
+    ? const Center(child: CircularProgressIndicator())
+        : Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+
+    Align(
+    alignment: Alignment.centerLeft,
+    child: IconButton(
+    icon: const Icon(Icons.arrow_back, color: Colors.black, size: 28),
+    onPressed: () {
+    Navigator.pop(context); // Go back to the previous screen
+    },
+    ),
+    ),
+      const SizedBox(height: 10),
+      Center(
+        child: Text(
+          'Lista luptatori ${widget.wrestlerWeightCategory} Kg',
+          style: const TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.black),
+        ),
+      ),
+      Expanded(
+        child: CustomWrestlersVerificationList(competitionUUID: widget.competitionUUID, weightCategory: widget.wrestlerWeightCategory, wrestlingStyle: widget.wrestlerStyle,),
+      ),
+          ],
+    ),
+    ),
+    );
+  }
+}

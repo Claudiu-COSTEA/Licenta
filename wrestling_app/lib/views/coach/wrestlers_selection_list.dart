@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:wrestling_app/services/coach_apis_services.dart';
 import 'package:wrestling_app/views/shared/widgets/custom_list_wrestlers.dart';
-import '../shared/widgets/custom_list_coaches.dart';
 import '../shared/widgets/custom_list_wrestler_respond.dart';
 
 class WrestlersSelectionList extends StatefulWidget {
