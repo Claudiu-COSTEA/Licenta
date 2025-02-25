@@ -20,7 +20,7 @@ class _InvitationsListsScreenState extends State<InvitationsListsScreen> {
   final AuthService _authService = AuthService();
   List<Map<String, dynamic>> pendingCompetitions = [];
   List<Map<String, dynamic>> respondedCompetitions = [];
-  bool _isLoading = true;
+  bool _isLoading = false;
 
   @override
   void initState() {

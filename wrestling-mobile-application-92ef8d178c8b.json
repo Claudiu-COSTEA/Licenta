@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "wrestling-mobile-application",
+  "private_key_id": "92ef8d178c8ba89c8dc79cd35a6eb2f469757db5",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDY3jTPzGCRR7bb\nbqJjd/KGg3uwieLmdEDuvNywje+G6K1RUd41axq+piCPDiP2LexqMZsO6ozTi3VW\nzwq69r3itNn8z8mgoOV0QCCwaJUyws9LBVk+2sKrjbn+aYQMOZPmSuqTy4VFzPHU\nCSUMJDJrJkp6NMQTz0mJKV4rtXq4Q/d9z5WavLbGVXVCgKW3nrow72MNCFFlbqme\nPZq0DtxalKp4GMoRtzPbTe9rHB2fEsj7xMwbNIR2DxSQc1oKIIYL7V+gh32n5fIk\nBM3oag3Xj9JnGRLOqVzVEu1ZGcC7PMFtq9ZcejZq756/NNfpJ1xbPrxnbjDyX+i4\nY3eNQ7EpAgMBAAECggEAAzYmylyoELSR899us23TYmyq30Q3eMN/mLucW8ZfpeA4\nHxvRgnFNyE3iEGIi+W4g1g5aXqsyB5av2/jBpBK4gureI3lXQ/69cUW4+WeJvnwU\nBXyJ8MgQDpSu7sA25sXHCuey4BpTz2dCaIfz7/Joi5leDFlYUwAK7QVQl2klV5x+\n8ZZham71avyrfvnnfbG5KUILBJXyRpY5VI6beiOULcMb1GJ6uHpwiJRSgj703lGx\n1iZZ66nfUPWhz/9HDmZ9G9iaxYD38TXyQRmXfg9nidd8i/oO+G0yHsPrfk/fT0kJ\nG6bMtfemRjt1gJuk2ejNIk9UErbWRa9+szRSch3BxQKBgQDudtife6+EnNhiIubd\n5nCeI0JnuE6jQHKcK5drNnz/+4gKtbpocd9f6ceBLj3F3en5Rw115zCPAEQkSQUv\nwXIbWgNTGm7hUcv4DVA9bMWnBaSWD1AXJN1J5JmB5sARaOim3loHN4YF3EvqEF2v\nQIBjzSoUWEzyTOC1g5OEuYhxnQKBgQDo0M4Me0QVTBYNYgdKtUOsA8Gvki1cbSdw\neGlbuhVC1V2LUpqeKeEZ2ADPBqQG1YvBzCtOKbHisnq+nGMBqebtuK92uz7VQY+H\nkiUtXSVgM0Ab51OmwMSTJS8YBe8PeaDOttKSsyLAvhWMFm06WluvsUPoZ7HZ0g/X\ncV6jgO09/QKBgBM4HOltrI3Bnmb6bSUBR55XNSjq39ukfBg+IywO7jArc6F5WBbG\n5rvyOZQdx/jEk/D1Ww5fnbhIyzUpdXON4cZ2kMIH5VvfndLWL9tjguKdP9CgV1Im\nNHeaJw0jLeO5UtbwIM1oGjMquCubOhG/3xksFfIh08HLlGjMu/z8fxS5AoGATJ9U\nARWcjanR5CusHLFViUpfN2pTlYSzIzft7OtsTees9sqD6qP72qaVdY1I9JrZeTm5\n0uq0CdkVvp/3kbeaMgjDbr8nacY+965on+p0/5k+czCJ/mqZB5iITE6/pAcynnXb\nDb75JBgrPUSwRDEy1brwj495ICgbYJuGOyeWbP0CgYBI2/CPb/M4/FrWtZ6Vk9yQ\nonPl7bRh1UwSzNeQPUcmt5TsLomGBeqfwC54ZL8oO1nJFXAE0Iq1KzRpEV83DCPM\nJ/66qKlRNoAtFEQsjkrCAcApkgYFT32z4qZc5YFRnQ9dtDinb9YZEMLnhhbRbVPa\nIdgHVZi3ktP5tdQljfj/qA==\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-fbsvc@wrestling-mobile-application.iam.gserviceaccount.com",
+  "client_id": "103630795752692587313",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40wrestling-mobile-application.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

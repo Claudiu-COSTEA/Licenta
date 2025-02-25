@@ -5,6 +5,7 @@ import 'package:wrestling_app/views/shared/widgets/custom_text_field.dart';
 import 'package:wrestling_app/views/shared/widgets/custom_label.dart';
 import 'package:wrestling_app/services/auth_service.dart';
 import 'package:wrestling_app/views/shared/invitations_lists_screen.dart';
+import 'package:wrestling_app/services/notifications_services.dart';
 
 import '../../models/user_model.dart';
 
@@ -15,6 +16,7 @@ class SignInScreen extends StatelessWidget {
   final TextEditingController _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
   final UserService _userService = UserService(); // Create UserService instance
+  final NotificationsServices _notificationsServices = NotificationsServices();
 
   Future<void> _handleSignIn(BuildContext context) async {
     String email = _emailController.text.trim();
@@ -28,11 +30,15 @@ class SignInScreen extends StatelessWidget {
         SnackBar(content: Text('Successfully signed in!')),
       );
 
-      // Navigate to the next screen
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => InvitationsListsScreen(user: userModel)), // Replace HomePage with your destination
-      );
+      if(userModel != null) {
+        _notificationsServices.saveTokenToServer(userModel.userUUID);
+        // Navigate to the next screen
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => InvitationsListsScreen(user: userModel)),
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to sign in')),

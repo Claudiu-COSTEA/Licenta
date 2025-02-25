@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:wrestling_app/services/constants.dart';
+import 'package:wrestling_app/services/notifications_services.dart';
 
 class CustomCoachesList extends StatefulWidget {
   final List<Map<String, dynamic>> coaches;
@@ -28,6 +29,8 @@ class _CustomCoachesListState extends State<CustomCoachesList> {
 
   final List<String> wrestlingStyles = ["All", "Greco Roman", "Freestyle", "Women"];
   final List<String> invitationFilters = ["All", "Invited", "Not Invited"];
+
+  NotificationsServices notificationService = NotificationsServices();
 
   @override
   Widget build(BuildContext context) {
@@ -147,7 +150,7 @@ class _CustomCoachesListState extends State<CustomCoachesList> {
 
   // **Handles Sending Coach Invitation**
   void _onSelectCoach(BuildContext context, int coachUUID) async {
-    String apiUrl = "'${AppConstants.baseUrl}/wrestling_club/post_coach_invitation.php";
+    String apiUrl = "${AppConstants.baseUrl}/wrestling_club/post_coach_invitation.php";
 
     try {
       // Convert String deadline to DateTime
@@ -190,6 +193,11 @@ class _CustomCoachesListState extends State<CustomCoachesList> {
               widget.coaches[index]['invitation_status'] = "Pending"; // Update directly
             }
           });
+
+          String? token = await notificationService.getUserFCMToken(coachUUID);
+          if(token != null) {
+            notificationService.sendFCMMessage(token);
+          }
 
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
