@@ -1,4 +1,5 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'package:http/http.dart' as http;
@@ -28,15 +29,23 @@ class NotificationsServices {
       final responseData = jsonDecode(response.body);
       if (response.statusCode == 200) {
         if (responseData.containsKey("success")) {
-          print("FCM token stored successfully.");
+          if (kDebugMode) {
+            print("FCM token stored successfully.");
+          }
         } else {
-          print("Error: ${responseData["error"]}");
+          if (kDebugMode) {
+            print("Error: ${responseData["error"]}");
+          }
         }
       } else {
-        print("Failed to store token. Status Code: ${response.statusCode}");
+        if (kDebugMode) {
+          print("Failed to store token. Status Code: ${response.statusCode}");
+        }
       }
     } catch (e) {
-      print("Error storing FCM token: $e");
+      if (kDebugMode) {
+        print("Error storing FCM token: $e");
+      }
     }
   }
 
@@ -62,14 +71,20 @@ class NotificationsServices {
     );
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      print("User granted permission for notifications");
+      if (kDebugMode) {
+        print("User granted permission for notifications");
+      }
     } else {
-      print("User denied notifications permission");
+      if (kDebugMode) {
+        print("User denied notifications permission");
+      }
     }
 
     // Get FCM Token
     String? token = await _firebaseMessaging.getToken();
-    print("FCM Token: $token");
+    if (kDebugMode) {
+      print("FCM Token: $token");
+    }
 
     // Initialize Local Notifications
     const AndroidInitializationSettings androidInitSettings =
@@ -82,7 +97,9 @@ class NotificationsServices {
 
     // Listen for foreground notifications
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print("Received message: ${message.notification?.title}");
+      if (kDebugMode) {
+        print("Received message: ${message.notification?.title}");
+      }
 
       // Show notification
       _showNotification(
@@ -93,7 +110,9 @@ class NotificationsServices {
 
     // Handle when user taps on notification (while app is in background)
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print("User tapped on notification: ${message.notification?.title}");
+      if (kDebugMode) {
+        print("User tapped on notification: ${message.notification?.title}");
+      }
       // Handle navigation or other actions
     });
   }
@@ -134,7 +153,9 @@ class NotificationsServices {
         throw Exception("Failed to fetch FCM token");
       }
     } catch (e) {
-      print("Error fetching FCM token: $e");
+      if (kDebugMode) {
+        print("Error fetching FCM token: $e");
+      }
       return null;
     }
   }
@@ -185,7 +206,9 @@ class NotificationsServices {
     final String serverKey = await getAccessToken() ; // Your FCM server key
     final String fcmEndpoint = 'https://fcm.googleapis.com/v1/projects/wrestling-mobile-application/messages:send';
     final  currentFCMToken = token;
-    print("fcmkey : $currentFCMToken");
+    if (kDebugMode) {
+      print("fcmkey : $currentFCMToken");
+    }
     final Map<String, dynamic> message = {
       'message': {
         'token': currentFCMToken, // Token of the device you want to send the message to
@@ -209,9 +232,13 @@ class NotificationsServices {
     );
 
     if (response.statusCode == 200) {
-      print('FCM message sent successfully');
+      if (kDebugMode) {
+        print('FCM message sent successfully');
+      }
     } else {
-      print('Failed to send FCM message: ${response.statusCode}');
+      if (kDebugMode) {
+        print('Failed to send FCM message: ${response.statusCode}');
+      }
     }
   }
 

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:wrestling_app/views/shared/widgets/custom_wrestlers_verification_list.dart';
 
@@ -42,7 +43,9 @@ class _RefereeWrestlersVerificationState extends State<RefereeWrestlersVerificat
       setState(() {
         _isLoading = false;
       });
-      print('Error fetching weight categories: $e');
+      if (kDebugMode) {
+        print('Error fetching weight categories: $e');
+      }
     }
   }
 

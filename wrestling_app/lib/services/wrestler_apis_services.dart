@@ -59,8 +59,10 @@ class WrestlerService {
         );
       }
     } catch (e) {
-      if (context.mounted) Navigator.pop(
+      if (context.mounted) {
+        Navigator.pop(
           context); // Close loading dialog if error occurs
+      }
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),

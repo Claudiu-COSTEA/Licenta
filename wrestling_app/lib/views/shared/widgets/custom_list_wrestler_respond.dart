@@ -67,9 +67,29 @@ class _CustomListWrestlerRespondState extends State<CustomListWrestlerRespond> {
                         wrestler['wrestler_name'],
                         style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
                       ),
-                      subtitle: Text(
-                        "Status: ${wrestler['invitation_status'] ?? "Not Invited"}",
-                        style: const TextStyle(color: Colors.white70),
+                      subtitle: Row(
+                        mainAxisAlignment: MainAxisAlignment.start, // Ensures items align properly
+                        children: [
+                          Text(
+                            "Status: ${wrestler['invitation_status'] ?? "Not Invited"}",
+                            style: const TextStyle(color: Colors.white70),
+                          ),
+
+                          const SizedBox(width: 130), // Add spacing between status and weight category
+
+                          if (wrestler["weight_category"] != null)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.black,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                "${wrestler["weight_category"]} Kg", // Concatenated with "Kg"
+                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                   ),

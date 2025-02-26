@@ -38,17 +38,17 @@ class _CustomListCoachesRespondState extends State<CustomListCoachesRespond> {
         children: [
           const SizedBox(height: 10),
 
-          // ✅ Wrestling Style Filter Buttons
+          // Wrestling Style Filter Buttons
           _buildWrestlingStyleFilterButtons(),
 
           const SizedBox(height: 10),
 
-          // ✅ Invitation Status Filter Buttons
+          // Invitation Status Filter Buttons
           _buildInvitationStatusFilterButtons(),
 
           const SizedBox(height: 10),
 
-          // ✅ Coaches ListView
+          //  Coaches ListView
           Expanded(
             child: filteredCoaches.isEmpty
                 ? const Center(

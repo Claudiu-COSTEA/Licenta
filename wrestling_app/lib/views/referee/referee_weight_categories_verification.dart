@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:wrestling_app/models/wrestler_weight_category_model.dart';
 import 'package:wrestling_app/views/shared/widgets/custom_weight_categories_verification_list.dart';
@@ -38,7 +38,9 @@ class _RefereeWeightCategoriesVerification extends State<RefereeWeightCategories
       setState(() {
         _isLoading = false;
       });
-      print('Error fetching weight categories: $e');
+      if (kDebugMode) {
+        print('Error fetching weight categories: $e');
+      }
     }
   }
 

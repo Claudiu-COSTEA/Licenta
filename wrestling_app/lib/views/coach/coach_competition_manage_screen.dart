@@ -149,8 +149,6 @@ class _CoachCompetitionManageScreen extends State<CoachCompetitionManageScreen> 
                   ),
                 ],
               ),
-
-
           ],
         ),
       ),
