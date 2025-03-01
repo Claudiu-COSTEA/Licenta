@@ -2,7 +2,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 void openGoogleMaps(String locationString) {
   // Extract latitude and longitude using RegExp
-  final RegExp regex = RegExp(r'Lat:\s*(-?\d+\.\d+)\s+Lon:\s*(-?\d+\.\d+)');
+  final RegExp regex = RegExp(r'(-?\d+\.\d+),\s*(-?\d+\.\d+)');
   final match = regex.firstMatch(locationString);
 
   if (match != null) {
@@ -15,6 +15,6 @@ void openGoogleMaps(String locationString) {
     // Open Google Maps
     launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
   } else {
-    print("Invalid location format.");
+    print("Invalid location format. Expected format: '12.12321, 23.123213'");
   }
 }

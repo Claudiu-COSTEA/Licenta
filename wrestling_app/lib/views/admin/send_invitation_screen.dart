@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart'; // Import for date formatting
 import 'package:wrestling_app/services/admin_apis_services.dart';
 
 class SendInvitationScreen extends StatefulWidget {
@@ -17,6 +18,32 @@ class _SendInvitationScreenState extends State<SendInvitationScreen> {
   String _selectedRole = 'Coach'; // Default role
   bool _isLoading = false;
   final AdminServices _invitationService = AdminServices();
+  final Color primaryColor = const Color(0xFFB4182D); // Custom color
+
+  // Function to select date and time
+  Future<void> _pickInvitationDeadline() async {
+    DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2100),
+    );
+
+    if (pickedDate != null) {
+      TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.now(),
+      );
+
+      if (pickedTime != null) {
+        DateTime combined = DateTime(
+          pickedDate.year, pickedDate.month, pickedDate.day,
+          pickedTime.hour, pickedTime.minute,
+        );
+        _invitationDeadlineController.text = DateFormat('yyyy-MM-dd HH:mm:ss').format(combined);
+      }
+    }
+  }
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) {
@@ -85,9 +112,27 @@ class _SendInvitationScreenState extends State<SendInvitationScreen> {
 
                 _buildTextField(_competitionUUIDController, "Competition UUID", "Enter competition ID"),
                 _buildTextField(_recipientUUIDController, "Recipient UUID", "Enter recipient ID"),
-                _buildTextField(_invitationDeadlineController, "Invitation Deadline", "YYYY-MM-DD HH:MM:SS"),
 
+                // Invitation Deadline Picker
+                const Text("Invitation Deadline"),
+                TextFormField(
+                  controller: _invitationDeadlineController,
+                  readOnly: true,
+                  onTap: _pickInvitationDeadline,
+                  decoration: InputDecoration(
+                    hintText: "Select Deadline Date & Time",
+                    suffixIcon: const Icon(Icons.calendar_today),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: primaryColor),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: primaryColor, width: 2),
+                    ),
+                  ),
+                  validator: (value) => value!.isEmpty ? "Select invitation deadline" : null,
+                ),
                 const SizedBox(height: 10),
+
                 const Text("Select Role"),
                 DropdownButtonFormField<String>(
                   value: _selectedRole,
@@ -116,7 +161,7 @@ class _SendInvitationScreenState extends State<SendInvitationScreen> {
                   child: ElevatedButton(
                     onPressed: _submitForm,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFB4182D),
+                      backgroundColor: primaryColor,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
                     child: const Text(
