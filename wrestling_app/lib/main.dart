@@ -3,8 +3,10 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:wrestling_app/views/admin/add_competition_screen.dart';
+import 'package:wrestling_app/views/referee/camera_open.dart';
 import 'package:wrestling_app/views/shared/sign_in_screen.dart';
 import 'package:wrestling_app/services/notifications_services.dart';
+import 'package:wrestling_app/views/wrestler/get_qr_code.dart';
 import 'firebase_options.dart';
 import 'package:flutter/services.dart';
 
@@ -41,7 +43,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       initialRoute: '/signIn',
       routes: {
-        '/signIn': (context) => SignInScreen(),
+        '/signIn': (context) => CameraOpen(),
       },
     );
   }
