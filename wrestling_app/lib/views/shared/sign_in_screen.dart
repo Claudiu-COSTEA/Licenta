@@ -8,14 +8,24 @@ import 'package:wrestling_app/views/shared/invitations_lists_screen.dart';
 import 'package:wrestling_app/services/notifications_services.dart';
 
 import '../../models/user_model.dart';
+import '../admin/admin_actions.dart';
 
-class SignInScreen extends StatelessWidget {
-  SignInScreen({super.key});
+class SignInScreen extends StatefulWidget {
+  const SignInScreen({super.key});
 
+  @override
+  State<SignInScreen> createState() => _SignInScreenState();
+}
+
+class _SignInScreenState extends State<SignInScreen> {
   final TextEditingController _emailController = TextEditingController();
+
   final TextEditingController _passwordController = TextEditingController();
+
   final AuthService _authService = AuthService();
-  final UserService _userService = UserService(); // Create UserService instance
+
+  final UserService _userService = UserService();
+ // Create UserService instance
   final NotificationsServices _notificationsServices = NotificationsServices();
 
   Future<void> _handleSignIn(BuildContext context) async {
@@ -33,32 +43,26 @@ class SignInScreen extends StatelessWidget {
       if(userModel != null) {
         _notificationsServices.saveTokenToServer(userModel.userUUID);
         // Navigate to the next screen
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => InvitationsListsScreen(user: userModel)),
-        );
+
+        if(userModel.userType == 'Admin') {
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => AdminActions()),
+          );
+
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => InvitationsListsScreen(user: userModel)),
+          );
+        }
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to sign in')),
-      );
-    }
-  }
-
-  Future<void> _handleSignUp(BuildContext context) async {
-    final user = await _authService.signUp(
-      _emailController.text.trim(),
-      _passwordController.text.trim(),
-    );
-    if (user != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Successfully signed up!')),
-      );
-      // Navigate to the next screen (replace with your navigation logic)
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to sign up')),
       );
     }
   }
@@ -117,18 +121,11 @@ class SignInScreen extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    CustomButton(
-                      label: 'Autentificare',
-                      onPressed: () => _handleSignIn(context),
-                    ),
-                    CustomButton(
-                      label: 'Inregistrare',
-                      onPressed: () => _handleSignUp(context),
-                    ),
-                  ],
+                Center(
+                  child: CustomButton(
+                    label: 'Autentificare',
+                    onPressed: () => _handleSignIn(context),
+                  ),
                 ),
               ],
             ),

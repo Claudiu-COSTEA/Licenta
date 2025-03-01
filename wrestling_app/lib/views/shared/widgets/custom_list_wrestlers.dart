@@ -2,6 +2,9 @@ import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:wrestling_app/services/notifications_services.dart';
+
+import '../../../services/constants.dart';
 
 class CustomWrestlersList extends StatefulWidget {
   final List<Map<String, dynamic>> wrestlers;
@@ -22,8 +25,8 @@ class CustomWrestlersList extends StatefulWidget {
 }
 
 class _CustomWrestlersListState extends State<CustomWrestlersList> {
+  final NotificationsServices _notificationsServices = NotificationsServices();
   String invitationFilter = "All"; // Default: Show all invitations
-
   final List<String> invitationFilters = ["All", "Invited", "Not Invited"];
 
   @override
@@ -195,7 +198,7 @@ class _CustomWrestlersListState extends State<CustomWrestlersList> {
   }
 
   void _onSelectWrestler(BuildContext context, int wrestlerUUID, String weightCategory) async {
-    String apiUrl = "http://192.168.0.181/wrestling_app/coach/post_wrestler_invitation.php";
+    String apiUrl = "${AppConstants.baseUrl}/coach/post_wrestler_invitation.php";
 
     try {
       // Convert String deadline to DateTime
@@ -240,6 +243,12 @@ class _CustomWrestlersListState extends State<CustomWrestlersList> {
               widget.wrestlers[index]['weight_category'] = weightCategory; // Update weight category
             }
           });
+
+          String? token = await _notificationsServices.getUserFCMToken(wrestlerUUID);
+          if(token != null) {
+            _notificationsServices.sendFCMMessage(token);
+          }
+
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(responseData["error"] ?? "Unknown error"), backgroundColor: Colors.red),

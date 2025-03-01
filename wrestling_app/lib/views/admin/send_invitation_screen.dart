@@ -1,0 +1,195 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart'; // Import for date formatting
+import 'package:wrestling_app/services/admin_apis_services.dart';
+
+class SendInvitationScreen extends StatefulWidget {
+  const SendInvitationScreen({super.key});
+
+  @override
+  State<SendInvitationScreen> createState() => _SendInvitationScreenState();
+}
+
+class _SendInvitationScreenState extends State<SendInvitationScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _competitionUUIDController = TextEditingController();
+  final TextEditingController _recipientUUIDController = TextEditingController();
+  final TextEditingController _invitationDeadlineController = TextEditingController();
+  final TextEditingController _weightCategoryController = TextEditingController();
+  String _selectedRole = 'Coach'; // Default role
+  bool _isLoading = false;
+  final AdminServices _invitationService = AdminServices();
+  final Color primaryColor = const Color(0xFFB4182D); // Custom color
+
+  // Function to select date and time
+  Future<void> _pickInvitationDeadline() async {
+    DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2100),
+    );
+
+    if (pickedDate != null) {
+      TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.now(),
+      );
+
+      if (pickedTime != null) {
+        DateTime combined = DateTime(
+          pickedDate.year, pickedDate.month, pickedDate.day,
+          pickedTime.hour, pickedTime.minute,
+        );
+        _invitationDeadlineController.text = DateFormat('yyyy-MM-dd HH:mm:ss').format(combined);
+      }
+    }
+  }
+
+  Future<void> _submitForm() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    bool success = await _invitationService.sendInvitation(
+      competitionUUID: int.parse(_competitionUUIDController.text.trim()),
+      recipientUUID: int.parse(_recipientUUIDController.text.trim()),
+      recipientRole: _selectedRole,
+      weightCategory: _selectedRole == 'Wrestler' ? _weightCategoryController.text.trim() : null,
+      invitationStatus: 'Pending', // Default status
+      invitationDeadline: _invitationDeadlineController.text.trim(),
+    );
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invitation sent successfully!')),
+      );
+      Navigator.pop(context);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to send invitation.')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Back Button
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back, size: 28, color: Colors.black),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                ),
+
+                const Center(
+                  child: Text(
+                    "Send Invitation",
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                _buildTextField(_competitionUUIDController, "Competition UUID", "Enter competition ID"),
+                _buildTextField(_recipientUUIDController, "Recipient UUID", "Enter recipient ID"),
+
+                // Invitation Deadline Picker
+                const Text("Invitation Deadline"),
+                TextFormField(
+                  controller: _invitationDeadlineController,
+                  readOnly: true,
+                  onTap: _pickInvitationDeadline,
+                  decoration: InputDecoration(
+                    hintText: "Select Deadline Date & Time",
+                    suffixIcon: const Icon(Icons.calendar_today),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: primaryColor),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: primaryColor, width: 2),
+                    ),
+                  ),
+                  validator: (value) => value!.isEmpty ? "Select invitation deadline" : null,
+                ),
+                const SizedBox(height: 10),
+
+                const Text("Select Role"),
+                DropdownButtonFormField<String>(
+                  value: _selectedRole,
+                  items: ['Wrestling Club', 'Referee', 'Coach', 'Wrestler']
+                      .map((role) => DropdownMenuItem(value: role, child: Text(role)))
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedRole = value!;
+                    });
+                  },
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+                if (_selectedRole == 'Wrestler')
+                  _buildTextField(_weightCategoryController, "Weight Category", "Enter weight category"),
+
+                const SizedBox(height: 20),
+                _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _submitForm,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    child: const Text(
+                      "Send Invitation",
+                      style: TextStyle(color: Colors.white, fontSize: 18),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label, String hint) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextFormField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: hint,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+        validator: (value) => value!.isEmpty ? "Field cannot be empty" : null,
+      ),
+    );
+  }
+}

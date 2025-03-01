@@ -1,0 +1,16 @@
+{
+    "competition_name": "woooqweqw",
+    "competition_start_date": "20025-01-01",
+    "competition_end_date": "2025-01-01",
+    "competition_location": ""
+}{
+    "competition_name": "123",
+    "competition_start_date": "2025-01-01",
+    "competition_end_date": "2025-01-01",
+    "competition_location": "null"
+}{
+    "competition_name": "123",
+    "competition_start_date": "2025-01-01",
+    "competition_end_date": "2025-01-01",
+    "competition_location": "44.42404449550116, 26.107371971011162"
+}

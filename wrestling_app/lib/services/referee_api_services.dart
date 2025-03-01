@@ -99,7 +99,9 @@ class RefereeServices {
         throw Exception('Failed to load wrestlers. Status code: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching wrestlers: $e');
+      if (kDebugMode) {
+        print('Error fetching wrestlers: $e');
+      }
       return [];
     }
   }
@@ -170,7 +172,9 @@ class RefereeServices {
         throw Exception("Failed to update referee verification. Status: ${response.statusCode}");
       }
     } catch (e) {
-      print("Error updating referee verification: $e");
+      if (kDebugMode) {
+        print("Error updating referee verification: $e");
+      }
       return false;
     }
   }
