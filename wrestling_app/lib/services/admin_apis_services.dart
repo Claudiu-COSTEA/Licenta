@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:wrestling_app/services/constants.dart';
+import 'package:wrestling_app/services/notifications_services.dart';
 
 class AdminServices {
   final String _baseUrl = '${AppConstants.baseUrl}/admin/add_competition.php';
@@ -101,6 +102,14 @@ class AdminServices {
         final responseData = json.decode(response.body);
 
         if (responseData.containsKey("success")) {
+
+          NotificationsServices notificationService = NotificationsServices();
+
+          String? token = await notificationService.getUserFCMToken(recipientUUID);
+          if(token != null) {
+            notificationService.sendFCMMessage(token);
+          }
+
           return true; // Invitation added successfully
         } else {
           throw Exception(responseData["error"] ?? "Unknown error occurred");

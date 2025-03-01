@@ -141,7 +141,7 @@ class NotificationsServices {
   // Send notification functions
 
   Future<String?> getUserFCMToken(int userUUID) async {
-    final String apiUrl = "${AppConstants.baseUrl}/get_fcm_token.php?user_UUID=$userUUID";
+    final String apiUrl = "${AppConstants.baseUrl}/get_fcm_token_user.php?user_UUID=$userUUID";
 
     try {
       final response = await http.get(Uri.parse(apiUrl));
@@ -213,8 +213,8 @@ class NotificationsServices {
       'message': {
         'token': currentFCMToken, // Token of the device you want to send the message to
         'notification': {
-          'body': 'This is an FCM notification message!',
-          'title': 'FCM Message'
+          'body': "Invitatie pentru competitie primita !",
+          'title': 'Invitatie competitie'
         },
         'data': {
           'current_user_fcm_token': currentFCMToken, // Include the current user's FCM token in data payload
