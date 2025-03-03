@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:wrestling_app/views/shared/widgets/custom_wrestlers_verification_list.dart';
 
 import '../../models/wrestler_verification_model.dart';
+import '../../services/camera_services.dart';
 import '../../services/referee_api_services.dart';
 
 class RefereeWrestlersVerification extends StatefulWidget {
@@ -63,14 +64,27 @@ class _RefereeWrestlersVerificationState extends State<RefereeWrestlersVerificat
 
     Align(
     alignment: Alignment.centerLeft,
-    child: IconButton(
-    icon: const Icon(Icons.arrow_back, color: Colors.black, size: 28),
-    onPressed: () {
-    Navigator.pop(context); // Go back to the previous screen
-    },
+    child: Row(
+      children:[
+        IconButton(
+      icon: const Icon(Icons.arrow_back, color: Colors.black, size: 28),
+      onPressed: () {
+      Navigator.pop(context); // Go back to the previous screen
+      },
+      ),
+          const SizedBox(width: 250),
+          IconButton(
+            icon: Icon(Icons.qr_code_scanner, size: 50, color: Colors.black),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => QRScannerScreen()),
+              );
+            },
+          ),
+      ],
     ),
     ),
-      const SizedBox(height: 10),
       Center(
         child: Text(
           'Lista luptatori ${widget.wrestlerWeightCategory} Kg',

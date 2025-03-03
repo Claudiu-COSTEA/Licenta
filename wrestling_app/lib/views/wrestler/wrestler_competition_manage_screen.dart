@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:wrestling_app/models/wrestler_documents_model.dart';
 import 'package:wrestling_app/services/wrestler_apis_services.dart';
 
 import 'package:wrestling_app/services/google_maps_lunch.dart';
+
+import 'get_qr_code.dart';
 
 
 class WrestlerCompetitionManageScreen extends StatefulWidget {
@@ -116,8 +119,6 @@ class _WrestlerCompetitionManageScreen extends State<WrestlerCompetitionManageSc
 
             const SizedBox(height: 100),
 
-            const SizedBox(height: 15),
-
             if (invitation['invitation_status'] == "Pending")
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -149,6 +150,26 @@ class _WrestlerCompetitionManageScreen extends State<WrestlerCompetitionManageSc
                 ],
               ),
 
+            if (invitation['invitation_status'] == "Accepted") ...[
+              const SizedBox(height: 20),
+              _buildActionButton("Documente medicale", () async {
+                WrestlerDocuments? documentsUrls = await _wrestlerService.fetchWrestlerUrls(widget.userUUID);
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                    builder: (context) => QRCodeScreen(url: documentsUrls?.medicalDocument))
+                );
+              }),
+              const SizedBox(height: 10),
+              _buildActionButton("Documente sportive", () async {
+                WrestlerDocuments? documentsUrls = await _wrestlerService.fetchWrestlerUrls(widget.userUUID);
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => QRCodeScreen(url: documentsUrls?.licenseDocument))
+                );
+              }),
+            ],
 
           ],
         ),
