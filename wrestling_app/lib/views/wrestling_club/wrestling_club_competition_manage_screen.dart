@@ -24,6 +24,11 @@ class _WrestlingClubCompetitionManageScreen extends State<WrestlingClubCompetiti
 
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+      ),
       body: Padding(
         padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 0.0),
         child: _isLoading
@@ -32,19 +37,7 @@ class _WrestlingClubCompetitionManageScreen extends State<WrestlingClubCompetiti
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
 
-            const SizedBox(height: 40),
-
-            Align(
-              alignment: Alignment.centerLeft,
-              child: IconButton(
-                icon: const Icon(
-                    Icons.arrow_back, color: Colors.black, size: 28),
-                onPressed: () {
-                  Navigator.pop(context); // Go back to the previous screen
-                },
-              ),
-            ),
-            const SizedBox(height: 70),
+            const SizedBox(height: 30),
 
             // Competition Name
             Center(
@@ -59,7 +52,7 @@ class _WrestlingClubCompetitionManageScreen extends State<WrestlingClubCompetiti
               ),
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 50),
 
             // Competition Period
             _buildInfoBox(

@@ -49,6 +49,11 @@ class _RefereeWeightCategoriesVerification extends State<RefereeWeightCategories
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+      ),
       body: Padding(
         padding: const EdgeInsets.only(left: 16.0, top: 50.0, right: 16.0, bottom: 16.0),
         child: _isLoading
@@ -56,16 +61,6 @@ class _RefereeWeightCategoriesVerification extends State<RefereeWeightCategories
             : Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
-            Align(
-              alignment: Alignment.centerLeft,
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.black, size: 28),
-                onPressed: () {
-                  Navigator.pop(context); // Go back to the previous screen
-                },
-              ),
-            ),
 
             const SizedBox(height: 20),
 

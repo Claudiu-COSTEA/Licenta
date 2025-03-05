@@ -27,7 +27,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Could not open the link: $url")),
+        SnackBar(content: Text("Nu s-a putut deschide link-ul: $url")),
       );
     }
   }
@@ -35,9 +35,15 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Scan QR Code")),
+      appBar: AppBar(
+        title: const Text("Scanează codul QR"),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+      ),
       body: Column(
         children: [
+          // QR Scanner View
           Expanded(
             flex: 5,
             child: QRView(
@@ -45,30 +51,50 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
               onQRViewCreated: _onQRViewCreated,
             ),
           ),
+
+          // Ensure scrollability for buttons after scanning
           Expanded(
-            flex: 1,
-            child: Center(
-              child: scannedData != null
-                  ? Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text("Scanned Data:", style: TextStyle(fontSize: 16)),
-                  SizedBox(height: 5),
-                  Text(scannedData!,
-                      style: TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue)),
-                  SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: () => _launchURL(scannedData!),
-                    child: Text("Open Link"),
-                  ),
-                  ElevatedButton(
-                    onPressed: () => controller?.resumeCamera(),
-                    child: Text("Scan Again"),
-                  ),
-                ],
-              )
-                  : Text("Scan a QR code"),
+            flex: 2, // Increased flex to allow space for buttons
+            child: SingleChildScrollView(
+              child: Center(
+                child: scannedData != null
+                    ? Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Informație scanată:", style: TextStyle(fontSize: 16)),
+                    const SizedBox(height: 5),
+                    Text(
+                      scannedData!,
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue),
+                      textAlign: TextAlign.center, // Prevent text overflow
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Open Link Button
+                    ElevatedButton(
+                      onPressed: () => _launchURL(scannedData!),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFFB4182D),  // Custom button color
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      ),
+                      child: const Text("Deschide link",  style: TextStyle(color: Colors.white)),
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    // Scan Again Button
+                    ElevatedButton(
+                      onPressed: () => controller?.resumeCamera(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFFB4182D), // Custom button color
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      ),
+                      child: const Text("Scanează din nou", style: TextStyle(color: Colors.white),),
+                    ),
+                  ],
+                )
+                    : const Text("Scanează codul QR"),
+              ),
             ),
           ),
         ],
@@ -88,7 +114,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
 
   @override
   void dispose() {
-    controller?.disposed;
+    controller?.dispose();
     super.dispose();
   }
 }

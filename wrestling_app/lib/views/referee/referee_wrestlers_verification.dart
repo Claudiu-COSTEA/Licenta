@@ -54,6 +54,11 @@ class _RefereeWrestlersVerificationState extends State<RefereeWrestlersVerificat
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: Colors.white,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          centerTitle: true,
+        ),
         body: Padding(
         padding: const EdgeInsets.only(left: 16.0, top: 50.0, right: 16.0, bottom: 16.0),
     child: _isLoading
@@ -61,18 +66,15 @@ class _RefereeWrestlersVerificationState extends State<RefereeWrestlersVerificat
         : Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
+      Row(
+        children: [
+            Text(
+              'Lista luptatori ${widget.wrestlerWeightCategory} Kg',
+              style: const TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.black),
+            ),
 
-    Align(
-    alignment: Alignment.centerLeft,
-    child: Row(
-      children:[
-        IconButton(
-      icon: const Icon(Icons.arrow_back, color: Colors.black, size: 28),
-      onPressed: () {
-      Navigator.pop(context); // Go back to the previous screen
-      },
-      ),
-          const SizedBox(width: 250),
+          const SizedBox(width: 80,),
+
           IconButton(
             icon: Icon(Icons.qr_code_scanner, size: 50, color: Colors.black),
             onPressed: () {
@@ -82,14 +84,7 @@ class _RefereeWrestlersVerificationState extends State<RefereeWrestlersVerificat
               );
             },
           ),
-      ],
-    ),
-    ),
-      Center(
-        child: Text(
-          'Lista luptatori ${widget.wrestlerWeightCategory} Kg',
-          style: const TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.black),
-        ),
+        ],
       ),
       Expanded(
         child: CustomWrestlersVerificationList(competitionUUID: widget.competitionUUID, weightCategory: widget.wrestlerWeightCategory, wrestlingStyle: widget.wrestlerStyle,),

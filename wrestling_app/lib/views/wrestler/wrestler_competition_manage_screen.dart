@@ -28,6 +28,11 @@ class _WrestlerCompetitionManageScreen extends State<WrestlerCompetitionManageSc
 
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: _isLoading
@@ -35,17 +40,6 @@ class _WrestlerCompetitionManageScreen extends State<WrestlerCompetitionManageSc
             : Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: IconButton(
-                icon: const Icon(
-                    Icons.arrow_back, color: Colors.black, size: 28),
-                onPressed: () {
-                  //Navigator.pop(context); // Go back to the previous screen
-                  Navigator.of(context).pop();
-                },
-              ),
-            ),
             const SizedBox(height: 70),
 
             // Competition Name

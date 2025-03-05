@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wrestling_app/services/referee_api_services.dart';
 import 'package:wrestling_app/services/google_maps_lunch.dart';
+import 'package:wrestling_app/views/referee/referee_competitions_fights.dart';
 import 'package:wrestling_app/views/referee/referee_weight_categories_verification.dart';
 
 class RefereeCompetitionManageScreen extends StatefulWidget {
@@ -23,6 +24,11 @@ class _RefereeCompetitionManageScreen extends State<RefereeCompetitionManageScre
 
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: _isLoading
@@ -30,16 +36,7 @@ class _RefereeCompetitionManageScreen extends State<RefereeCompetitionManageScre
             : Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.black, size: 28),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ),
-            const SizedBox(height: 70),
+            const SizedBox(height: 30),
 
             // Competition Name
             Center(
@@ -136,7 +133,13 @@ class _RefereeCompetitionManageScreen extends State<RefereeCompetitionManageScre
                     );
                   }),
                   const SizedBox(height: 10),
-                  _buildActionButton("Renunță la participare", () {
+                  _buildActionButton("Lista lupte", () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => RefereeFightDashboard(),
+                      ),
+                    );
                   }),
                 ],
               ),

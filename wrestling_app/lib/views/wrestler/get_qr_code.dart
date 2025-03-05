@@ -17,7 +17,11 @@ class QRCodeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+      ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -25,7 +29,7 @@ class QRCodeScreen extends StatelessWidget {
           Center(child: generateQRCode(url!)), // Calling the function
           SizedBox(height: 20),
           Text(
-            "Scaneaza aici pentru documentele medicale",
+            "Scaneaza aici pentru documente",
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
         ],
