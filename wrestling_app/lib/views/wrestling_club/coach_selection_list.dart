@@ -52,22 +52,17 @@ class _CoachSelectionListState extends State<CoachSelectionList> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 40),
-
-          Align(
-            alignment: Alignment.centerLeft,
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.black, size: 28),
-              onPressed: () {
-                Navigator.pop(context); // Go back to the previous screen
-              },
-            ),
-          ),
+          const SizedBox(height: 30),
 
           const Center(
             child: Text(
@@ -79,6 +74,8 @@ class _CoachSelectionListState extends State<CoachSelectionList> {
               ),
             ),
           ),
+
+          const SizedBox(height: 30),
 
           if(widget.invitationStatus == 'Pending')
           Expanded(

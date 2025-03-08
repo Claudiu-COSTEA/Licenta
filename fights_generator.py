@@ -1,121 +1,67 @@
-import mysql.connector
-import random
+class Wrestler:
+    def __init__(self, full_name, weight_category, wrestling_style):
+        self.full_name = full_name
+        self.weight_category = weight_category
+        self.wrestling_style = wrestling_style
 
-# Database Configuration
-DB_CONFIG = {
-    "host": "localhost",
-    "user": "root",
-    "password": "",
-    "database": "wrestling_app"
-}
+    def __repr__(self):
+        return f"{self.full_name} ({self.weight_category}, {self.wrestling_style})"
 
-def get_accepted_wrestlers(competition_uuid, wrestling_style, weight_category):
-    """Fetch all accepted wrestlers for a given competition, wrestling style, and weight category."""
-    conn = mysql.connector.connect(**DB_CONFIG)
-    cursor = conn.cursor(dictionary=True)
 
-    query = """
-        SELECT recipient_UUID FROM competitions_invitations
-        WHERE competition_UUID = %s
-        AND wrestling_style = %s
-        AND weight_category = %s
-        AND invitation_status = 'Accepted'
-    """
+def is_power_of_two(n):
+    if n <= 0:
+        return False
+    return (n & (n - 1)) == 0
 
-    cursor.execute(query, (competition_uuid, wrestling_style, weight_category))
-    wrestlers = [row["recipient_UUID"] for row in cursor.fetchall()]
 
-    cursor.close()
-    conn.close()
-    return wrestlers
+def largest_power_of_two_less_than_or_equal_to(n):
+    if n < 1:
+        return 0
+    power = 1
+    while power * 2 <= n:
+        power *= 2
+    return power
 
-def generate_first_round(wrestlers):
-    """Ensure we have 2^p wrestlers after the first round."""
-    random.shuffle(wrestlers)
-    num_wrestlers = len(wrestlers)
-    
-    # Find the nearest power of 2
-    next_power_of_2 = 2 ** ((num_wrestlers - 1).bit_length())
-    extra_fights_needed = num_wrestlers - (next_power_of_2 // 2)
-    
-    pairs = []
-    remaining_wrestlers = wrestlers[:]
-    
-    # Generate extra fights
-    if extra_fights_needed > 0:
-        extra_fights = wrestlers[:2 * extra_fights_needed]
-        remaining_wrestlers = wrestlers[2 * extra_fights_needed:]
-        
-        for i in range(0, len(extra_fights), 2):
-            pairs.append((extra_fights[i], extra_fights[i+1]))
 
-        # Winners of extra fights move to next round
-        remaining_wrestlers += [random.choice(pair) for pair in pairs]
+def difference_with_largest_power_of_two(n):
+    if n < 1:
+        return "Input should be a positive integer."
+    largest_power = largest_power_of_two_less_than_or_equal_to(n)
+    return n - largest_power
 
-    # Generate the rest of the first round
-    first_round_pairs = [(remaining_wrestlers[i], remaining_wrestlers[i+1]) for i in range(0, len(remaining_wrestlers), 2)]
 
-    return pairs + first_round_pairs, remaining_wrestlers
+def fights_generator(wrestlers):
+    """Generates fights between wrestlers."""
+    wrestlers_number = len(wrestlers)
+    fights = []
 
-def insert_fights(competition_uuid, competition_round, wrestling_style, weight_category, pairs):
-    """Insert fights into the database."""
-    conn = mysql.connector.connect(**DB_CONFIG)
-    cursor = conn.cursor()
+    if is_power_of_two(wrestlers_number):
+        print("The number of wrestlers is a power of 2.")
+        for i in range(0, wrestlers_number, 2):
+            fights.append((wrestlers[i], wrestlers[i + 1]))
+    else:
+        extra_fights = difference_with_largest_power_of_two(wrestlers_number)
+        for i in range(0, extra_fights * 2, 2):
+            fights.append((wrestlers[i], wrestlers[i + 1]))
 
-    for i, (red, blue) in enumerate(pairs):
-        query = """
-            INSERT INTO competition_fights (
-                competition_UUID, competition_round, competition_fight_order_number,
-                wrestling_style, competition_fight_weight_category,
-                referee_UUID_1, referee_UUID_2, referee_UUID_3,
-                wrestling_club_UUID_red, wrestling_club_UUID_blue,
-                coach_UUID_red, coach_UUID_blue,
-                wrestler_UUID_red, wrestler_UUID_blue
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """
-        cursor.execute(query, (competition_uuid, competition_round, i + 1, wrestling_style, weight_category, 
-                               1, 2, 3, 1, 2, 1, 2, red, blue))
+    return fights
 
-    conn.commit()
-    cursor.close()
-    conn.close()
 
-def determine_next_round_name(current_round):
-    """Get the next round name in the tournament structure."""
-    rounds_order = ["Round 32", "Round 16", "Round 8", "Round 4", "Round 2", "Final"]
-    try:
-        return rounds_order[rounds_order.index(current_round) + 1]
-    except IndexError:
-        return None  # No next round
+# Example usage:
+wrestlers_list = [
+    Wrestler("John Doe", "Heavyweight", "Freestyle"),
+    Wrestler("Alex Smith", "Middleweight", "Greco-Roman"),
+    Wrestler("David Brown", "Lightweight", "Freestyle"),
+    Wrestler("Chris Johnson", "Heavyweight", "Greco-Roman"),
+    Wrestler("Michael White", "Middleweight", "Freestyle"),
+    Wrestler("James Black", "Lightweight", "Greco-Roman"),
+    Wrestler("Robert Green", "Heavyweight", "Freestyle"),
+    Wrestler("Daniel Adams", "Middleweight", "Greco-Roman"),
+]
 
-def generate_tournament(competition_uuid, wrestling_style, weight_category):
-    """Main function to generate fights for an entire tournament."""
-    wrestlers = get_accepted_wrestlers(competition_uuid, wrestling_style, weight_category)
 
-    if len(wrestlers) < 2:
-        print("⚠️ Not enough wrestlers to start a competition!")
-        return
+fights = fights_generator(wrestlers_list)
 
-    print(f"🎯 Generating fights for Competition {competition_uuid}, Style {wrestling_style}, Category {weight_category}...")
-
-    # First round handling (extra matches if needed)
-    first_round_pairs, remaining_wrestlers = generate_first_round(wrestlers)
-    insert_fights(competition_uuid, "Round 16", wrestling_style, weight_category, first_round_pairs)
-
-    # Continue tournament rounds
-    current_round = "Round 16"
-    while len(remaining_wrestlers) > 1:
-        next_round = determine_next_round_name(current_round)
-        if not next_round:
-            break  # Tournament complete
-
-        fight_pairs = [(remaining_wrestlers[i], remaining_wrestlers[i+1]) for i in range(0, len(remaining_wrestlers), 2)]
-        insert_fights(competition_uuid, next_round, wrestling_style, weight_category, fight_pairs)
-
-        remaining_wrestlers = [random.choice(pair) for pair in fight_pairs]  # Winners advance
-        current_round = next_round
-
-    print(f"✅ Fights generated and stored in the database!")
-
-# Example: Generate fights for competition 1, Greco Roman style, 77 kg category
-generate_tournament(1, "Greco Roman", "77")
+# Display fights
+for fight in fights:
+    print(f"{fight[0]} vs {fight[1]}")

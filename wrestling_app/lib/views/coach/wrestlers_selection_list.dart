@@ -51,6 +51,11 @@ class _WrestlersSelectionList extends State<WrestlersSelectionList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+      ),
       backgroundColor: Colors.white,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -59,18 +64,7 @@ class _WrestlersSelectionList extends State<WrestlersSelectionList> {
             : Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 40),
-
-            // ✅ Back Arrow Button
-            Align(
-              alignment: Alignment.centerLeft,
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.black, size: 28),
-                onPressed: () {
-                  Navigator.pop(context); // Go back to the previous screen
-                },
-              ),
-            ),
+            const SizedBox(height: 30),
 
             const Center(
               child: Text(
@@ -83,6 +77,7 @@ class _WrestlersSelectionList extends State<WrestlersSelectionList> {
               ),
             ),
 
+            const SizedBox(height: 20,),
 
             if(widget.invitationStatus == 'Pending')
               Expanded(

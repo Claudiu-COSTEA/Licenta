@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:wrestling_app/models/wrestler_documents_model.dart';
 import 'package:wrestling_app/services/wrestler_apis_services.dart';
 
 import 'package:wrestling_app/services/google_maps_lunch.dart';
+
+import 'get_qr_code.dart';
 
 
 class WrestlerCompetitionManageScreen extends StatefulWidget {
@@ -25,6 +28,11 @@ class _WrestlerCompetitionManageScreen extends State<WrestlerCompetitionManageSc
 
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: _isLoading
@@ -32,17 +40,6 @@ class _WrestlerCompetitionManageScreen extends State<WrestlerCompetitionManageSc
             : Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: IconButton(
-                icon: const Icon(
-                    Icons.arrow_back, color: Colors.black, size: 28),
-                onPressed: () {
-                  //Navigator.pop(context); // Go back to the previous screen
-                  Navigator.of(context).pop();
-                },
-              ),
-            ),
             const SizedBox(height: 70),
 
             // Competition Name
@@ -116,8 +113,6 @@ class _WrestlerCompetitionManageScreen extends State<WrestlerCompetitionManageSc
 
             const SizedBox(height: 100),
 
-            const SizedBox(height: 15),
-
             if (invitation['invitation_status'] == "Pending")
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -149,6 +144,26 @@ class _WrestlerCompetitionManageScreen extends State<WrestlerCompetitionManageSc
                 ],
               ),
 
+            if (invitation['invitation_status'] == "Accepted") ...[
+              const SizedBox(height: 20),
+              _buildActionButton("Documente medicale", () async {
+                WrestlerDocuments? documentsUrls = await _wrestlerService.fetchWrestlerUrls(widget.userUUID);
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                    builder: (context) => QRCodeScreen(url: documentsUrls?.medicalDocument))
+                );
+              }),
+              const SizedBox(height: 10),
+              _buildActionButton("Documente sportive", () async {
+                WrestlerDocuments? documentsUrls = await _wrestlerService.fetchWrestlerUrls(widget.userUUID);
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => QRCodeScreen(url: documentsUrls?.licenseDocument))
+                );
+              }),
+            ],
 
           ],
         ),
