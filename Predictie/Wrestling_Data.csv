@@ -1,0 +1,11 @@
+wrestler1_win_rate_last_50,wrestler1_experience_years,wrestler1_technical_points_won_last_50,wrestler1_technical_points_lost_last_50,wrestler1_wins_against_wrestler2,wrestler2_win_rate_last_50,wrestler2_experience_years,wrestler2_technical_points_won_last_50,wrestler2_technical_points_lost_last_50,wrestler2_wins_against_wrestler1,winner
+0.60,5,120,90,2,0.55,4,105,95,1,wrestler1
+0.48,3,110,115,1,0.50,3,108,112,2,wrestler2
+0.72,8,150,80,5,0.65,7,140,85,3,wrestler1
+0.56,4,90,85,2,0.60,6,100,90,4,wrestler2
+0.41,2,70,100,0,0.58,5,110,95,3,wrestler2
+0.77,10,180,70,6,0.75,12,195,78,10,wrestler2
+0.63,6,130,95,3,0.60,5,125,100,2,wrestler1
+0.66,7,140,88,4,0.67,8,142,90,3,wrestler2
+0.33,1,60,120,0,0.35,2,65,118,1,wrestler2
+0.55,4,115,105,1,0.52,4,110,108,2,wrestler2
