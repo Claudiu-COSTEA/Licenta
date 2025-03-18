@@ -35,6 +35,8 @@ class _SignInScreenState extends State<SignInScreen> {
     final user = await _authService.signIn(email, password);
     if (user != null) {
       UserModel? userModel = await _userService.fetchUserByEmail(email);
+      print("AICIIIIIIIII:  ");
+      print(userModel?.userUUID);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Successfully signed in!')),

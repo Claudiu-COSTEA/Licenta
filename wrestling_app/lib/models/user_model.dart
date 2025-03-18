@@ -1,9 +1,9 @@
 class UserModel {
-  final int userUUID;
-  final String userEmail;
-  final String userFullName;
-  final String userType; // Wrestling Club, Referee, Coach, Wrestler
-  final String? fcmToken; // Nullable token
+  final int userUUID; // Cannot be null (Primary Key)
+  final String userEmail; // Cannot be null
+  final String userFullName; // Cannot be null
+  final String userType; // Cannot be null
+  final String? fcmToken; // Nullable field
 
   UserModel({
     required this.userUUID,
@@ -13,14 +13,14 @@ class UserModel {
     this.fcmToken,
   });
 
-  // Factory constructor to create an instance from JSON
+  // ✅ Factory constructor to parse JSON response
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      userUUID: json['user_UUID'] as int,
+      userUUID: json['user_UUID'] as int, // Enforced non-null
       userEmail: json['user_email'] as String,
       userFullName: json['user_full_name'] as String,
       userType: json['user_type'] as String,
-      fcmToken: json['fcm_token'] != null ? json['fcm_token'] as String : null, // Handling nullable value
+      fcmToken: json['fcm_token'], // Nullable field
     );
   }
 
@@ -31,7 +31,7 @@ class UserModel {
       'user_email': userEmail,
       'user_full_name': userFullName,
       'user_type': userType,
-      if (fcmToken != null) 'fcm_token': fcmToken, // Only add if not null
+      if (fcmToken != null) 'fcm_token': fcmToken, // Only include if not null
     };
   }
 }
