@@ -1,6 +1,8 @@
+use wrestlingMobileAppDatabase;
+
 CREATE TABLE `users` (
   `user_UUID` int AUTO_INCREMENT PRIMARY KEY,
-  `user_email` varchar(50) NOT NULL,
+  `user_email` varchar(50) UNIQUE NOT NULL ,
   `user_full_name` varchar(50) NOT NULL,
   `user_type` ENUM('Wrestling club','Referee','Coach','Wrestler') NOT NULL,
   `fcm_token` varchar(255)
@@ -47,7 +49,7 @@ CREATE TABLE `competitions_invitations` (
   `invitation_deadline` datetime NOT NULL, 
   `invitation_response_date` datetime, 
   `referee_verification` ENUM('Confirmed', 'Declined'),
-  PRIMARY KEY (`competition_UUID`, `recipient_UUID`, `recipient_role`) 
+  PRIMARY KEY (`competition_invitation_UUID`, `competition_UUID`, `recipient_UUID`) 
 );
 
 CREATE TABLE `competition_fights` (
@@ -94,9 +96,9 @@ ALTER TABLE `competition_fights` ADD FOREIGN KEY (`referee_UUID_2`) REFERENCES `
 
 ALTER TABLE `competition_fights` ADD FOREIGN KEY (`referee_UUID_3`) REFERENCES `users` (`user_UUID`);
 
-ALTER TABLE `competition_fights` ADD FOREIGN KEY (`wrestrling_club_UUID_red`) REFERENCES `users` (`user_UUID`);
+ALTER TABLE `competition_fights` ADD FOREIGN KEY (`wrestling_club_UUID_red`) REFERENCES `users` (`user_UUID`);
 
-ALTER TABLE `competition_fights` ADD FOREIGN KEY (`wrestrling_club_UUID_blue`) REFERENCES `users` (`user_UUID`);
+ALTER TABLE `competition_fights` ADD FOREIGN KEY (`wrestling_club_UUID_blue`) REFERENCES `users` (`user_UUID`);
 
 ALTER TABLE `competition_fights` ADD FOREIGN KEY (`coach_UUID_red`) REFERENCES `users` (`user_UUID`);
 

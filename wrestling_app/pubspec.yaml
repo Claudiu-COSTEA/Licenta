@@ -42,8 +42,8 @@ dependencies:
   url_launcher: ^6.3.1
   cloud_firestore: ^5.6.4
   firebase_messaging: ^15.2.3
-  flutter_local_notifications: ^18.0.1
-  googleapis: ^13.2.0
+  flutter_local_notifications: ^19.0.0
+  googleapis: ^14.0.0
   googleapis_auth: ^1.6.0
   google_maps_flutter: ^2.10.1
   geolocator: ^13.0.2
@@ -52,6 +52,9 @@ dependencies:
   qr_flutter: ^4.1.0
   camera: ^0.11.1
   qr_code_scanner_plus: ^2.0.10+1
+  mockito: ^5.4.5
+  build_runner: ^2.4.15
+  mysql1: ^0.20.0
 
 dev_dependencies:
   flutter_test:

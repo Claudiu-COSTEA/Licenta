@@ -6,7 +6,7 @@ import 'package:wrestling_app/services/constants.dart';
 import 'package:wrestling_app/services/notifications_services.dart';
 
 class AdminServices {
-  final String _baseUrl = '${AppConstants.baseUrl}/admin/add_competition.php';
+  final String _baseUrl = 'https://rhybb6zgsb.execute-api.us-east-1.amazonaws.com/wrestling/admin/addCompetition';
 
   Future<bool> addCompetition({
     required BuildContext context,
@@ -23,9 +23,12 @@ class AdminServices {
         builder: (context) => const Center(child: CircularProgressIndicator()),
       );
 
+
       final response = await http.post(
         Uri.parse(_baseUrl),
-        headers: {"Content-Type": "application/json"},
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: jsonEncode({
           "competition_name": competitionName,
           "competition_start_date": competitionStartDate, // Format: YYYY-MM-DD HH:MM:SS
@@ -34,13 +37,17 @@ class AdminServices {
         }),
       );
 
+      print("Response Status Code: ${response.statusCode}");
+      print("Response Body: ${response.body}");
       // Close loading dialog
       if (context.mounted) Navigator.pop(context);
 
       if (response.statusCode == 200) {
+        // Decode the response body
         final responseData = json.decode(response.body);
 
-        if (responseData.containsKey("success")) {
+        // Check if the 'body' field exists and contains the 'message'
+        if (responseData.containsKey("body") && responseData["body"]["message"] == "Competition added successfully") {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Competition added successfully!"), backgroundColor: Colors.green),
           );
@@ -57,6 +64,7 @@ class AdminServices {
         );
         return false;
       }
+
     } catch (e) {
       if (context.mounted) Navigator.pop(context); // Close loading dialog if error occurs
 

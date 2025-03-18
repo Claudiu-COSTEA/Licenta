@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class AppConstants {
   // ✅ API URLs
-  static const String baseUrl = "http://192.168.0.154/wrestling_app";
+  static const String baseUrl = "https://rhybb6zgsb.execute-api.us-east-1.amazonaws.com/wrestling/";
 
 
   // ✅ UI Colors
