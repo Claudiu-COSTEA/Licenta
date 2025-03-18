@@ -96,7 +96,7 @@ class _RefereeCompetitionManageScreen extends State<RefereeCompetitionManageScre
                 children: [
                   Expanded( // Ensures buttons take equal width
                     child: _buildActionButton("Accepta", () {
-                      _refereeServices.updateRefereeInvitationStatus(
+                      _refereeServices.updateInvitationStatus(
                         context: context,
                         competitionUUID: invitation['competition_UUID'],
                         recipientUUID: widget.userUUID,
@@ -108,7 +108,7 @@ class _RefereeCompetitionManageScreen extends State<RefereeCompetitionManageScre
                   const SizedBox(width: 10), // Spacing between buttons
                   Expanded(
                     child: _buildActionButton("Refuza", () {
-                      _refereeServices.updateRefereeInvitationStatus(
+                      _refereeServices.updateInvitationStatus(
                         context: context,
                         competitionUUID: invitation['competition_UUID'],
                         recipientUUID: widget.userUUID,

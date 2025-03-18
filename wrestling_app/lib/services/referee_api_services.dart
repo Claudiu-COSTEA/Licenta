@@ -10,16 +10,13 @@ import '../models/wrestler_verification_model.dart';
 class RefereeServices {
 
 
-  Future<void> updateRefereeInvitationStatus({
+  Future<void> updateInvitationStatus({
     required BuildContext context,
     required int competitionUUID,
     required int recipientUUID,
     required String recipientRole,
     required String invitationStatus,
   }) async {
-
-    final String baseUrl = '${AppConstants.baseUrl}/post_invitation_response.php';
-
     try {
       // Show loading indicator
       showDialog(
@@ -30,7 +27,7 @@ class RefereeServices {
 
       // Prepare request body
       final response = await http.post(
-        Uri.parse(baseUrl),
+        Uri.parse("https://rhybb6zgsb.execute-api.us-east-1.amazonaws.com/wrestling/sendInvitationResponse"),
         headers: {"Content-Type": "application/json"},
         body: json.encode({
           "competition_UUID": competitionUUID,
@@ -47,28 +44,28 @@ class RefereeServices {
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
 
-        if (responseData.containsKey("success")) {
+        if (responseData.containsKey("message")) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(responseData["success"]),
+            SnackBar(
+                content: Text(responseData["message"]),
                 backgroundColor: Colors.green),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(responseData["error"] ?? "Unknown error"),
+            SnackBar(
+                content: Text(responseData["error"] ?? "Unknown error"),
                 backgroundColor: Colors.red),
           );
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Failed to update invitation"),
+          const SnackBar(
+              content: Text("Failed to update invitation"),
               backgroundColor: Colors.red),
         );
       }
     } catch (e) {
-      if (context.mounted) {
-        Navigator.pop(
-          context); // Close loading dialog if error occurs
-      }
+      if (context.mounted) Navigator.pop(context); // Close loading dialog if error occurs
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),

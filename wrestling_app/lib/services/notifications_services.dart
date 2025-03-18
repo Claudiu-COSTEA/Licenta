@@ -14,23 +14,22 @@ class NotificationsServices {
 
   // Initialize Firebase Messaging
   Future<void> storeFcmToken(int userUUID, String fcmToken) async {
-    String apiUrl = '${AppConstants.baseUrl}/store_fcm_token.php';
-
     try {
       final response = await http.post(
-        Uri.parse(apiUrl),
+        Uri.parse("https://rhybb6zgsb.execute-api.us-east-1.amazonaws.com/wrestling/storeFcmToken"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
           "user_UUID": userUUID,
           "fcm_token": fcmToken,
         }),
       );
-
+      
       final responseData = jsonDecode(response.body);
+
       if (response.statusCode == 200) {
-        if (responseData.containsKey("success")) {
+        if (responseData.containsKey("message")) {
           if (kDebugMode) {
-            print("FCM token stored successfully.");
+            print("FCM token stored successfully: ${responseData["message"]}");
           }
         } else {
           if (kDebugMode) {
@@ -44,7 +43,7 @@ class NotificationsServices {
       }
     } catch (e) {
       if (kDebugMode) {
-        print("Error storing FCM token: $e");
+        print("🚨 Error storing FCM token: $e");
       }
     }
   }
@@ -141,16 +140,22 @@ class NotificationsServices {
   // Send notification functions
 
   Future<String?> getUserFCMToken(int userUUID) async {
-    final String apiUrl = "${AppConstants.baseUrl}/get_fcm_token_user.php?user_UUID=$userUUID";
+    final String apiUrl = "https://rhybb6zgsb.execute-api.us-east-1.amazonaws.com/wrestling/getUserFcmToken?user_UUID=$userUUID";
 
     try {
       final response = await http.get(Uri.parse(apiUrl));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        return data['fcm_token']; // Extract the FCM token
+        if (data.containsKey('fcm_token')) {
+          return data['fcm_token']; // Return the FCM token
+        } else {
+          throw Exception("FCM token not found in response");
+        }
+      } else if (response.statusCode == 404) {
+        throw Exception("User not found");
       } else {
-        throw Exception("Failed to fetch FCM token");
+        throw Exception("Failed to fetch FCM token. Status code: ${response.statusCode}");
       }
     } catch (e) {
       if (kDebugMode) {

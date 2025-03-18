@@ -120,7 +120,7 @@ class _WrestlingClubCompetitionManageScreen extends State<WrestlingClubCompetiti
                 children: [
                   Expanded( // Ensures buttons take equal width
                     child: _buildActionButton("Accepta", () {
-                      _wrestlingClubService.updateWrestlingClubInvitationStatus(
+                      _wrestlingClubService.updateInvitationStatus(
                         context: context,
                         competitionUUID: invitation['competition_UUID'],
                         recipientUUID: widget.userUUID,
@@ -132,7 +132,7 @@ class _WrestlingClubCompetitionManageScreen extends State<WrestlingClubCompetiti
                   const SizedBox(width: 10), // Spacing between buttons
                   Expanded(
                     child: _buildActionButton("Refuza", () {
-                      _wrestlingClubService.updateWrestlingClubInvitationStatus(
+                      _wrestlingClubService.updateInvitationStatus(
                         context: context,
                         competitionUUID: invitation['competition_UUID'],
                         recipientUUID: widget.userUUID,

@@ -121,7 +121,7 @@ class _CoachCompetitionManageScreen extends State<CoachCompetitionManageScreen> 
                 children: [
                   Expanded( // Ensures buttons take equal width
                     child: _buildActionButton("Accepta", () {
-                      _coachService.updateCoachInvitationStatus(
+                      _coachService.updateInvitationStatus(
                         context: context,
                         competitionUUID: invitation['competition_UUID'],
                         recipientUUID: widget.userUUID,
@@ -133,7 +133,7 @@ class _CoachCompetitionManageScreen extends State<CoachCompetitionManageScreen> 
                   const SizedBox(width: 10), // Spacing between buttons
                   Expanded(
                     child: _buildActionButton("Refuza", () {
-                      _coachService.updateCoachInvitationStatus(
+                      _coachService.updateInvitationStatus(
                         context: context,
                         competitionUUID: invitation['competition_UUID'],
                         recipientUUID: widget.userUUID,

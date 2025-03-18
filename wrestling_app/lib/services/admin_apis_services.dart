@@ -80,7 +80,7 @@ class AdminServices {
     }
   }
 
-  final String _baseUrlSend = '${AppConstants.baseUrl}/admin/send_invitation.php';
+  final String _baseUrlSend = 'https://rhybb6zgsb.execute-api.us-east-1.amazonaws.com/wrestling/admin/sendInvitation';
 
   Future<bool> sendInvitation({
     required int competitionUUID,
@@ -105,6 +105,10 @@ class AdminServices {
           "referee_verification": refereeVerification,
         }),
       );
+
+      print("Response Status Code: ${response.statusCode}");
+      print("Response Body: ${response.body}");
+
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
