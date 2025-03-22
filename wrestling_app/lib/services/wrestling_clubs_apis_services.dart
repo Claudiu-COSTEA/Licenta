@@ -5,43 +5,56 @@ import 'package:http/http.dart' as http;
 import 'package:wrestling_app/services/constants.dart';
 
 class WrestlingClubService {
-  final String _baseUrl = '${AppConstants.baseUrl}/wrestling_club/get_wrestling_club_coaches.php';
+  final String _baseUrl = 'https://rhybb6zgsb.execute-api.us-east-1.amazonaws.com/wrestling/wrestlingClub/getCoaches';
 
-  Future<List<Map<String, dynamic>>> fetchCoachesForClub(int wrestlingClubUUID,
-      int competitionUUID) async {
+  Future<List<Map<String, dynamic>>?> fetchCoachesForClub(
+      int wrestlingClubUUID, int competitionUUID) async {
     try {
-      final response = await http.get(
-        Uri.parse(
-            '$_baseUrl?wrestling_club_UUID=$wrestlingClubUUID&competition_UUID=$competitionUUID'),
+      final uri = Uri.parse(
+        '$_baseUrl?wrestling_club_UUID=$wrestlingClubUUID&competition_UUID=$competitionUUID',
       );
 
+      final response = await http.get(uri);
+
       if (response.statusCode == 200) {
-        var decodedResponse = json.decode(response.body);
+        final Map<String, dynamic> responseData = json.decode(response.body);
 
-        // 🔹 Check if the response contains an error message
-        if (decodedResponse is Map<String, dynamic> &&
-            decodedResponse.containsKey("error")) {
-          throw Exception(decodedResponse["error"]);
-        }
+        if (responseData.containsKey("body")) {
+          final String rawBody = responseData["body"];
 
-        // 🔹 Ensure it's a List before mapping
-        if (decodedResponse is List) {
-          return decodedResponse.map((coach) =>
-          Map<String, dynamic>.from(coach)).toList();
+          // Decode the JSON string inside 'body'
+          final dynamic decodedBody = json.decode(rawBody);
+
+          if (decodedBody is List) {
+            return decodedBody
+                .map((item) => Map<String, dynamic>.from(item))
+                .toList(); // will return [] if empty
+          } else {
+            if (kDebugMode) {
+              print("Unexpected body format: $decodedBody");
+            }
+            return [];
+          }
         } else {
-          throw Exception("Unexpected API response format.");
+          if (kDebugMode) {
+            print("Missing 'body' in response: $responseData");
+          }
+          return [];
         }
       } else {
-        throw Exception(
-            'Failed to load coaches. Status code: ${response.statusCode}');
+        if (kDebugMode) {
+          print("Error fetching coaches: ${response.statusCode}, ${response.body}");
+        }
+        return [];
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error fetching coaches: $e');
+        print("Exception while fetching coaches: $e");
       }
       return [];
     }
   }
+
 
 
 

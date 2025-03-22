@@ -150,7 +150,7 @@ class _CustomCoachesListState extends State<CustomCoachesList> {
 
   // **Handles Sending Coach Invitation**
   void _onSelectCoach(BuildContext context, int coachUUID) async {
-    String apiUrl = "${AppConstants.baseUrl}/wrestling_club/post_coach_invitation.php";
+    String apiUrl = "https://rhybb6zgsb.execute-api.us-east-1.amazonaws.com/wrestling/wrestlingClub/sendCoachInvitation";
 
     try {
       // Convert String deadline to DateTime
@@ -179,35 +179,46 @@ class _CustomCoachesListState extends State<CustomCoachesList> {
         }),
       );
 
+      print("Response Status Code: ${response.statusCode}");
+      print("Response Body: ${response.body}");
+
       Navigator.pop(context); // Close loading dialog
 
-      if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
-        if (responseData.containsKey("success")) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(responseData["success"]), backgroundColor: Colors.green),
-          );
-          setState(() {
-            int index = widget.coaches.indexWhere((c) => c['coach_UUID'] == coachUUID);
-            if (index != -1) {
-              widget.coaches[index]['invitation_status'] = "Pending"; // Update directly
+      print("Raw response.body: ${response.body}");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final Map<String, dynamic> responseData = json.decode(response.body);
+
+        if (responseData.containsKey("body") && responseData["body"] is Map<String, dynamic>) {
+          final body = responseData["body"];
+
+          if (body.containsKey("message")) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(body["message"]), backgroundColor: Colors.green),
+            );
+
+            setState(() {
+              int index = widget.coaches.indexWhere((c) => c['coach_UUID'] == coachUUID);
+              if (index != -1) {
+                widget.coaches[index]['invitation_status'] = "Pending";
+              }
+            });
+
+            String? token = await notificationService.getUserFCMToken(coachUUID);
+            if (token != null) {
+              notificationService.sendFCMMessage(token);
             }
-          });
 
-          String? token = await notificationService.getUserFCMToken(coachUUID);
-          if(token != null) {
-            notificationService.sendFCMMessage(token);
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Unexpected response format"), backgroundColor: Colors.red),
+            );
           }
-
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(responseData["error"] ?? "Unknown error"), backgroundColor: Colors.red),
+            const SnackBar(content: Text("Missing 'body' in response"), backgroundColor: Colors.red),
           );
         }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Failed to send invitation"), backgroundColor: Colors.red),
-        );
       }
     } catch (e) {
       if (mounted) {

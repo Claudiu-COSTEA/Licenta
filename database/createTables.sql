@@ -4,7 +4,7 @@ CREATE TABLE `users` (
   `user_UUID` int AUTO_INCREMENT PRIMARY KEY,
   `user_email` varchar(50) UNIQUE NOT NULL ,
   `user_full_name` varchar(50) NOT NULL,
-  `user_type` ENUM('Wrestling club','Referee','Coach','Wrestler') NOT NULL,
+  `user_type` ENUM('Wrestling club','Referee','Coach','Wrestler', 'Admin') NOT NULL,
   `fcm_token` varchar(255)
 );
 

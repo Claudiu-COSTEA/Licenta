@@ -31,11 +31,11 @@ class _CoachSelectionListState extends State<CoachSelectionList> {
 
   Future<void> _fetchWrestlingClubCoaches() async {
     try {
-      List<Map<String, dynamic>> fetchedCoaches =
+      List<Map<String, dynamic>>? fetchedCoaches =
       await _wrestlingClubService.fetchCoachesForClub(widget.userUUID, widget.competitionUUID);
 
       setState(() {
-        wrestlingClubCoaches = fetchedCoaches;
+        wrestlingClubCoaches = fetchedCoaches!;
       });
     } catch (e) {
       if (kDebugMode) {
