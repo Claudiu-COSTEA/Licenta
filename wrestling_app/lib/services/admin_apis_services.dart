@@ -147,4 +147,60 @@ class AdminServices {
     }
   }
 
+  Future<Map<String, dynamic>> predictWinner({
+    required double w1WinRate,
+    required int w1Years,
+    required int w1PointsWon,
+    required int w1PointsLost,
+    required int w1WinsVsW2,
+    required double w2WinRate,
+    required int w2Years,
+    required int w2PointsWon,
+    required int w2PointsLost,
+    required int w2WinsVsW1,
+  }) async {
+    const url = 'https://rhybb6zgsb.execute-api.us-east-1.amazonaws.com/wrestling/admin/prediction';
+
+    final payload = {
+      "wrestler1_win_rate_last_50": w1WinRate,
+      "wrestler1_experience_years": w1Years,
+      "wrestler1_technical_points_won_last_50": w1PointsWon,
+      "wrestler1_technical_points_lost_last_50": w1PointsLost,
+      "wrestler1_wins_against_wrestler2": w1WinsVsW2,
+      "wrestler2_win_rate_last_50": w2WinRate,
+      "wrestler2_experience_years": w2Years,
+      "wrestler2_technical_points_won_last_50": w2PointsWon,
+      "wrestler2_technical_points_lost_last_50": w2PointsLost,
+      "wrestler2_wins_against_wrestler1": w2WinsVsW1,
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: json.encode(payload),
+      );
+
+      if (response.statusCode == 200) {
+        final body = json.decode(response.body);
+        final prediction = json.decode(body['body']); // decode stringified JSON
+
+        return {
+          'winner': prediction['predicted_winner'],
+          'probability': prediction['prediction_probability'],
+        };
+      } else {
+        throw Exception('Failed with status: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error: $e');
+      return {
+        'winner': 'unknown',
+        'probability': 0.0,
+      };
+    }
+  }
+
 }

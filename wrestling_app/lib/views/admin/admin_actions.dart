@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wrestling_app/views/admin/send_invitation_screen.dart';
-
+import 'package:wrestling_app/views/admin/prediction_screen.dart';
 import '../../services/auth_service.dart';
 import 'add_competition_screen.dart';
 
@@ -66,6 +66,26 @@ class AdminActions extends StatelessWidget {
                 ),
                 child: const Text(
                   "Trimite invitatie club de lupte",
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              ElevatedButton(
+                onPressed: (){
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => PredictionScreen()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFB4182D),
+                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 50),
+                ),
+                child: const Text(
+                  "Predictie",
                   style: TextStyle(color: Colors.white, fontSize: 18),
                 ),
               ),
