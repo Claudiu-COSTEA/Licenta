@@ -85,7 +85,7 @@ class _CustomListWrestlerRespondState extends State<CustomListWrestlerRespond> {
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
-                                "${wrestler["weight_category"]} Kg", // Concatenated with "Kg"
+                                "${wrestler["weight_category"]}",
                                 style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                               ),
                             ),

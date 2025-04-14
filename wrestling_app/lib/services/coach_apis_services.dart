@@ -5,39 +5,46 @@ import 'package:http/http.dart' as http;
 import 'package:wrestling_app/services/constants.dart';
 
 class CoachService {
-  final String _baseUrl = '${AppConstants.baseUrl}/coach/get_coache_wrestlers.php';
+  static const String _baseUrl = 'https://rhybb6zgsb.execute-api.us-east-1.amazonaws.com/wrestling/coach/getCoachWrestlers';
 
-  Future<List<Map<String, dynamic>>> fetchWrestlersForCoach(int coachUUID,
-      int competitionUUID) async {
+  Future<List<Map<String, dynamic>>> fetchCoachWrestlers({
+    required int coachUUID,
+    required int competitionUUID,
+  }) async {
     try {
-      final response = await http.get(
-        Uri.parse(
-            '$_baseUrl?coach_UUID=$coachUUID&competition_UUID=$competitionUUID'),
-      );
+      final uri = Uri.parse(
+          '$_baseUrl?coach_UUID=$coachUUID&competition_UUID=$competitionUUID');
+
+      final response = await http.get(uri);
 
       if (response.statusCode == 200) {
-        var decodedResponse = json.decode(response.body);
+        final decoded = json.decode(response.body);
 
-        // 🔹 Check if the response contains an error message
-        if (decodedResponse is Map<String, dynamic> &&
-            decodedResponse.containsKey("error")) {
-          throw Exception(decodedResponse["error"]);
+        if (decoded is Map<String, dynamic>) {
+          final body = decoded["body"];
+
+          // 'body' is already a List
+          if (body is List) {
+            return body
+                .map((item) => Map<String, dynamic>.from(item))
+                .toList();
+          }
+
+          // Optional: handle API message
+          if (body is Map<String, dynamic> && body.containsKey("message")) {
+            if (kDebugMode) print("Message: ${body['message']}");
+            return [];
+          }
         }
 
-        // 🔹 Ensure it's a List before mapping
-        if (decodedResponse is List) {
-          return decodedResponse.map((wrestler) =>
-          Map<String, dynamic>.from(wrestler)).toList();
-        } else {
-          throw Exception("Unexpected API response format.");
-        }
+        throw Exception("Unexpected response format.");
       } else {
         throw Exception(
-            'Failed to load wrestlers. Status code: ${response.statusCode}');
+            'Failed to fetch wrestlers. Status code: ${response.statusCode}');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error fetching wrestlers: $e');
+        print("Error fetching coach wrestlers: $e");
       }
       return [];
     }

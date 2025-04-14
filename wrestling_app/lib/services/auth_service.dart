@@ -38,7 +38,7 @@ class AuthService {
     }
   }
 
-  // ✅ Sign-out function (No Changes Needed Here)
+  // Sign-out function (No Changes Needed Here)
   Future<void> signOut(BuildContext context) async {
     try {
       await _auth.signOut();

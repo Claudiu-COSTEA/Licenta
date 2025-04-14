@@ -71,7 +71,7 @@ class _CustomWeightCategoriesVerificationListState
                   ),
                   child: ListTile(
                     title: Text(
-                      "$weightCategory Kg",
+                      "$weightCategory",
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.white,

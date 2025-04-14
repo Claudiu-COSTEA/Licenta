@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:wrestling_app/services/constants.dart';
 import 'package:wrestling_app/services/notifications_services.dart';
 
 class AdminServices {
@@ -109,22 +108,35 @@ class AdminServices {
       print("Response Status Code: ${response.statusCode}");
       print("Response Body: ${response.body}");
 
-
-      if (response.statusCode == 200) {
+      // Check for 200 or 201
+      if (response.statusCode == 200 || response.statusCode == 201) {
         final responseData = json.decode(response.body);
 
-        if (responseData.containsKey("success")) {
+        // If your Lambda uses the standard "body" wrapping
+        final dynamic rawBody = responseData["body"];
+        // Might be a Map directly OR a JSON string. Let's handle both:
+        final body = rawBody is String ? json.decode(rawBody) : rawBody;
 
-          NotificationsServices notificationService = NotificationsServices();
+        // Check "message" or "success"
+        if (body is Map<String, dynamic>) {
+          if (body.containsKey("message")) {
+            print(body["message"]); // "Competition invitation sent successfully!"
 
-          String? token = await notificationService.getUserFCMToken(recipientUUID);
-          if(token != null) {
-            notificationService.sendFCMMessage(token);
+            // Send FCM notification if needed
+            NotificationsServices notificationService = NotificationsServices();
+            String? token = await notificationService.getUserFCMToken(recipientUUID);
+            if (token != null) {
+              notificationService.sendFCMMessage(token);
+            }
+
+            return true; // Invitation was successfully created
+          } else if (body.containsKey("error")) {
+            throw Exception(body["error"]);
+          } else {
+            throw Exception("Unknown response format");
           }
-
-          return true; // Invitation added successfully
         } else {
-          throw Exception(responseData["error"] ?? "Unknown error occurred");
+          throw Exception("Unexpected response format");
         }
       } else {
         throw Exception("Failed to send invitation. Status: ${response.statusCode}");
@@ -134,4 +146,5 @@ class AdminServices {
       return false;
     }
   }
+
 }

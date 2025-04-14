@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:wrestling_app/services/constants.dart';
@@ -6,7 +7,6 @@ import 'package:wrestling_app/services/constants.dart';
 import '../models/wrestler_documents_model.dart';
 
 class WrestlerService {
-  final String _baseUrl = '${AppConstants.baseUrl}/post_invitation_response.php';
 
   Future<void> updateInvitationStatus({
     required BuildContext context,
@@ -16,16 +16,17 @@ class WrestlerService {
     required String invitationStatus,
   }) async {
     try {
-      // Show loading indicator
+      // Show loading dialog
       showDialog(
         context: context,
         barrierDismissible: false,
         builder: (context) => const Center(child: CircularProgressIndicator()),
       );
 
-      // Prepare request body
+      // Make the POST request
       final response = await http.post(
-        Uri.parse("https://rhybb6zgsb.execute-api.us-east-1.amazonaws.com/wrestling/sendInvitationResponse"),
+        Uri.parse(
+            "https://rhybb6zgsb.execute-api.us-east-1.amazonaws.com/wrestling/sendInvitationResponse"),
         headers: {"Content-Type": "application/json"},
         body: json.encode({
           "competition_UUID": competitionUUID,
@@ -35,36 +36,42 @@ class WrestlerService {
         }),
       );
 
-      // Close loading dialog
+      // Close the loading dialog
       if (context.mounted) Navigator.pop(context);
 
-      // Handle response
-      if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
+      // Decode response
+      final responseData = json.decode(response.body);
+      final body = responseData["body"];
 
-        if (responseData.containsKey("message")) {
+      if (body is Map<String, dynamic>) {
+        if (body.containsKey("message")) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-                content: Text(responseData["message"]),
-                backgroundColor: Colors.green),
+                content: Text(body["message"]), backgroundColor: Colors.green),
+          );
+        } else if (body.containsKey("success")) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text(body["success"]), backgroundColor: Colors.green),
+          );
+        } else if (body.containsKey("error")) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(body["error"]), backgroundColor: Colors.red),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text(responseData["error"] ?? "Unknown error"),
+            const SnackBar(content: Text("Unknown response format"),
                 backgroundColor: Colors.red),
           );
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text("Failed to update invitation"),
+          const SnackBar(content: Text("Unexpected response format"),
               backgroundColor: Colors.red),
         );
       }
     } catch (e) {
-      if (context.mounted) Navigator.pop(context); // Close loading dialog if error occurs
-
+      if (context.mounted) Navigator.pop(context); // close dialog on error
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
       );
@@ -72,26 +79,37 @@ class WrestlerService {
   }
 
   Future<WrestlerDocuments?> fetchWrestlerUrls(int wrestlerUUID) async {
-    final String baseUrlDocuments = "${AppConstants.baseUrl}/wrestler/get_wrestler_urls.php";
-    final Uri url = Uri.parse('$baseUrlDocuments?wrestler_UUID=$wrestlerUUID');
-
     try {
-      final response = await http.get(url);
+      final uri = Uri.parse(
+        'https://rhybb6zgsb.execute-api.us-east-1.amazonaws.com/wrestling/wrestler/getWrestlerUrls?wrestler_UUID=$wrestlerUUID',
+      );
+
+      final response = await http.get(uri);
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
+        final decoded = json.decode(response.body);
 
-        if (data.containsKey('error')) {
-          throw Exception(data['error']);
+        final body = decoded['body'];
+
+        if (body is Map<String, dynamic> &&
+            body.containsKey("medical_document") &&
+            body.containsKey("license_document")) {
+          return WrestlerDocuments.fromJson(body);
+        } else if (body is Map<String, dynamic> && body.containsKey("error")) {
+          if (kDebugMode) print("API error: ${body["error"]}");
+        } else {
+          if (kDebugMode) print("Unexpected response structure: $body");
         }
-
-        return WrestlerDocuments.fromJson(data);
       } else {
-        throw Exception("Failed to fetch wrestler documents. Status code: ${response.statusCode}");
+        if (kDebugMode) {
+          print(
+              "Failed to load documents. Status code: ${response.statusCode}");
+        }
       }
     } catch (e) {
-      print("Error fetching wrestler documents: $e");
-      return null;
+      if (kDebugMode) print("Exception fetching documents: $e");
     }
+
+    return null; // In case of any error
   }
 }

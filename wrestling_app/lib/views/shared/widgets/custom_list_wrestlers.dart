@@ -100,7 +100,7 @@ class _CustomWrestlersListState extends State<CustomWrestlersList> {
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(
-                                  "${wrestler["weight_category"]} Kg", // Concatenated with "Kg"
+                                  "${wrestler["weight_category"]}",
                                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                                 ),
                               ),
@@ -198,25 +198,22 @@ class _CustomWrestlersListState extends State<CustomWrestlersList> {
   }
 
   void _onSelectWrestler(BuildContext context, int wrestlerUUID, String weightCategory) async {
-    String apiUrl = "${AppConstants.baseUrl}/coach/post_wrestler_invitation.php";
+    const String apiUrl = "https://rhybb6zgsb.execute-api.us-east-1.amazonaws.com/wrestling/coach/sendWrestlerInvitation";
 
     try {
-      // Convert String deadline to DateTime
+      // Format deadline
       DateTime competitionDeadline = DateTime.parse(widget.competitionDeadline);
-
-      // Subtract 7 days
       DateTime newDeadline = competitionDeadline.subtract(const Duration(days: 7));
-
-      // Format to MySQL datetime format
       String formattedDeadline = DateFormat("yyyy-MM-dd HH:mm:ss").format(newDeadline);
 
-      // Show loading indicator
+      // Show loading spinner
       showDialog(
         context: context,
         barrierDismissible: false,
         builder: (context) => const Center(child: CircularProgressIndicator()),
       );
 
+      // Send POST request
       final response = await http.post(
         Uri.parse(apiUrl),
         headers: {"Content-Type": "application/json"},
@@ -224,34 +221,36 @@ class _CustomWrestlersListState extends State<CustomWrestlersList> {
           "competition_UUID": widget.competitionUUID,
           "recipient_UUID": wrestlerUUID,
           "invitation_deadline": formattedDeadline,
-          "weight_category": weightCategory, // Added weight category
+          "weight_category": weightCategory,
         }),
       );
 
-      Navigator.pop(context); // Close loading dialog
+      Navigator.pop(context); // Dismiss loading spinner
 
       if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
-        if (responseData.containsKey("success")) {
+        final decoded = json.decode(response.body);
+        final body = decoded["body"];
+
+        if (body is Map<String, dynamic> && body.containsKey("success")) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(responseData["success"]), backgroundColor: Colors.green),
+            SnackBar(content: Text(body["success"]), backgroundColor: Colors.green),
           );
+
           setState(() {
             int index = widget.wrestlers.indexWhere((c) => c['wrestler_UUID'] == wrestlerUUID);
             if (index != -1) {
-              widget.wrestlers[index]['invitation_status'] = "Pending"; // Update directly
-              widget.wrestlers[index]['weight_category'] = weightCategory; // Update weight category
+              widget.wrestlers[index]['invitation_status'] = "Pending";
+              widget.wrestlers[index]['weight_category'] = weightCategory;
             }
           });
 
           String? token = await _notificationsServices.getUserFCMToken(wrestlerUUID);
-          if(token != null) {
+          if (token != null) {
             _notificationsServices.sendFCMMessage(token);
           }
-
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(responseData["error"] ?? "Unknown error"), backgroundColor: Colors.red),
+            SnackBar(content: Text(body["error"] ?? "Unknown error"), backgroundColor: Colors.red),
           );
         }
       } else {

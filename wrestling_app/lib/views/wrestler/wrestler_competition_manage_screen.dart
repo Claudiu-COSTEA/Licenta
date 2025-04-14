@@ -82,7 +82,7 @@ class _WrestlerCompetitionManageScreen extends State<WrestlerCompetitionManageSc
             // Invitation Deadline
             _buildInfoBox(
               child: Text(
-                "Categoria de greutate : ${invitation['weight_category']} Kg",
+                "Categoria de greutate : ${invitation['weight_category']}",
                 style: const TextStyle(
                     fontSize: 18, fontWeight: FontWeight.bold),
               ),

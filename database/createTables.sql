@@ -11,7 +11,9 @@ CREATE TABLE `users` (
 CREATE TABLE `wrestlers` (
   `wrestler_UUID` int PRIMARY KEY,
   `coach_UUID` int NOT NULL,
-  `wrestling_style` ENUM('Greco Roman','Freestyle','Women') NOT NULL
+  `wrestling_style` ENUM('Greco Roman','Freestyle','Women') NOT NULL,
+  `medical_document` VARCHAR(255),
+  `license_document` VARCHAR(255)
 );
 
 CREATE TABLE `coaches` (

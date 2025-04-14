@@ -32,7 +32,7 @@ class _WrestlersSelectionList extends State<WrestlersSelectionList> {
   Future<void> _fetchWrestlingClubCoaches() async {
     try {
       List<Map<String, dynamic>> fetchedCoaches =
-      await _coachService.fetchWrestlersForCoach(widget.userUUID, widget.competitionUUID);
+      await _coachService.fetchCoachWrestlers(coachUUID: widget.userUUID, competitionUUID: widget.competitionUUID);
 
       setState(() {
         coachWrestlers = fetchedCoaches;

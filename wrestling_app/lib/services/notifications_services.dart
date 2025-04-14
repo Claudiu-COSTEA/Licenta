@@ -146,9 +146,15 @@ class NotificationsServices {
       final response = await http.get(Uri.parse(apiUrl));
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data.containsKey('fcm_token')) {
-          return data['fcm_token']; // Return the FCM token
+        final decodedResponse = json.decode(response.body);
+        // This is the nested object containing the actual token
+        final dynamic rawBody = decodedResponse["body"];
+
+        // In some cases, 'body' might be returned as a string. Let's handle both:
+        final body = rawBody is String ? json.decode(rawBody) : rawBody;
+
+        if (body is Map<String, dynamic> && body.containsKey("fcm_token")) {
+          return body["fcm_token"];
         } else {
           throw Exception("FCM token not found in response");
         }
@@ -164,6 +170,7 @@ class NotificationsServices {
       return null;
     }
   }
+
 
   Future<String> getAccessToken() async {
     // Your client ID and client secret obtained from Google Cloud Console

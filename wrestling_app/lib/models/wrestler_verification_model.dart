@@ -2,7 +2,7 @@ class WrestlerVerification {
   final int wrestlerUUID;
   final String wrestlerName;
   final String wrestlingStyle;
-  final int weightCategory;
+  final String weightCategory;
   final int coachUUID;
   final String coachName;
   final int wrestlingClubUUID;
@@ -31,7 +31,7 @@ class WrestlerVerification {
       wrestlerUUID: json['wrestler_UUID'],
       wrestlerName: json['wrestler_name'],
       wrestlingStyle: json['wrestling_style'],
-      weightCategory: int.tryParse(json['weight_category'].toString()) ?? 0,
+      weightCategory: json['weight_category'],
       coachUUID: json['coach_UUID'],
       coachName: json['coach_name'],
       wrestlingClubUUID: json['wrestling_club_UUID'],

@@ -86,7 +86,7 @@ class _CustomWrestlersVerificationList extends State<CustomWrestlersVerification
                               ),
                               const SizedBox(height: 5),
                               Text(
-                                "Club: ${wrestler.wrestlingClubName}\nAntrenor: ${wrestler.coachName}\nGreutate: ${wrestler.weightCategory} Kg\nStil: ${wrestler.wrestlingStyle}",
+                                "Club: ${wrestler.wrestlingClubName}\nAntrenor: ${wrestler.coachName}\nGreutate: ${wrestler.weightCategory}\nStil: ${wrestler.wrestlingStyle}",
                                 style: const TextStyle(color: Colors.white70, fontSize: 14),
                               ),
 
