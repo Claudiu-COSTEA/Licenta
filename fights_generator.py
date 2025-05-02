@@ -57,6 +57,14 @@ wrestlers_list = [
     Wrestler("James Black", "Lightweight", "Greco-Roman"),
     Wrestler("Robert Green", "Heavyweight", "Freestyle"),
     Wrestler("Daniel Adams", "Middleweight", "Greco-Roman"),
+    Wrestler("Chris Johnson", "Heavyweight", "Greco-Roman"),
+    Wrestler("Michael White", "Middleweight", "Freestyle"),
+    Wrestler("James Black", "Lightweight", "Greco-Roman"),
+    Wrestler("Robert Green", "Heavyweight", "Freestyle"),
+    Wrestler("Daniel Adams", "Middleweight", "Greco-Roman"),
+    Wrestler("Michael White", "Middleweight", "Freestyle"),
+    Wrestler("James Black", "Lightweight", "Greco-Roman"),
+    Wrestler("Robert Green", "Heavyweight", "Freestyle"),
 ]
 
 
