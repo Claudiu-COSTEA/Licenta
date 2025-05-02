@@ -53,16 +53,17 @@ VALUES
 (40,'admin@frl.ro'                  ,'Admin FRL'           ,'Admin',NULL);
 
 /* ────────────────── WRESTLING_CLUB (28-36) ─────────────────── */
-INSERT INTO wrestling_club (wrestling_club_UUID, wrestling_club_location) VALUES
-(28,'București'),
-(29,'Cluj-Napoca'),
-(30,'Timișoara'),
-(31,'Iași'),
-(32,'Craiova'),
-(33,'Brașov'),
-(34,'Ploiești'),
-(35,'Constanța'),
-(36,'Huși');
+-- INSERT-uri cu coordonate
+INSERT INTO wrestling_club (wrestling_club_UUID, wrestling_club_city, wrestling_club_latitude, wrestling_club_longitude) VALUES
+  (28, 'București',    44.426800, 26.102500),
+  (29, 'Cluj-Napoca',  46.771200, 23.623600),
+  (30, 'Timișoara',    45.748900, 21.208700),
+  (31, 'Iași',         47.158500, 27.601400),
+  (32, 'Craiova',      44.330200, 23.794900),
+  (33, 'Brașov',       45.657900, 25.601200),
+  (34, 'Ploiești',     44.946200, 26.036100),
+  (35, 'Constanța',    44.159800, 28.634800),
+  (36, 'Huși',         46.675600, 28.051700);
 
 /* ─────────── COACHES (19-27) – stil Greco Roman ─────────── */
 INSERT INTO coaches (coach_UUID, wrestling_club_UUID, wrestling_style) VALUES
@@ -109,8 +110,9 @@ INSERT INTO referees (referee_UUID, wrestling_style) VALUES
 /* ─────────── COMPETITIONS (3) ─────────── */
 INSERT INTO competitions
   (competition_UUID, competition_name, competition_start_date,
-   competition_end_date, competition_location)
+   competition_end_date, competition_location, competition_status)
 VALUES
-(1,'Cupa Primăverii'          ,'2025-05-10 09:00:00','2025-05-12 18:00:00','București'),
-(2,'Campionatul Național U21' ,'2025-07-18 09:00:00','2025-07-20 18:00:00','Cluj-Napoca'),
-(3,'Trofeul Carpați'          ,'2025-09-05 09:00:00','2025-09-07 18:00:00','Iași');
+  (1, 'Cupa Primăverii'          , '2025-05-10 09:00:00', '2025-05-12 18:00:00', 'București'    , 'Confirmed'),
+  (2, 'Campionatul Național U21' , '2025-07-18 09:00:00', '2025-07-20 18:00:00', 'Cluj-Napoca'  , 'Confirmed'),
+  (3, 'Trofeul Carpați'          , '2025-09-05 09:00:00', '2025-09-07 18:00:00', 'Iași'         , 'Confirmed');
+

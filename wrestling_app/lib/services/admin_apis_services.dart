@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -203,4 +205,73 @@ class AdminServices {
     }
   }
 
+  Future<void> pickAndUploadLicensePdf() async {
+    // 1. alege fişierul
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+    );
+    if (result == null) return;
+
+    final file   = File(result.files.single.path!);
+    final bytes  = await file.readAsBytes();
+    final fname  = Uri.encodeComponent(result.files.single.name); // păstrează spaţiile OK
+
+    // 2. construieşte URL-ul direct
+    final uri = Uri.https(
+      'wrestlingdocumentsbucket.s3.us-east-1.amazonaws.com',
+      '/WrestlersLicenseDocuments/$fname',
+    );
+
+    // 3. PUT anonim (fără niciun header semnat)
+    final res = await http.put(
+      uri,
+      headers: {
+        'Content-Type': 'application/pdf',
+        'x-amz-acl': 'bucket-owner-full-control'
+      },
+      body: bytes,
+    );
+
+    if (res.statusCode == 200) {
+      debugPrint('Upload reuşit: $uri');
+    } else {
+      debugPrint('Eroare upload: ${res.statusCode} – ${res.body}');
+    }
+  }
+
+  Future<void> pickAndUploadMedicalPdf() async {
+    // 1. alege fişierul
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+    );
+    if (result == null) return;
+
+    final file   = File(result.files.single.path!);
+    final bytes  = await file.readAsBytes();
+    final fname  = Uri.encodeComponent(result.files.single.name); // păstrează spaţiile OK
+
+    // 2. construieşte URL-ul direct
+    final uri = Uri.https(
+      'wrestlingdocumentsbucket.s3.us-east-1.amazonaws.com',
+      '/WrestlersMedicalDocuments/$fname',
+    );
+
+    // 3. PUT anonim (fără niciun header semnat)
+    final res = await http.put(
+      uri,
+      headers: {
+        'Content-Type': 'application/pdf',
+        'x-amz-acl': 'bucket-owner-full-control'
+      },
+      body: bytes,
+    );
+
+    if (res.statusCode == 200) {
+      debugPrint('Upload reuşit: $uri');
+    } else {
+      debugPrint('Eroare upload: ${res.statusCode} – ${res.body}');
+    }
+  }
 }

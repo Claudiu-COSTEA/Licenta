@@ -32,7 +32,9 @@ CREATE TABLE `referees` (
 
 CREATE TABLE `wrestling_club` (
   `wrestling_club_UUID` int PRIMARY KEY,
-  `wrestling_club_location` varchar(50) NOT NULL
+  `wrestling_club_city` varchar(50) NOT NULL,
+  `wrestling_club_latitude` decimal(9,6) NOT NULL,
+  `wrestling_club_longitude` decimal(9,6) NOT NULL
 );
 
 CREATE TABLE `competitions` (
@@ -40,8 +42,10 @@ CREATE TABLE `competitions` (
   `competition_name` varchar(100) NOT NULL,
   `competition_start_date` datetime NOT NULL,
   `competition_end_date` datetime NOT NULL,
-  `competition_location` varchar(50) NOT NULL
+  `competition_location` varchar(50) NOT NULL,
+  `competition_status` enum('Pending','Confirmed','Postponed') NOT NULL DEFAULT 'Pending'
 );
+
 
 CREATE TABLE `competitions_invitations` (
   `competition_invitation_UUID` int AUTO_INCREMENT,

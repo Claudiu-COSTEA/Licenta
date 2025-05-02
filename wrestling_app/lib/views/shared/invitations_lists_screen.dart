@@ -1,7 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:wrestling_app/views/shared/widgets/custom_list.dart';
 import '../../models/competition_invitation_model.dart';
+import '../../services/clubs_map_screen.dart';
 import '../../services/invitations_services.dart'; // Adjust path if necessary
 import '../../models/user_model.dart';
 import 'package:wrestling_app/services/auth_service.dart';
@@ -115,7 +119,36 @@ class _InvitationsListsScreenState extends State<InvitationsListsScreen> {
             : Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 75),
+              child: Row(
+                children: [
+                  Flexible(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const ClubsMapScreen()),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFB4182D),
+                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                      ),
+                      child: const Text(
+                        'Locații cluburi sportive',
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
+                    ),
+
+                  ),
+                ],
+              ),
+            ),
+
             const SizedBox(height: 10),
+
             const Center(
               child: Text(
                 'Lista invitații fără răspuns',
@@ -141,5 +174,4 @@ class _InvitationsListsScreenState extends State<InvitationsListsScreen> {
       ),
     );
   }
-
 }

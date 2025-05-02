@@ -3,10 +3,12 @@ import 'package:wrestling_app/views/admin/send_invitation_screen.dart';
 import 'package:wrestling_app/views/admin/prediction_screen.dart';
 import '../../services/auth_service.dart';
 import 'add_competition_screen.dart';
+import 'package:wrestling_app/services/admin_apis_services.dart';
 
 class AdminActions extends StatelessWidget {
 
   final AuthService _authService = AuthService();
+  final AdminServices _adminServices = AdminServices();
 
    AdminActions({super.key});
 
@@ -42,7 +44,7 @@ class AdminActions extends StatelessWidget {
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFB4182D),
-                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 50),
+                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
                 ),
                 child: const Text(
                   "Adauga competitie",
@@ -62,7 +64,7 @@ class AdminActions extends StatelessWidget {
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFB4182D),
-                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 50),
+                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 25),
                 ),
                 child: const Text(
                   "Trimite invitatie club de lupte",
@@ -82,13 +84,42 @@ class AdminActions extends StatelessWidget {
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFB4182D),
-                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 50),
+                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
                 ),
                 child: const Text(
                   "Predictie",
                   style: TextStyle(color: Colors.white, fontSize: 18),
                 ),
               ),
+
+              const SizedBox(height: 10),
+
+              ElevatedButton(
+                onPressed: _adminServices.pickAndUploadLicensePdf,     // ⇦ apelează funcţia ta
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFB4182D),
+                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal:  16),
+                ),
+                child: const Text(
+                  'Încarcă document sportiv PDF',
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              ElevatedButton(
+                onPressed: _adminServices.pickAndUploadMedicalPdf,     // ⇦ apelează funcţia ta
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFB4182D),
+                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                ),
+                child: const Text(
+                  'Încarcă document medical PDF',
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
+              )
+
             ],
           ),
         ),

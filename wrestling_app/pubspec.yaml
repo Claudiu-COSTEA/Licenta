@@ -56,6 +56,8 @@ dependencies:
   build_runner: ^2.4.15
   mysql1: ^0.20.0
   flutter_launcher_icons: ^0.14.3
+  file_picker: ^10.1.2
+  dio: ^5.8.0+1
 
 dev_dependencies:
   flutter_test:
