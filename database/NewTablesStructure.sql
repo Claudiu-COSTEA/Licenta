@@ -43,9 +43,8 @@ CREATE TABLE `competitions` (
   `competition_start_date` datetime NOT NULL,
   `competition_end_date` datetime NOT NULL,
   `competition_location` varchar(50) NOT NULL,
-  `competition_status` enum('Pending','Confirmed','Postponed') NOT NULL DEFAULT 'Pending'
+  `competition_status` ENUM ('Pending', 'Confirmed', 'Postponed') NOT NULL DEFAULT 'Pending'
 );
-
 
 CREATE TABLE `competitions_invitations` (
   `competition_invitation_UUID` int AUTO_INCREMENT,
@@ -64,7 +63,7 @@ CREATE TABLE `competitions_invitations` (
 CREATE TABLE `competitions_fights` (
   `competition_fight_UUID` int UNIQUE NOT NULL AUTO_INCREMENT,
   `competition_UUID` int NOT NULL,
-  `competition_round` ENUM ('Round 32', 'Round 16', 'Round 8', 'Round 4', 'Round 2', 'Bronze','Final') NOT NULL,
+  `competition_round` ENUM ('Round 32', 'Round 16', 'Round 8', 'Round 4', 'Round 2', 'Bronze', 'Final') NOT NULL,
   `competition_fight_order_number` int NOT NULL,
   `wrestling_style` ENUM ('Greco Roman', 'Freestyle', 'Women') NOT NULL,
   `competition_fight_weight_category` varchar(10) NOT NULL,
@@ -77,13 +76,15 @@ CREATE TABLE `competitions_fights` (
   `coach_UUID_blue` int NOT NULL,
   `wrestler_UUID_red` int NOT NULL,
   `wrestler_UUID_blue` int NOT NULL,
-  `wrestler_points_red` int DEFAULT null,
-  `wrestler_points_blue` int DEFAULT null,
+  `wrestler_points_red` int NOT NULL DEFAULT 0,
+  `wrestler_points_blue` int NOT NULL DEFAULT 0,
   `wrestler_UUID_winner` int DEFAULT null,
   PRIMARY KEY (`competition_fight_UUID`, `competition_UUID`)
 );
 
 ALTER TABLE `wrestlers` ADD FOREIGN KEY (`wrestler_UUID`) REFERENCES `users` (`user_UUID`);
+
+ALTER TABLE `admins` ADD FOREIGN KEY (`admin_UUID`) REFERENCES `users` (`user_UUID`);
 
 ALTER TABLE `wrestlers` ADD FOREIGN KEY (`coach_UUID`) REFERENCES `coaches` (`coach_UUID`);
 

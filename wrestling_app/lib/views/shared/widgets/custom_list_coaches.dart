@@ -150,7 +150,7 @@ class _CustomCoachesListState extends State<CustomCoachesList> {
 
   // **Handles Sending Coach Invitation**
   void _onSelectCoach(BuildContext context, int coachUUID) async {
-    String apiUrl = "https://rhybb6zgsb.execute-api.us-east-1.amazonaws.com/wrestling/wrestlingClub/sendCoachInvitation";
+    const _url = AppConstants.baseUrl + "wrestlingClub/sendCoachInvitation";
 
     try {
       // Convert String deadline to DateTime
@@ -170,7 +170,7 @@ class _CustomCoachesListState extends State<CustomCoachesList> {
       );
 
       final response = await http.post(
-        Uri.parse(apiUrl),
+        Uri.parse(_url),
         headers: {"Content-Type": "application/json"},
         body: json.encode({
           "competition_UUID": widget.competitionUUID,

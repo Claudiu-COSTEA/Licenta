@@ -198,7 +198,7 @@ class _CustomWrestlersListState extends State<CustomWrestlersList> {
   }
 
   void _onSelectWrestler(BuildContext context, int wrestlerUUID, String weightCategory) async {
-    const String apiUrl = "https://rhybb6zgsb.execute-api.us-east-1.amazonaws.com/wrestling/coach/sendWrestlerInvitation";
+    const _url = AppConstants.baseUrl + "coach/sendWrestlerInvitation";
 
     try {
       // Format deadline
@@ -215,7 +215,7 @@ class _CustomWrestlersListState extends State<CustomWrestlersList> {
 
       // Send POST request
       final response = await http.post(
-        Uri.parse(apiUrl),
+        Uri.parse(_url),
         headers: {"Content-Type": "application/json"},
         body: json.encode({
           "competition_UUID": widget.competitionUUID,

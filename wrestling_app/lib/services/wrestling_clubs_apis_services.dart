@@ -5,13 +5,15 @@ import 'package:http/http.dart' as http;
 import 'package:wrestling_app/services/constants.dart';
 
 class WrestlingClubService {
-  final String _baseUrl = 'https://rhybb6zgsb.execute-api.us-east-1.amazonaws.com/wrestling/wrestlingClub/getCoaches';
+
 
   Future<List<Map<String, dynamic>>?> fetchCoachesForClub(
       int wrestlingClubUUID, int competitionUUID) async {
     try {
+      const String _url = AppConstants.baseUrl + "wrestlingClub/getCoaches";
+
       final uri = Uri.parse(
-        '$_baseUrl?wrestling_club_UUID=$wrestlingClubUUID&competition_UUID=$competitionUUID',
+        '$_url?wrestling_club_UUID=$wrestlingClubUUID&competition_UUID=$competitionUUID',
       );
 
       final response = await http.get(uri);
@@ -55,9 +57,6 @@ class WrestlingClubService {
     }
   }
 
-
-
-
   Future<void> updateInvitationStatus({
     required BuildContext context,
     required int competitionUUID,
@@ -75,7 +74,7 @@ class WrestlingClubService {
 
       // Prepare request body
       final response = await http.post(
-        Uri.parse("https://rhybb6zgsb.execute-api.us-east-1.amazonaws.com/wrestling/sendInvitationResponse"),
+        Uri.parse(AppConstants.baseUrl + "sendInvitationResponse"),
         headers: {"Content-Type": "application/json"},
         body: json.encode({
           "competition_UUID": competitionUUID,

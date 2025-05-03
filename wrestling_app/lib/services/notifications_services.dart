@@ -16,7 +16,7 @@ class NotificationsServices {
   Future<void> storeFcmToken(int userUUID, String fcmToken) async {
     try {
       final response = await http.post(
-        Uri.parse("https://rhybb6zgsb.execute-api.us-east-1.amazonaws.com/wrestling/storeFcmToken"),
+        Uri.parse(AppConstants.baseUrl + "storeFcmToken"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
           "user_UUID": userUUID,

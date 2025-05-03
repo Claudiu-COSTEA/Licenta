@@ -5,6 +5,8 @@ import '../../services/auth_service.dart';
 import 'add_competition_screen.dart';
 import 'package:wrestling_app/services/admin_apis_services.dart';
 
+import 'competitions_list_screen.dart';
+
 class AdminActions extends StatelessWidget {
 
   final AuthService _authService = AuthService();
@@ -33,7 +35,7 @@ class AdminActions extends StatelessWidget {
 
 
               const SizedBox(height: 200),
-          
+
               ElevatedButton(
                 onPressed: (){
                   Navigator.push(
@@ -48,6 +50,26 @@ class AdminActions extends StatelessWidget {
                 ),
                 child: const Text(
                   "Adauga competitie",
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              ElevatedButton(
+                onPressed: (){
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => CompetitionsListScreen()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFB4182D),
+                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                ),
+                child: const Text(
+                  "Evidență competiții",
                   style: TextStyle(color: Colors.white, fontSize: 18),
                 ),
               ),

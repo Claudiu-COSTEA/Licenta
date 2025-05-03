@@ -1,35 +1,45 @@
+// models/competition.dart
 class Competition {
-  final int competitionUUID;
-  final String competitionName;
-  final DateTime competitionStartDate;
-  final DateTime competitionEndDate;
-  final String competitionLocation;
+  final int uuid;
+  final String name;
+  final DateTime startDate;
+  final DateTime endDate;
+  final String location;
+  final String status;
 
   Competition({
-    required this.competitionUUID,
-    required this.competitionName,
-    required this.competitionStartDate,
-    required this.competitionEndDate,
-    required this.competitionLocation,
+    required this.uuid,
+    required this.name,
+    required this.startDate,
+    required this.endDate,
+    required this.location,
+    required this.status,
   });
 
+  /// Creează un obiect Competition dintr-un JSON Map
   factory Competition.fromJson(Map<String, dynamic> json) {
     return Competition(
-      competitionUUID: json['competition_UUID'],
-      competitionName: json['competition_name'],
-      competitionStartDate: DateTime.parse(json['competition_start_date']),
-      competitionEndDate: DateTime.parse(json['competition_end_date']),
-      competitionLocation: json['competition_location'],
+      uuid: json['competition_UUID'] as int,
+      name: json['competition_name'] as String,
+      startDate: DateTime.parse(json['competition_start_date'] as String),
+      endDate: DateTime.parse(json['competition_end_date'] as String),
+      location: json['competition_location'] as String,
+      status: json['competition_status'] as String,
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'competition_UUID': competitionUUID,
-      'competition_name': competitionName,
-      'competition_start_date': competitionStartDate.toIso8601String(),
-      'competition_end_date': competitionEndDate.toIso8601String(),
-      'competition_location': competitionLocation,
-    };
+  /// Convertește obiectul Competition în JSON Map
+  Map<String, dynamic> toJson() => {
+    'competition_UUID': uuid,
+    'competition_name': name,
+    'competition_start_date': startDate.toIso8601String(),
+    'competition_end_date': endDate.toIso8601String(),
+    'competition_location': location,
+    'competition_status': status,
+  };
+
+  @override
+  String toString() {
+    return 'Competition(uuid: $uuid, name: $name, startDate: $startDate, endDate: $endDate, location: $location, status: $status)';
   }
 }

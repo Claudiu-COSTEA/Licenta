@@ -1,15 +1,18 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:wrestling_app/services/constants.dart';
 import '../models/competition_invitation_model.dart';
 
 class InvitationsService {
-  final String _baseUrl = 'https://rhybb6zgsb.execute-api.us-east-1.amazonaws.com/wrestling/getInvitations';
 
   Future<List<CompetitionInvitation>> fetchInvitations(int recipientUUID) async {
     try {
+
+      const String _url = AppConstants.baseUrl + "getInvitations";
+
       final response = await http.get(
-        Uri.parse('$_baseUrl?recipient_UUID=$recipientUUID'),
+        Uri.parse('$_url?recipient_UUID=$recipientUUID'),
       );
 
       if (response.statusCode == 200) {

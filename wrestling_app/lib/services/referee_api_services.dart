@@ -27,8 +27,7 @@ class RefereeServices {
 
       // Prepare request body
       final response = await http.post(
-        Uri.parse(
-            "https://rhybb6zgsb.execute-api.us-east-1.amazonaws.com/wrestling/sendInvitationResponse"),
+        Uri.parse(AppConstants.baseUrl + "sendInvitationResponse"),
         headers: {"Content-Type": "application/json"},
         body: json.encode({
           "competition_UUID": competitionUUID,
@@ -79,12 +78,12 @@ class RefereeServices {
   Future<List<WrestlerVerification>> fetchWrestlers(String wrestlingStyle,
       String weightCategory,
       int competitionUUID,) async {
-    final String baseUrl = 'https://rhybb6zgsb.execute-api.us-east-1.amazonaws.com/wrestling/referee/verifiedWrestlers';
+    const String _url = AppConstants.baseUrl + "referee/getVerifiedWrestlers";
 
     try {
       // Build the full URL with query parameters
       final uri = Uri.parse(
-          '$baseUrl?wrestling_style=$wrestlingStyle&weight_category=$weightCategory&competition_UUID=$competitionUUID');
+          '$_url?wrestling_style=$wrestlingStyle&weight_category=$weightCategory&competition_UUID=$competitionUUID');
       final response = await http.get(uri);
 
       if (response.statusCode == 200) {
@@ -119,11 +118,12 @@ class RefereeServices {
     }
   }
 
-  final String _baseUrl = "https://rhybb6zgsb.execute-api.us-east-1.amazonaws.com/wrestling/referee/getCompetitionWeightCategories";
-
   Future<List<WrestlerWeightCategory>> fetchWeightCategories(
       int competitionUUID) async {
     try {
+
+      const String _baseUrl = AppConstants.baseUrl + "referee/getCompetitionWeightCategories";
+
       final response = await http.get(
         Uri.parse("$_baseUrl?competition_UUID=$competitionUUID"),
       );
@@ -161,14 +161,13 @@ class RefereeServices {
     }
   }
 
-
   Future<bool> updateRefereeVerification({
     required int competitionUUID,
     required int recipientUUID,
     required String recipientRole,
     required String refereeVerification, // Allowed values: "Confirmed", "Declined"
   }) async {
-    const String url = 'https://rhybb6zgsb.execute-api.us-east-1.amazonaws.com/wrestling/referee/sendWrestlerInvitationStatus';
+    const String url = AppConstants.baseUrl + "referee/sendWrestlerVerificationStatus";
 
     try {
       final response = await http.post(

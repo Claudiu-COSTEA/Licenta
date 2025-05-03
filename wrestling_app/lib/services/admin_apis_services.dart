@@ -3,11 +3,15 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:googleapis/admob/v1.dart';
 import 'package:http/http.dart' as http;
 import 'package:wrestling_app/services/notifications_services.dart';
+import 'package:wrestling_app/models/competition_model.dart';
+import 'package:wrestling_app/services/constants.dart';
+
+import '../models/competitions_invitations_status.dart';
 
 class AdminServices {
-  final String _baseUrl = 'https://rhybb6zgsb.execute-api.us-east-1.amazonaws.com/wrestling/admin/addCompetition';
 
   Future<bool> addCompetition({
     required BuildContext context,
@@ -17,6 +21,8 @@ class AdminServices {
     required String competitionLocation,
   }) async {
     try {
+      const String _url = AppConstants.baseUrl + 'admin/addCompetition';
+
       // Show loading indicator
       showDialog(
         context: context,
@@ -26,20 +32,20 @@ class AdminServices {
 
 
       final response = await http.post(
-        Uri.parse(_baseUrl),
+        Uri.parse(_url),
         headers: {
           "Content-Type": "application/json",
         },
         body: jsonEncode({
           "competition_name": competitionName,
-          "competition_start_date": competitionStartDate, // Format: YYYY-MM-DD HH:MM:SS
-          "competition_end_date": competitionEndDate,     // Format: YYYY-MM-DD HH:MM:SS
+          "competition_start_date": competitionStartDate,
+          // Format: YYYY-MM-DD HH:MM:SS
+          "competition_end_date": competitionEndDate,
+          // Format: YYYY-MM-DD HH:MM:SS
           "competition_location": competitionLocation,
         }),
       );
 
-      print("Response Status Code: ${response.statusCode}");
-      print("Response Body: ${response.body}");
       // Close loading dialog
       if (context.mounted) Navigator.pop(context);
 
@@ -48,26 +54,31 @@ class AdminServices {
         final responseData = json.decode(response.body);
 
         // Check if the 'body' field exists and contains the 'message'
-        if (responseData.containsKey("body") && responseData["body"]["message"] == "Competition added successfully") {
+        if (responseData.containsKey("body") &&
+            responseData["body"]["message"] ==
+                "Competition added successfully") {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Competition added successfully!"), backgroundColor: Colors.green),
+            const SnackBar(content: Text("Competition added successfully!"),
+                backgroundColor: Colors.green),
           );
           return true;
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(responseData["error"] ?? "Unknown error"), backgroundColor: Colors.red),
+            SnackBar(content: Text(responseData["error"] ?? "Unknown error"),
+                backgroundColor: Colors.red),
           );
           return false;
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Failed to add competition"), backgroundColor: Colors.red),
+          const SnackBar(content: Text("Failed to add competition"),
+              backgroundColor: Colors.red),
         );
         return false;
       }
-
     } catch (e) {
-      if (context.mounted) Navigator.pop(context); // Close loading dialog if error occurs
+      if (context.mounted) Navigator.pop(
+          context); // Close loading dialog if error occurs
 
       if (kDebugMode) {
         print("Error adding competition: $e");
@@ -81,7 +92,6 @@ class AdminServices {
     }
   }
 
-  final String _baseUrlSend = 'https://rhybb6zgsb.execute-api.us-east-1.amazonaws.com/wrestling/admin/sendInvitation';
 
   Future<bool> sendInvitation({
     required int competitionUUID,
@@ -93,8 +103,10 @@ class AdminServices {
     String? refereeVerification, // Optional field
   }) async {
     try {
+      const String _url = AppConstants.baseUrl + 'admin/sendInvitation';
+
       final response = await http.post(
-        Uri.parse(_baseUrlSend),
+        Uri.parse(_url),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
           "competition_UUID": competitionUUID,
@@ -106,9 +118,6 @@ class AdminServices {
           "referee_verification": refereeVerification,
         }),
       );
-
-      print("Response Status Code: ${response.statusCode}");
-      print("Response Body: ${response.body}");
 
       // Check for 200 or 201
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -122,11 +131,10 @@ class AdminServices {
         // Check "message" or "success"
         if (body is Map<String, dynamic>) {
           if (body.containsKey("message")) {
-            print(body["message"]); // "Competition invitation sent successfully!"
-
             // Send FCM notification if needed
             NotificationsServices notificationService = NotificationsServices();
-            String? token = await notificationService.getUserFCMToken(recipientUUID);
+            String? token = await notificationService.getUserFCMToken(
+                recipientUUID);
             if (token != null) {
               notificationService.sendFCMMessage(token);
             }
@@ -141,7 +149,8 @@ class AdminServices {
           throw Exception("Unexpected response format");
         }
       } else {
-        throw Exception("Failed to send invitation. Status: ${response.statusCode}");
+        throw Exception(
+            "Failed to send invitation. Status: ${response.statusCode}");
       }
     } catch (e) {
       print("Error sending invitation: $e");
@@ -161,7 +170,7 @@ class AdminServices {
     required int w2PointsLost,
     required int w2WinsVsW1,
   }) async {
-    const url = 'https://rhybb6zgsb.execute-api.us-east-1.amazonaws.com/wrestling/admin/prediction';
+    const url = AppConstants.baseUrl + 'admin/prediction';
 
     final payload = {
       "wrestler1_win_rate_last_50": w1WinRate,
@@ -213,9 +222,10 @@ class AdminServices {
     );
     if (result == null) return;
 
-    final file   = File(result.files.single.path!);
-    final bytes  = await file.readAsBytes();
-    final fname  = Uri.encodeComponent(result.files.single.name); // păstrează spaţiile OK
+    final file = File(result.files.single.path!);
+    final bytes = await file.readAsBytes();
+    final fname = Uri.encodeComponent(
+        result.files.single.name); // păstrează spaţiile OK
 
     // 2. construieşte URL-ul direct
     final uri = Uri.https(
@@ -248,9 +258,10 @@ class AdminServices {
     );
     if (result == null) return;
 
-    final file   = File(result.files.single.path!);
-    final bytes  = await file.readAsBytes();
-    final fname  = Uri.encodeComponent(result.files.single.name); // păstrează spaţiile OK
+    final file = File(result.files.single.path!);
+    final bytes = await file.readAsBytes();
+    final fname = Uri.encodeComponent(
+        result.files.single.name); // păstrează spaţiile OK
 
     // 2. construieşte URL-ul direct
     final uri = Uri.https(
@@ -273,5 +284,100 @@ class AdminServices {
     } else {
       debugPrint('Eroare upload: ${res.statusCode} – ${res.body}');
     }
+  }
+
+  Future<List<Competition>> fetchCompetitions() async {
+    final res = await http.get(Uri.parse(
+        AppConstants.baseUrl + 'admin/getCompetitions'
+    ));
+    if (res.statusCode != 200) {
+      throw Exception('Failed to load competitions (${res.statusCode})');
+    }
+
+    // Decode UTF-8 raw bytes to preserve diacritics
+    final envelope = jsonDecode(utf8.decode(res.bodyBytes))
+    as Map<String, dynamic>;
+
+    // The API Gateway proxy wraps the real array as a JSON-string in "body"
+    final bodyString = envelope['body'] as String;
+
+    // Parse that string into a List<dynamic>
+    final List<dynamic> list = jsonDecode(bodyString) as List<dynamic>;
+
+    // Map each entry into your Competition model
+    return list
+        .map((e) => Competition.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<void> updateCompetitionStatus(BuildContext context, {
+    required int competitionId,
+    required String status,
+  }) async {
+    final uri = Uri.parse(AppConstants.baseUrl + "admin/postCompetitionStatus");
+    final payload = {
+      'competition_UUID': competitionId,
+      'competition_status': status,
+    };
+
+    try {
+      final res = await http.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(payload),
+      );
+      if (res.statusCode != 200) {
+        throw Exception('HTTP ${res.statusCode}: ${res.body}');
+      }
+
+      // Decode both proxy‐wrapped and direct bodies:
+      final decoded = jsonDecode(res.body) as Map<String, dynamic>;
+      final dynamic body = decoded['body'] ?? decoded;
+      final result = body is String
+          ? jsonDecode(body) as Map<String, dynamic>
+          : body as Map<String, dynamic>;
+
+      if (result['message'] != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result['message'] as String)),
+        );
+      } else {
+        throw Exception(result['error'] ?? 'Unknown error');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error updating status: $e')),
+      );
+    }
+  }
+
+  Future<List<ClubInvitation>> fetchClubsInvitationsStatus() async {
+    final uri = Uri.parse(
+        '${AppConstants.baseUrl}admin/getCompetitionsInvitationsStatus'
+    );
+
+    final res = await http.get(uri, headers: {
+      'Content-Type': 'application/json',
+    });
+
+    if (res.statusCode != 200) {
+      throw Exception(
+          'Failed to load invitations (${res.statusCode}): ${res.body}');
+    }
+
+    // Decode UTF-8 to preserve diacritics
+    final envelope = jsonDecode(utf8.decode(res.bodyBytes))
+    as Map<String, dynamic>;
+
+    // The proxy wraps the real array as a JSON string in "body"
+    final bodyString = envelope['body'] as String;
+
+    // Parse that string into a List<dynamic>
+    final List<dynamic> list = jsonDecode(bodyString) as List<dynamic>;
+
+    // Map each element into your model
+    return list
+        .map((e) => ClubInvitation.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 }

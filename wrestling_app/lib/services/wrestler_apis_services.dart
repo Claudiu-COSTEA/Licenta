@@ -25,8 +25,7 @@ class WrestlerService {
 
       // Make the POST request
       final response = await http.post(
-        Uri.parse(
-            "https://rhybb6zgsb.execute-api.us-east-1.amazonaws.com/wrestling/sendInvitationResponse"),
+        Uri.parse(AppConstants.baseUrl + "sendInvitationResponse"),
         headers: {"Content-Type": "application/json"},
         body: json.encode({
           "competition_UUID": competitionUUID,
@@ -80,9 +79,7 @@ class WrestlerService {
 
   Future<WrestlerDocuments?> fetchWrestlerUrls(int wrestlerUUID) async {
     try {
-      final uri = Uri.parse(
-        'https://rhybb6zgsb.execute-api.us-east-1.amazonaws.com/wrestling/wrestler/getWrestlerUrls?wrestler_UUID=$wrestlerUUID',
-      );
+      final uri = Uri.parse(AppConstants.baseUrl + "wrestler/getWrestlerUrls?wrestler_UUID=$wrestlerUUID");
 
       final response = await http.get(uri);
 

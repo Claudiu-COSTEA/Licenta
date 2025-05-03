@@ -5,6 +5,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:wrestling_app/models/wrestling_club_model.dart';
+import 'package:wrestling_app/services/constants.dart';
 
 class ClubsMapScreen extends StatefulWidget {
   const ClubsMapScreen({Key? key}) : super(key: key);
@@ -105,9 +106,7 @@ class _ClubsMapScreenState extends State<ClubsMapScreen> {
   }
 
   Future<List<WrestlingClub>> fetchClubs() async {
-    final res = await http.get(Uri.parse(
-        'https://rhybb6zgsb.execute-api.us-east-1.amazonaws.com/wrestling/getWrestlingClubsLocations'
-    ));
+    final res = await http.get(Uri.parse(AppConstants.baseUrl + "getWrestlingClubs"));
 
     if (res.statusCode != 200) {
       throw Exception('Failed to load clubs (${res.statusCode})');
