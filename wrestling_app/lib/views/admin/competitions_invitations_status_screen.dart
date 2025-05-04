@@ -13,12 +13,59 @@ class ClubInvitationsScreen extends StatefulWidget {
 
 class _ClubInvitationsScreenState extends State<ClubInvitationsScreen> {
   late Future<List<ClubInvitation>> _futureInvitations;
+  List<ClubInvitation> _allInvitations = [];
+  String _selectedFilter = 'Toate';
   static const Color primaryColor = Color(0xFFB4182D);
+
+  // Map between display label and underlying status value
+  final Map<String, String?> _filterMap = {
+    'Toate': null,
+    'În așteptare': 'Pending',
+    'Confirmate': 'Confirmed',
+    'Refuzate': 'Postponed',
+  };
 
   @override
   void initState() {
     super.initState();
     _futureInvitations = AdminServices().fetchClubsInvitationsStatus();
+    _futureInvitations.then((list) {
+      setState(() {
+        _allInvitations = list;
+      });
+    });
+  }
+
+  List<ClubInvitation> get _filteredInvitations {
+    final filterValue = _filterMap[_selectedFilter];
+    if (filterValue == null) return _allInvitations;
+    return _allInvitations
+        .where((inv) => inv.invitationStatus == filterValue)
+        .toList();
+  }
+
+  Widget _buildFilterButton(String label) {
+    final isSelected = _selectedFilter == label;
+    return ElevatedButton(
+      onPressed: () => setState(() => _selectedFilter = label),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: isSelected ? primaryColor : Colors.white,
+        side: BorderSide(color: primaryColor),
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+      ),
+      child: Text(
+        label,
+        softWrap: false,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: isSelected ? Colors.white : primaryColor,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          fontSize: 12,
+        ),
+      ),
+    );
   }
 
   @override
@@ -36,7 +83,7 @@ class _ClubInvitationsScreenState extends State<ClubInvitationsScreen> {
           const SizedBox(height: 16),
           const Center(
             child: Text(
-              'Cluburi invitate',
+              'Cluburi Invitate',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -45,8 +92,21 @@ class _ClubInvitationsScreenState extends State<ClubInvitationsScreen> {
             ),
           ),
           const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8,
+              runSpacing: 4,
+              children: _filterMap.keys.map((label) {
+                return _buildFilterButton(label);
+              }).toList(),
+            ),
+          ),
+          const SizedBox(height: 16),
           Expanded(
-            child: FutureBuilder<List<ClubInvitation>>(
+            child: _allInvitations.isEmpty
+                ? FutureBuilder<List<ClubInvitation>>(
               future: _futureInvitations,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -55,52 +115,49 @@ class _ClubInvitationsScreenState extends State<ClubInvitationsScreen> {
                 if (snapshot.hasError) {
                   return Center(child: Text('Eroare: ${snapshot.error}'));
                 }
-                final invitations = snapshot.data!;
-                if (invitations.isEmpty) {
-                  return const Center(child: Text('Nicio invitație găsită'));
-                }
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  itemCount: invitations.length,
-                  itemBuilder: (context, index) {
-                    final inv = invitations[index];
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: primaryColor,
-                        borderRadius: BorderRadius.circular(12),
+                return const SizedBox.shrink();
+              },
+            )
+                : ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              itemCount: _filteredInvitations.length,
+              itemBuilder: (context, index) {
+                final inv = _filteredInvitations[index];
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: primaryColor,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        inv.clubName,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            inv.clubName,
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Oraș: ${inv.city}',
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Stare: ${inv.invitationStatus}',
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Termen: ${DateFormat('yyyy-MM-dd HH:mm').format(inv.invitationDeadline)}',
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        ],
+                      const SizedBox(height: 8),
+                      Text(
+                        'Oraș: ${inv.city}',
+                        style: const TextStyle(color: Colors.white),
                       ),
-                    );
-                  },
+                      const SizedBox(height: 4),
+                      Text(
+                        'Stare: ${inv.invitationStatus}',
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Termen: ${DateFormat('yyyy-MM-dd HH:mm').format(inv.invitationDeadline)}',
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ],
+                  ),
                 );
               },
             ),
