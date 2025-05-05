@@ -15,8 +15,8 @@ CREATE TABLE `wrestlers` (
   `coach_UUID` int NOT NULL,
   `date_of_registration` datetime NOT NULL,
   `wrestling_style` ENUM ('Greco Roman', 'Freestyle', 'Women') NOT NULL,
-  `medical_document` varchar(255),
-  `license_document` varchar(255)
+  `medical_document` text,
+  `license_document` text
 );
 
 CREATE TABLE `coaches` (
@@ -43,7 +43,8 @@ CREATE TABLE `competitions` (
   `competition_start_date` datetime NOT NULL,
   `competition_end_date` datetime NOT NULL,
   `competition_location` varchar(50) NOT NULL,
-  `competition_status` ENUM ('Pending', 'Confirmed', 'Postponed') NOT NULL DEFAULT 'Pending'
+  `competition_status` ENUM ('Pending', 'Confirmed', 'Postponed', 'Finished') NOT NULL DEFAULT 'Pending',
+  `competition_results` text
 );
 
 CREATE TABLE `competitions_invitations` (

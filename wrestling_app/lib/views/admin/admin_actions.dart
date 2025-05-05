@@ -4,6 +4,7 @@ import 'package:wrestling_app/views/admin/prediction_screen.dart';
 import '../../services/auth_service.dart';
 import 'add_competition_screen.dart';
 import 'package:wrestling_app/services/admin_apis_services.dart';
+import 'package:wrestling_app/views/admin/generate_pdf_screen.dart';
 
 import 'competitions_list_screen.dart';
 
@@ -138,6 +139,26 @@ class AdminActions extends StatelessWidget {
                 ),
                 child: const Text(
                   'Încarcă document medical PDF',
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              ElevatedButton(
+                onPressed: (){
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => GeneratePdfScreen()),
+                  );
+                },     // ⇦ apelează funcţia ta
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFB4182D),
+                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                ),
+                child: const Text(
+                  'Generare documente PDF',
                   style: TextStyle(color: Colors.white, fontSize: 18),
                 ),
               )

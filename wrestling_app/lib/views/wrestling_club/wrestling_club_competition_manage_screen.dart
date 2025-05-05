@@ -1,4 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
+import 'package:wrestling_app/services/constants.dart';
 import '../../services/google_maps_lunch.dart';
 import '../../services/wrestling_clubs_apis_services.dart';
 import 'coach_selection_list.dart';
@@ -49,6 +54,20 @@ class _WrestlingClubCompetitionManageScreen extends State<WrestlingClubCompetiti
                   color: Colors.black,
                 ),
                 textAlign: TextAlign.center,
+              ),
+            ),
+
+            const SizedBox(height: 30),
+
+            ElevatedButton(
+              onPressed: () => generateCompetitionPdf(context, invitation['competition_UUID']),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFB4182D),
+                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
+              ),
+              child: const Text(
+                'Rezultate competiție',
+                style: TextStyle(color: Colors.white, fontSize: 16),
               ),
             ),
 
@@ -147,6 +166,43 @@ class _WrestlingClubCompetitionManageScreen extends State<WrestlingClubCompetiti
         ),
       ),
     );
+  }
+
+  Future<void> generateCompetitionPdf(BuildContext context, int competitionUuid) async {
+    final endpoint = 'https://b0i2d55s30.execute-api.us-east-1.amazonaws.com/wrestling/getCompetitionURL';
+    final uri = Uri.parse('$endpoint?competition_UUID=$competitionUuid');
+
+    try {
+      final res = await http.get(uri);
+      if (res.statusCode != 200) {
+        throw Exception('HTTP ${res.statusCode}');
+      }
+
+      // 1) Decode outer wrapper
+      final outer = jsonDecode(res.body) as Map<String, dynamic>;
+
+      // 2) Unwrap the inner `body` string (if present)
+      final String innerBody = outer.containsKey('body')
+          ? outer['body'] as String
+          : jsonEncode(outer);
+
+      // 3) Decode that inner JSON
+      final payload = jsonDecode(innerBody) as Map<String, dynamic>;
+
+      // 4) Now grab `url`
+      final url = payload['url'] as String?;
+      if (url == null) throw Exception('URL not found in response');
+
+      final pdfUri = Uri.parse(url);
+      if (!await canLaunchUrl(pdfUri)) {
+        throw Exception('Nu pot deschide URL-ul PDF');
+      }
+      await launchUrl(pdfUri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Eroare la generarea PDF: $e')),
+      );
+    }
   }
 
   // Box Wrapper for Information Sections

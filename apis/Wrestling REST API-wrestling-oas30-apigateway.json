@@ -2,7 +2,7 @@
   "openapi" : "3.0.1",
   "info" : {
     "title" : "Wrestling REST API",
-    "version" : "2025-05-03T11:06:49Z"
+    "version" : "2025-05-05T16:38:46Z"
   },
   "servers" : [ {
     "url" : "https://b0i2d55s30.execute-api.us-east-1.amazonaws.com/{basePath}",
@@ -13,102 +13,6 @@
     }
   } ],
   "paths" : {
-    "/referee/getWinners" : {
-      "get" : {
-        "responses" : {
-          "200" : {
-            "description" : "200 response",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/Empty"
-                }
-              }
-            }
-          }
-        },
-        "x-amazon-apigateway-integration" : {
-          "type" : "aws",
-          "httpMethod" : "POST",
-          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:getWinnersFunction/invocations",
-          "responses" : {
-            "default" : {
-              "statusCode" : "200"
-            }
-          },
-          "requestTemplates" : {
-            "application/json" : "{\r\n     \"competition_uuid\": \"$input.params('competition_uuid')\",\r\n     \"wrestling_style\": \"$input.params('wrestling_style')\",\r\n     \"weight_category\": \"$input.params('weight_category')\"\r\n}"
-          },
-          "passthroughBehavior" : "when_no_match",
-          "timeoutInMillis" : 29000,
-          "contentHandling" : "CONVERT_TO_TEXT"
-        }
-      }
-    },
-    "/admin/prediction" : {
-      "post" : {
-        "responses" : {
-          "200" : {
-            "description" : "200 response",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/Empty"
-                }
-              }
-            }
-          }
-        },
-        "x-amazon-apigateway-integration" : {
-          "type" : "aws",
-          "httpMethod" : "POST",
-          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:predictionFunction/invocations",
-          "responses" : {
-            "default" : {
-              "statusCode" : "200"
-            }
-          },
-          "requestTemplates" : {
-            "application/json" : "{\r\n  \"body\": $input.json('$')\r\n}"
-          },
-          "passthroughBehavior" : "when_no_match",
-          "timeoutInMillis" : 29000,
-          "contentHandling" : "CONVERT_TO_TEXT"
-        }
-      }
-    },
-    "/sendInvitationResponse" : {
-      "post" : {
-        "responses" : {
-          "200" : {
-            "description" : "200 response",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/Empty"
-                }
-              }
-            }
-          }
-        },
-        "x-amazon-apigateway-integration" : {
-          "type" : "aws",
-          "httpMethod" : "POST",
-          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:sendInvitationResponseFunction/invocations",
-          "responses" : {
-            "default" : {
-              "statusCode" : "200"
-            }
-          },
-          "requestTemplates" : {
-            "application/json" : "{\r\n  \"body\": $input.json('$')\r\n}"
-          },
-          "passthroughBehavior" : "when_no_match",
-          "timeoutInMillis" : 29000,
-          "contentHandling" : "CONVERT_TO_TEXT"
-        }
-      }
-    },
     "/wrestlingClub/sendCoachInvitation" : {
       "post" : {
         "responses" : {
@@ -124,7 +28,6 @@
           }
         },
         "x-amazon-apigateway-integration" : {
-          "type" : "aws",
           "httpMethod" : "POST",
           "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:sendCoachInvitationFunction/invocations",
           "responses" : {
@@ -137,39 +40,8 @@
           },
           "passthroughBehavior" : "when_no_match",
           "timeoutInMillis" : 29000,
-          "contentHandling" : "CONVERT_TO_TEXT"
-        }
-      }
-    },
-    "/storeFcmToken" : {
-      "post" : {
-        "responses" : {
-          "200" : {
-            "description" : "200 response",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/Empty"
-                }
-              }
-            }
-          }
-        },
-        "x-amazon-apigateway-integration" : {
-          "type" : "aws",
-          "httpMethod" : "POST",
-          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:storeFcmTokenFunction/invocations",
-          "responses" : {
-            "default" : {
-              "statusCode" : "200"
-            }
-          },
-          "requestTemplates" : {
-            "application/json" : "{\r\n  \"body\": $input.json('$')\r\n}"
-          },
-          "passthroughBehavior" : "when_no_match",
-          "timeoutInMillis" : 29000,
-          "contentHandling" : "CONVERT_TO_TEXT"
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
         }
       }
     },
@@ -188,7 +60,6 @@
           }
         },
         "x-amazon-apigateway-integration" : {
-          "type" : "aws",
           "httpMethod" : "POST",
           "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:sendWrestlerVerificationStatus/invocations",
           "responses" : {
@@ -201,7 +72,8 @@
           },
           "passthroughBehavior" : "when_no_match",
           "timeoutInMillis" : 29000,
-          "contentHandling" : "CONVERT_TO_TEXT"
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
         }
       }
     },
@@ -220,7 +92,6 @@
           }
         },
         "x-amazon-apigateway-integration" : {
-          "type" : "aws",
           "httpMethod" : "POST",
           "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:verifiedWrestlersFunction/invocations",
           "responses" : {
@@ -233,39 +104,8 @@
           },
           "passthroughBehavior" : "when_no_match",
           "timeoutInMillis" : 29000,
-          "contentHandling" : "CONVERT_TO_TEXT"
-        }
-      }
-    },
-    "/wrestler/getWrestlerUrls" : {
-      "get" : {
-        "responses" : {
-          "200" : {
-            "description" : "200 response",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/Empty"
-                }
-              }
-            }
-          }
-        },
-        "x-amazon-apigateway-integration" : {
-          "type" : "aws",
-          "httpMethod" : "POST",
-          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:getWrestlerUrls/invocations",
-          "responses" : {
-            "default" : {
-              "statusCode" : "200"
-            }
-          },
-          "requestTemplates" : {
-            "application/json" : "{\r\n     \"wrestler_UUID\": \"$input.params('wrestler_UUID')\"\r\n}"
-          },
-          "passthroughBehavior" : "when_no_match",
-          "timeoutInMillis" : 29000,
-          "contentHandling" : "CONVERT_TO_TEXT"
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
         }
       }
     },
@@ -284,7 +124,6 @@
           }
         },
         "x-amazon-apigateway-integration" : {
-          "type" : "aws",
           "httpMethod" : "POST",
           "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:getRefereeWSbasedUUIDsFunction/invocations",
           "responses" : {
@@ -297,7 +136,8 @@
           },
           "passthroughBehavior" : "when_no_match",
           "timeoutInMillis" : 29000,
-          "contentHandling" : "CONVERT_TO_TEXT"
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
         }
       }
     },
@@ -316,7 +156,6 @@
           }
         },
         "x-amazon-apigateway-integration" : {
-          "type" : "aws",
           "httpMethod" : "POST",
           "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:postCompetitionStatus/invocations",
           "responses" : {
@@ -329,7 +168,8 @@
           },
           "passthroughBehavior" : "when_no_match",
           "timeoutInMillis" : 29000,
-          "contentHandling" : "CONVERT_TO_TEXT"
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
         }
       }
     },
@@ -348,7 +188,6 @@
           }
         },
         "x-amazon-apigateway-integration" : {
-          "type" : "aws",
           "httpMethod" : "POST",
           "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:postFightsFunction/invocations",
           "responses" : {
@@ -356,9 +195,13 @@
               "statusCode" : "200"
             }
           },
+          "requestTemplates" : {
+            "application/json" : "{\r\n  \"body\": $input.json('$')\r\n}"
+          },
           "passthroughBehavior" : "when_no_match",
           "timeoutInMillis" : 29000,
-          "contentHandling" : "CONVERT_TO_TEXT"
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
         }
       }
     },
@@ -377,7 +220,6 @@
           }
         },
         "x-amazon-apigateway-integration" : {
-          "type" : "aws",
           "httpMethod" : "POST",
           "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:getCoachWrestlersFunction/invocations",
           "responses" : {
@@ -390,7 +232,8 @@
           },
           "passthroughBehavior" : "when_no_match",
           "timeoutInMillis" : 29000,
-          "contentHandling" : "CONVERT_TO_TEXT"
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
         }
       }
     },
@@ -409,7 +252,6 @@
           }
         },
         "x-amazon-apigateway-integration" : {
-          "type" : "aws",
           "httpMethod" : "POST",
           "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:getUserFunction/invocations",
           "responses" : {
@@ -422,7 +264,8 @@
           },
           "passthroughBehavior" : "when_no_match",
           "timeoutInMillis" : 29000,
-          "contentHandling" : "CONVERT_TO_TEXT"
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
         }
       }
     },
@@ -441,7 +284,6 @@
           }
         },
         "x-amazon-apigateway-integration" : {
-          "type" : "aws",
           "httpMethod" : "POST",
           "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:getUserFcmTokenFunction/invocations",
           "responses" : {
@@ -454,100 +296,8 @@
           },
           "passthroughBehavior" : "when_no_match",
           "timeoutInMillis" : 29000,
-          "contentHandling" : "CONVERT_TO_TEXT"
-        }
-      }
-    },
-    "/admin/sendInvitation" : {
-      "post" : {
-        "responses" : {
-          "200" : {
-            "description" : "200 response",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/Empty"
-                }
-              }
-            }
-          }
-        },
-        "x-amazon-apigateway-integration" : {
-          "type" : "aws",
-          "httpMethod" : "POST",
-          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:sendInvitation/invocations",
-          "responses" : {
-            "default" : {
-              "statusCode" : "200"
-            }
-          },
-          "requestTemplates" : {
-            "application/json" : "{\r\n  \"body\": $input.json('$')\r\n}"
-          },
-          "passthroughBehavior" : "when_no_match",
-          "timeoutInMillis" : 29000,
-          "contentHandling" : "CONVERT_TO_TEXT"
-        }
-      }
-    },
-    "/admin/getCompetitions" : {
-      "get" : {
-        "responses" : {
-          "200" : {
-            "description" : "200 response",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/Empty"
-                }
-              }
-            }
-          }
-        },
-        "x-amazon-apigateway-integration" : {
-          "type" : "aws",
-          "httpMethod" : "POST",
-          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:getCompetitions/invocations",
-          "responses" : {
-            "default" : {
-              "statusCode" : "200"
-            }
-          },
-          "passthroughBehavior" : "when_no_match",
-          "timeoutInMillis" : 29000,
-          "contentHandling" : "CONVERT_TO_TEXT"
-        }
-      }
-    },
-    "/referee/getWrestlerCoachWrestlingClubUUIDs" : {
-      "get" : {
-        "responses" : {
-          "200" : {
-            "description" : "200 response",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/Empty"
-                }
-              }
-            }
-          }
-        },
-        "x-amazon-apigateway-integration" : {
-          "type" : "aws",
-          "httpMethod" : "POST",
-          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:wrestlerCoachWrestlingClubUUIDsFunction/invocations",
-          "responses" : {
-            "default" : {
-              "statusCode" : "200"
-            }
-          },
-          "requestTemplates" : {
-            "application/json" : "{\r\n     \"competition_uuid\": \"$input.params('competition_uuid')\",\r\n     \"wrestling_style\": \"$input.params('wrestling_style')\",\r\n     \"weight_category\": \"$input.params('weight_category')\"\r\n}"
-          },
-          "passthroughBehavior" : "when_no_match",
-          "timeoutInMillis" : 29000,
-          "contentHandling" : "CONVERT_TO_TEXT"
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
         }
       }
     },
@@ -566,7 +316,6 @@
           }
         },
         "x-amazon-apigateway-integration" : {
-          "type" : "aws",
           "httpMethod" : "POST",
           "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:getWrestlingClubs/invocations",
           "responses" : {
@@ -576,7 +325,40 @@
           },
           "passthroughBehavior" : "when_no_match",
           "timeoutInMillis" : 29000,
-          "contentHandling" : "CONVERT_TO_TEXT"
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
+        }
+      }
+    },
+    "/getCompetitionURL" : {
+      "get" : {
+        "responses" : {
+          "200" : {
+            "description" : "200 response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Empty"
+                }
+              }
+            }
+          }
+        },
+        "x-amazon-apigateway-integration" : {
+          "httpMethod" : "POST",
+          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:getCompetitionResultsUrlFunction/invocations",
+          "responses" : {
+            "default" : {
+              "statusCode" : "200"
+            }
+          },
+          "requestTemplates" : {
+            "application/json" : "{\r\n     \"competition_UUID\": \"$input.params('competition_UUID')\"\r\n}"
+          },
+          "passthroughBehavior" : "when_no_match",
+          "timeoutInMillis" : 29000,
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
         }
       }
     },
@@ -595,7 +377,6 @@
           }
         },
         "x-amazon-apigateway-integration" : {
-          "type" : "aws",
           "httpMethod" : "POST",
           "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:sendWrestlerInvitationFunction/invocations",
           "responses" : {
@@ -608,7 +389,8 @@
           },
           "passthroughBehavior" : "when_no_match",
           "timeoutInMillis" : 29000,
-          "contentHandling" : "CONVERT_TO_TEXT"
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
         }
       }
     },
@@ -627,7 +409,6 @@
           }
         },
         "x-amazon-apigateway-integration" : {
-          "type" : "aws",
           "httpMethod" : "POST",
           "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:getCompetitionsInvitationsStatusFunction/invocations",
           "responses" : {
@@ -637,7 +418,293 @@
           },
           "passthroughBehavior" : "when_no_match",
           "timeoutInMillis" : 29000,
-          "contentHandling" : "CONVERT_TO_TEXT"
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
+        }
+      }
+    },
+    "/referee/getWinners" : {
+      "get" : {
+        "responses" : {
+          "200" : {
+            "description" : "200 response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Empty"
+                }
+              }
+            }
+          }
+        },
+        "x-amazon-apigateway-integration" : {
+          "httpMethod" : "POST",
+          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:getWinnersFunction/invocations",
+          "responses" : {
+            "default" : {
+              "statusCode" : "200"
+            }
+          },
+          "requestTemplates" : {
+            "application/json" : "{\r\n     \"competition_uuid\": \"$input.params('competition_uuid')\",\r\n     \"wrestling_style\": \"$input.params('wrestling_style')\",\r\n     \"weight_category\": \"$input.params('weight_category')\"\r\n}"
+          },
+          "passthroughBehavior" : "when_no_match",
+          "timeoutInMillis" : 29000,
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
+        }
+      }
+    },
+    "/admin/prediction" : {
+      "post" : {
+        "responses" : {
+          "200" : {
+            "description" : "200 response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Empty"
+                }
+              }
+            }
+          }
+        },
+        "x-amazon-apigateway-integration" : {
+          "httpMethod" : "POST",
+          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:predictionFunction/invocations",
+          "responses" : {
+            "default" : {
+              "statusCode" : "200"
+            }
+          },
+          "requestTemplates" : {
+            "application/json" : "{\r\n  \"body\": $input.json('$')\r\n}"
+          },
+          "passthroughBehavior" : "when_no_match",
+          "timeoutInMillis" : 29000,
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
+        }
+      }
+    },
+    "/sendInvitationResponse" : {
+      "post" : {
+        "responses" : {
+          "200" : {
+            "description" : "200 response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Empty"
+                }
+              }
+            }
+          }
+        },
+        "x-amazon-apigateway-integration" : {
+          "httpMethod" : "POST",
+          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:sendInvitationResponseFunction/invocations",
+          "responses" : {
+            "default" : {
+              "statusCode" : "200"
+            }
+          },
+          "requestTemplates" : {
+            "application/json" : "{\r\n  \"body\": $input.json('$')\r\n}"
+          },
+          "passthroughBehavior" : "when_no_match",
+          "timeoutInMillis" : 29000,
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
+        }
+      }
+    },
+    "/storeFcmToken" : {
+      "post" : {
+        "responses" : {
+          "200" : {
+            "description" : "200 response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Empty"
+                }
+              }
+            }
+          }
+        },
+        "x-amazon-apigateway-integration" : {
+          "httpMethod" : "POST",
+          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:storeFcmTokenFunction/invocations",
+          "responses" : {
+            "default" : {
+              "statusCode" : "200"
+            }
+          },
+          "requestTemplates" : {
+            "application/json" : "{\r\n  \"body\": $input.json('$')\r\n}"
+          },
+          "passthroughBehavior" : "when_no_match",
+          "timeoutInMillis" : 29000,
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
+        }
+      }
+    },
+    "/admin/generatePDF" : {
+      "post" : {
+        "responses" : {
+          "200" : {
+            "description" : "200 response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Empty"
+                }
+              }
+            }
+          }
+        },
+        "x-amazon-apigateway-integration" : {
+          "httpMethod" : "POST",
+          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:generatePDF/invocations",
+          "responses" : {
+            "default" : {
+              "statusCode" : "200"
+            }
+          },
+          "requestTemplates" : {
+            "application/json" : "{\r\n  \"body\": $input.json('$')\r\n}"
+          },
+          "passthroughBehavior" : "when_no_match",
+          "timeoutInMillis" : 29000,
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
+        }
+      }
+    },
+    "/wrestler/getWrestlerUrls" : {
+      "get" : {
+        "responses" : {
+          "200" : {
+            "description" : "200 response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Empty"
+                }
+              }
+            }
+          }
+        },
+        "x-amazon-apigateway-integration" : {
+          "httpMethod" : "POST",
+          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:getWrestlerUrls/invocations",
+          "responses" : {
+            "default" : {
+              "statusCode" : "200"
+            }
+          },
+          "requestTemplates" : {
+            "application/json" : "{\r\n     \"wrestler_UUID\": \"$input.params('wrestler_UUID')\"\r\n}"
+          },
+          "passthroughBehavior" : "when_no_match",
+          "timeoutInMillis" : 29000,
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
+        }
+      }
+    },
+    "/admin/sendInvitation" : {
+      "post" : {
+        "responses" : {
+          "200" : {
+            "description" : "200 response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Empty"
+                }
+              }
+            }
+          }
+        },
+        "x-amazon-apigateway-integration" : {
+          "httpMethod" : "POST",
+          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:sendInvitation/invocations",
+          "responses" : {
+            "default" : {
+              "statusCode" : "200"
+            }
+          },
+          "requestTemplates" : {
+            "application/json" : "{\r\n  \"body\": $input.json('$')\r\n}"
+          },
+          "passthroughBehavior" : "when_no_match",
+          "timeoutInMillis" : 29000,
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
+        }
+      }
+    },
+    "/admin/getCompetitions" : {
+      "get" : {
+        "responses" : {
+          "200" : {
+            "description" : "200 response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Empty"
+                }
+              }
+            }
+          }
+        },
+        "x-amazon-apigateway-integration" : {
+          "httpMethod" : "POST",
+          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:getCompetitions/invocations",
+          "responses" : {
+            "default" : {
+              "statusCode" : "200"
+            }
+          },
+          "passthroughBehavior" : "when_no_match",
+          "timeoutInMillis" : 29000,
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
+        }
+      }
+    },
+    "/referee/getWrestlerCoachWrestlingClubUUIDs" : {
+      "get" : {
+        "responses" : {
+          "200" : {
+            "description" : "200 response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Empty"
+                }
+              }
+            }
+          }
+        },
+        "x-amazon-apigateway-integration" : {
+          "httpMethod" : "POST",
+          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:wrestlerCoachWrestlingClubUUIDsFunction/invocations",
+          "responses" : {
+            "default" : {
+              "statusCode" : "200"
+            }
+          },
+          "requestTemplates" : {
+            "application/json" : "{\r\n     \"competition_uuid\": \"$input.params('competition_uuid')\",\r\n     \"wrestling_style\": \"$input.params('wrestling_style')\",\r\n     \"weight_category\": \"$input.params('weight_category')\"\r\n}"
+          },
+          "passthroughBehavior" : "when_no_match",
+          "timeoutInMillis" : 29000,
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
         }
       }
     },
@@ -656,7 +723,6 @@
           }
         },
         "x-amazon-apigateway-integration" : {
-          "type" : "aws",
           "httpMethod" : "POST",
           "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:addCompetitionFunction/invocations",
           "responses" : {
@@ -669,7 +735,8 @@
           },
           "passthroughBehavior" : "when_no_match",
           "timeoutInMillis" : 29000,
-          "contentHandling" : "CONVERT_TO_TEXT"
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
         }
       }
     },
@@ -688,7 +755,6 @@
           }
         },
         "x-amazon-apigateway-integration" : {
-          "type" : "aws",
           "httpMethod" : "POST",
           "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:getInvitationsFunction/invocations",
           "responses" : {
@@ -701,7 +767,8 @@
           },
           "passthroughBehavior" : "when_no_match",
           "timeoutInMillis" : 29000,
-          "contentHandling" : "CONVERT_TO_TEXT"
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
         }
       }
     },
@@ -720,7 +787,6 @@
           }
         },
         "x-amazon-apigateway-integration" : {
-          "type" : "aws",
           "httpMethod" : "POST",
           "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:getWretlingClubCoachesFunction/invocations",
           "responses" : {
@@ -733,7 +799,8 @@
           },
           "passthroughBehavior" : "when_no_match",
           "timeoutInMillis" : 29000,
-          "contentHandling" : "CONVERT_TO_TEXT"
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
         }
       }
     },
@@ -752,7 +819,6 @@
           }
         },
         "x-amazon-apigateway-integration" : {
-          "type" : "aws",
           "httpMethod" : "POST",
           "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:getCompetitionWeightCategoriesFunction/invocations",
           "responses" : {
@@ -765,12 +831,13 @@
           },
           "passthroughBehavior" : "when_no_match",
           "timeoutInMillis" : 29000,
-          "contentHandling" : "CONVERT_TO_TEXT"
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
         }
       }
     },
     "/referee/genBronze" : {
-      "get" : {
+      "post" : {
         "responses" : {
           "200" : {
             "description" : "200 response",
@@ -784,7 +851,6 @@
           }
         },
         "x-amazon-apigateway-integration" : {
-          "type" : "aws",
           "httpMethod" : "POST",
           "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:getBronzeFunction/invocations",
           "responses" : {
@@ -792,9 +858,13 @@
               "statusCode" : "200"
             }
           },
+          "requestTemplates" : {
+            "application/json" : "{\r\n  \"body\": $input.json('$')\r\n}"
+          },
           "passthroughBehavior" : "when_no_match",
           "timeoutInMillis" : 29000,
-          "contentHandling" : "CONVERT_TO_TEXT"
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
         }
       }
     }

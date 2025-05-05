@@ -11,7 +11,7 @@ DB_PASS   = "admin123"
 DB_NAME   = "wrestlingMobileAppDatabase"
 
 S3_BUCKET = "wrestlingdocumentsbucket"
-PDF_KEY   = "reports/competition_podium_{comp_id}.pdf"
+PDF_KEY_TEMPLATE   = "reports/{date}_{name}_podium.pdf"
 
 WEIGHT_CATS = {
     "Greco Roman": ["55","60","63","67","72","77","82","87","97","130"],
@@ -21,6 +21,7 @@ WEIGHT_CATS = {
 
 # ─── RDS CONNECTION (reusable) ───────────────────────────────
 _conn = None
+
 def db():
     global _conn
     if _conn and _conn.open:
@@ -37,7 +38,6 @@ def db():
 
 # ─── DIACRITICS STRIPPER ─────────────────────────────────────
 def strip_diacritics(text: str) -> str:
-    # Normalize to decomposed form and remove non-spacing marks
     nfkd = unicodedata.normalize('NFKD', text)
     return ''.join(c for c in nfkd if unicodedata.category(c) != 'Mn')
 
@@ -65,29 +65,26 @@ def fetch_podium(comp_id:int):
         for kg in cats:
             with conn.cursor() as cur:
                 cur.execute(
-                    """
-                    SELECT wrestler_UUID_red, wrestler_UUID_blue, wrestler_UUID_winner
-                    FROM competitions_fights
-                    WHERE competition_UUID=%s
-                      AND wrestling_style=%s
-                      AND competition_fight_weight_category=%s
-                      AND competition_round='Final'
-                    LIMIT 1
-                    """, (comp_id, style, kg)
+                    "SELECT wrestler_UUID_red, wrestler_UUID_blue, wrestler_UUID_winner"
+                    " FROM competitions_fights"
+                    " WHERE competition_UUID=%s"
+                    " AND wrestling_style=%s"
+                    " AND competition_fight_weight_category=%s"
+                    " AND competition_round='Final' LIMIT 1",
+                    (comp_id, style, kg)
                 )
                 f=cur.fetchone()
                 if not f: continue
                 gold_id   = f["wrestler_UUID_winner"]
-                silver_id = (f["wrestler_UUID_red"] if f["wrestler_UUID_winner"]==f["wrestler_UUID_blue"] else f["wrestler_UUID_blue"])
+                silver_id = f["wrestler_UUID_red"] if f["wrestler_UUID_winner"]==f["wrestler_UUID_blue"] else f["wrestler_UUID_blue"]
                 cur.execute(
-                    """
-                    SELECT wrestler_UUID_red, wrestler_UUID_blue
-                    FROM competitions_fights
-                    WHERE competition_UUID=%s
-                      AND wrestling_style=%s
-                      AND competition_fight_weight_category=%s
-                      AND competition_round='Bronze'
-                    """, (comp_id, style, kg)
+                    "SELECT wrestler_UUID_red, wrestler_UUID_blue"
+                    " FROM competitions_fights"
+                    " WHERE competition_UUID=%s"
+                    " AND wrestling_style=%s"
+                    " AND competition_fight_weight_category=%s"
+                    " AND competition_round='Bronze'",
+                    (comp_id, style, kg)
                 )
                 bronzes = cur.fetchall()
                 b_ids=[]
@@ -101,22 +98,32 @@ def fetch_podium(comp_id:int):
                 for medal,det in [("Aur",gold),("Argint",silver),("Bronz",bronze1),("Bronz",bronze2)]:
                     name,coach,club,city = det
                     podium.append({
-                        "stil":strip_diacritics(style),
-                        "kg":kg,
-                        "medalie":medal,
-                        "sportiv":name,
-                        "antrenor":coach,
-                        "club":club,
-                        "oras":city
+                        "stil": strip_diacritics(style),
+                        "kg": kg,
+                        "medalie": medal,
+                        "sportiv": name,
+                        "antrenor": coach,
+                        "club": club,
+                        "oras": city
                     })
     return podium
 
-# ─── PDF WITHOUT DIACRITICS ──────────────────────────────────
-def make_pdf(podium,filepath):
+# ─── BUILD FILENAME ──────────────────────────────────────────
+def build_filename(cur, comp_id:int):
+    cur.execute("SELECT competition_name, competition_start_date FROM competitions WHERE competition_UUID=%s", (comp_id,))
+    row = cur.fetchone() or {}
+    name = strip_diacritics(row.get("competition_name","comp"))
+    dt = row.get("competition_start_date")
+    date_str = dt.strftime("%Y%m%d") if dt else ""
+    safe = name.replace(' ', '_')
+    return f"{date_str}_{safe}_podium.pdf"
+
+# ─── PDF GENERATION ─────────────────────────────────────────
+def make_pdf(podium, filepath):
     pdf=FPDF('L','mm','A4')
     pdf.add_page()
     pdf.set_font("Arial","B",16)
-    pdf.cell(0,10,strip_diacritics("Podium Competitie"),ln=True,align="C")
+    pdf.cell(0,10,"Podium Competitie",ln=True,align="C")
     pdf.ln(6)
     headers=["Stil","Categorie","Medalie","Sportiv","Antrenor","Club","Oras"]
     widths=[30,20,20,50,50,50,30]
@@ -126,22 +133,36 @@ def make_pdf(podium,filepath):
     pdf.set_font("Arial","",11)
     for row in podium:
         for i,key in enumerate(["stil","kg","medalie","sportiv","antrenor","club","oras"]):
-            text = strip_diacritics(str(row[key]))
-            pdf.cell(widths[i],8,text,border=1)
+            pdf.cell(widths[i],8,str(row[key]),border=1)
         pdf.ln()
     pdf.output(filepath)
 
 # ─── LAMBDA HANDLER ─────────────────────────────────────────
 def lambda_handler(event, context):
     body = event.get('body') or {}
-    comp = body.get('competition_UUID')
-    if not isinstance(comp,int):
+    comp_id = body.get('competition_UUID')
+    if not isinstance(comp_id,int):
         return {"statusCode":400,"body":json.dumps({"error":"competition_UUID(int) required"})}
-    data = fetch_podium(comp)
-    tmp=f"/tmp/podium_{comp}.pdf"
-    make_pdf(data,tmp)
-    s3=boto3.client("s3")
-    key=PDF_KEY.format(comp_id=comp)
+
+    conn = db()
+    podium = fetch_podium(comp_id)
+    cursor = conn.cursor()
+    filename = build_filename(cursor, comp_id)
+    tmp = f"/tmp/{filename}"
+    make_pdf(podium,tmp)
+
+    s3 = boto3.client("s3")
+    date_part, name_part, _ = filename.split('_',2)
+    key = PDF_KEY_TEMPLATE.format(date=date_part, name=name_part)
     s3.upload_file(tmp,S3_BUCKET,key,ExtraArgs={"ContentType":"application/pdf"})
-    url=s3.generate_presigned_url("get_object",Params={"Bucket":S3_BUCKET,"Key":key},ExpiresIn=3600)
+    url = s3.generate_presigned_url("get_object",Params={"Bucket":S3_BUCKET,"Key":key},ExpiresIn=3600)
+
+    # update URL and status to Finished
+    with conn.cursor() as cur:
+        cur.execute(
+            "UPDATE competitions SET competition_results=%s, competition_status='Finished' WHERE competition_UUID=%s",
+            (url, comp_id)
+        )
+        conn.commit()
+
     return {"statusCode":200,"body":json.dumps({"pdfUrl":url})}
