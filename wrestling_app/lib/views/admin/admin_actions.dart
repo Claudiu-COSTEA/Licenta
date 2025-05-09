@@ -118,7 +118,7 @@ class AdminActions extends StatelessWidget {
               const SizedBox(height: 10),
 
               ElevatedButton(
-                onPressed: _adminServices.pickAndUploadLicensePdf,     // ⇦ apelează funcţia ta
+                onPressed: _adminServices.pickAndUploadLicensePdf,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFB4182D),
                   padding: const EdgeInsets.symmetric(vertical: 10, horizontal:  16),
@@ -132,7 +132,7 @@ class AdminActions extends StatelessWidget {
               const SizedBox(height: 10),
 
               ElevatedButton(
-                onPressed: _adminServices.pickAndUploadMedicalPdf,     // ⇦ apelează funcţia ta
+                onPressed: _adminServices.pickAndUploadMedicalPdf,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFB4182D),
                   padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),

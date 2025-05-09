@@ -115,6 +115,10 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
         backgroundColor: Colors.red,
         child: const Icon(Icons.check, color: Colors.white),
       ),
+
+      // bottom-left, floating above content
+      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+
     );
   }
 }

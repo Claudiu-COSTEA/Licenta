@@ -131,35 +131,51 @@ class _AddCompetitionScreenState extends State<AddCompetitionScreen> {
               ),
             ),
 
+            const SizedBox(height: 50),
+
             const Center(
               child: Text(
-                "Add Competition",
+                "Aăugare competiție",
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 30),
 
             Expanded(
               child: Form(
                 key: _formKey,
                 child: ListView(
                   children: [
-                    const Text("Competition Name"),
+                    const Text("Denumirea competiției"),
+
                     TextFormField(
                       controller: _nameController,
-                      decoration: const InputDecoration(hintText: "Enter competition name"),
-                      validator: (value) => value!.isEmpty ? "Please enter a name" : null,
-                    ),
-                    const SizedBox(height: 10),
+                      decoration: InputDecoration(
+                        hintText: "Introduce-ți denumirea competiției",
+                        hintStyle: TextStyle(color: primaryColor),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: primaryColor),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: primaryColor, width: 2),
+                        ),
+                      ),
 
-                    const Text("Start Date"),
+                      validator: (value) => value!.isEmpty
+                          ? "Vă rog introduce-ți denumirea competiției"
+                          : null,
+                      style: TextStyle(color: primaryColor),
+                    ),
+                    const SizedBox(height: 30),
+
+                    const Text("Dată început"),
                     TextFormField(
                       controller: _startDateController,
                       readOnly: true,
                       onTap: _pickStartDate,
                       decoration: InputDecoration(
-                        hintText: "Select Start Date & Time",
+                        hintText: "Selectează dată și oră de început",
                         suffixIcon: const Icon(Icons.calendar_today),
                         enabledBorder: OutlineInputBorder(
                           borderSide: BorderSide(color: primaryColor),
@@ -168,17 +184,17 @@ class _AddCompetitionScreenState extends State<AddCompetitionScreen> {
                           borderSide: BorderSide(color: primaryColor, width: 2),
                         ),
                       ),
-                      validator: (value) => value!.isEmpty ? "Select start date & time" : null,
+                      validator: (value) => value!.isEmpty ? "Selectează dată și oră de început" : null,
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 30),
 
-                    const Text("End Date"),
+                    const Text("Dată sfârșit"),
                     TextFormField(
                       controller: _endDateController,
                       readOnly: true,
                       onTap: _pickEndDate,
                       decoration: InputDecoration(
-                        hintText: "Select End Date & Time",
+                        hintText: "Selectează dată și oră de sfârșit",
                         suffixIcon: const Icon(Icons.calendar_today),
                         enabledBorder: OutlineInputBorder(
                           borderSide: BorderSide(color: primaryColor),
@@ -187,9 +203,9 @@ class _AddCompetitionScreenState extends State<AddCompetitionScreen> {
                           borderSide: BorderSide(color: primaryColor, width: 2),
                         ),
                       ),
-                      validator: (value) => value!.isEmpty ? "Select end date & time" : null,
+                      validator: (value) => value!.isEmpty ? "Selectează dată și oră de sfârșit" : null,
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 30),
 
                     // Location Picker
                     ElevatedButton.icon(
@@ -197,8 +213,9 @@ class _AddCompetitionScreenState extends State<AddCompetitionScreen> {
                       icon: const Icon(Icons.location_on, color: Colors.white),
                       label: Text(
                         _selectedLocation == null
-                            ? "Pick Competition Location"
-                            : "Location: ${_selectedLocation!.latitude}, ${_selectedLocation!.longitude}",
+                            ? "Alege locația competiției"
+                            : "Locație: ${_selectedLocation!.latitude}, ${_selectedLocation!.longitude}",
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: primaryColor,
@@ -206,7 +223,7 @@ class _AddCompetitionScreenState extends State<AddCompetitionScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 30),
 
                     _isLoading
                         ? const Center(child: CircularProgressIndicator())
@@ -219,7 +236,7 @@ class _AddCompetitionScreenState extends State<AddCompetitionScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
                         child: const Text(
-                          "Add Competition",
+                          "Adaugă competiție",
                           style: TextStyle(color: Colors.white, fontSize: 18),
                         ),
                       ),

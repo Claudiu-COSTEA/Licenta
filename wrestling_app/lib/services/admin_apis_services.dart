@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:googleapis/admob/v1.dart';
 import 'package:http/http.dart' as http;
 import 'package:wrestling_app/services/notifications_services.dart';
 import 'package:wrestling_app/models/competition_model.dart';
@@ -58,7 +57,7 @@ class AdminServices {
             responseData["body"]["message"] ==
                 "Competition added successfully") {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Competition added successfully!"),
+            const SnackBar(content: Text("Competiție adăugată cu succes !"),
                 backgroundColor: Colors.green),
           );
           return true;
@@ -71,7 +70,7 @@ class AdminServices {
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Failed to add competition"),
+          const SnackBar(content: Text("Eșuare la adăugarea competiției !"),
               backgroundColor: Colors.red),
         );
         return false;
@@ -79,10 +78,6 @@ class AdminServices {
     } catch (e) {
       if (context.mounted) Navigator.pop(
           context); // Close loading dialog if error occurs
-
-      if (kDebugMode) {
-        print("Error adding competition: $e");
-      }
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
@@ -214,8 +209,28 @@ class AdminServices {
     }
   }
 
+  static Future<bool> updateLicenseDocument({
+    required int wrestlerUUID,
+    required String url,
+  }) async {
+    final uri = Uri.parse(
+        AppConstants.baseUrl + "admin/postWrestlerUrl"
+    );
+    final payload = {
+      'wrestler_UUID': wrestlerUUID,
+      'type': 'license',
+      'url': url,
+    };
+    final res = await http.post(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(payload),
+    );
+    return res.statusCode == 200;
+  }
+
   Future<void> pickAndUploadLicensePdf() async {
-    // 1. alege fişierul
+    // 1. Alege fișierul .pdf
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf'],
@@ -223,68 +238,138 @@ class AdminServices {
     if (result == null) return;
 
     final file = File(result.files.single.path!);
-    final bytes = await file.readAsBytes();
-    final fname = Uri.encodeComponent(
-        result.files.single.name); // păstrează spaţiile OK
+    final fileName = result.files.single.name; // ex: "11_Alex_Popescu.pdf"
+    final encodedName = Uri.encodeComponent(fileName);
 
-    // 2. construieşte URL-ul direct
-    final uri = Uri.https(
+    // 2. Extrage wrestlerUUID din prefix (înainte de underscore)
+    final parts = fileName.split('_');
+    if (parts.isEmpty) {
+      debugPrint('Numele fișierului nu conține "_" pentru UUID!');
+      return;
+    }
+    final idPart = parts[0];
+    final wrestlerUUID = int.tryParse(idPart);
+    if (wrestlerUUID == null) {
+      debugPrint('Prefix-ul "$idPart" nu e un integer valid!');
+      return;
+    }
+
+    // 3. Construiește URI-ul pentru PUT în S3
+    final uploadUri = Uri.https(
       'wrestlingdocumentsbucket.s3.us-east-1.amazonaws.com',
-      '/WrestlersLicenseDocuments/$fname',
+      '/WrestlersLicenseDocuments/$encodedName',
     );
 
-    // 3. PUT anonim (fără niciun header semnat)
+    // 4. Încarcă PDF-ul
+    final bytes = await file.readAsBytes();
     final res = await http.put(
-      uri,
+      uploadUri,
       headers: {
         'Content-Type': 'application/pdf',
-        'x-amz-acl': 'bucket-owner-full-control'
+        'x-amz-acl': 'bucket-owner-full-control',
       },
       body: bytes,
     );
 
-    if (res.statusCode == 200) {
-      debugPrint('Upload reuşit: $uri');
+    if (res.statusCode != 200) {
+      debugPrint('Eroare la upload S3: ${res.statusCode}');
+      return;
+    }
+    final fileUrl = uploadUri.toString();
+    debugPrint('Upload licență reușit: $fileUrl');
+
+    // 5. Trimite URL-ul și UUID-ul la Lambda/API Gateway
+    final ok = await AdminServices.updateLicenseDocument(
+      wrestlerUUID: wrestlerUUID,
+      url: fileUrl,
+    );
+    if (ok) {
+      debugPrint('DB actualizat cu license_document pentru wrestler $wrestlerUUID');
     } else {
-      debugPrint('Eroare upload: ${res.statusCode} – ${res.body}');
+      debugPrint('Eroare la actualizarea DB-ului pentru license_document');
     }
   }
 
-  Future<void> pickAndUploadMedicalPdf() async {
-    // 1. alege fişierul
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf'],
+  static Future<bool> updateMedicalDocument({
+    required int wrestlerUUID,
+    required String url,
+  }) async {
+    final uri = Uri.parse(
+        AppConstants.baseUrl + "admin/postWrestlerUrl"
     );
-    if (result == null) return;
-
-    final file = File(result.files.single.path!);
-    final bytes = await file.readAsBytes();
-    final fname = Uri.encodeComponent(
-        result.files.single.name); // păstrează spaţiile OK
-
-    // 2. construieşte URL-ul direct
-    final uri = Uri.https(
-      'wrestlingdocumentsbucket.s3.us-east-1.amazonaws.com',
-      '/WrestlersMedicalDocuments/$fname',
-    );
-
-    // 3. PUT anonim (fără niciun header semnat)
-    final res = await http.put(
+    final payload = {
+      'wrestler_UUID': wrestlerUUID,
+      'type': 'medical',
+      'url': url,
+    };
+    final res = await http.post(
       uri,
-      headers: {
-        'Content-Type': 'application/pdf',
-        'x-amz-acl': 'bucket-owner-full-control'
-      },
-      body: bytes,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(payload),
     );
-
-    if (res.statusCode == 200) {
-      debugPrint('Upload reuşit: $uri');
-    } else {
-      debugPrint('Eroare upload: ${res.statusCode} – ${res.body}');
-    }
+    return res.statusCode == 200;
   }
+
+Future<void> pickAndUploadMedicalPdf() async {
+  // 1. Alege fișierul PDF
+  final result = await FilePicker.platform.pickFiles(
+    type: FileType.custom,
+    allowedExtensions: ['pdf'],
+  );
+  if (result == null) return;
+
+  final file = File(result.files.single.path!);
+  final fileName = result.files.single.name; // ex: "11_Alex_Popescu.pdf"
+  final encodedName = Uri.encodeComponent(fileName);
+
+  // 2. Extrage wrestlerUUID din prefix (înainte de '_')
+  final parts = fileName.split('_');
+  if (parts.isEmpty) {
+    debugPrint('Numele fișierului nu conține underscore!');
+    return;
+  }
+  final idPart = parts[0];
+  final wrestlerUUID = int.tryParse(idPart);
+  if (wrestlerUUID == null) {
+    debugPrint('Prefix-ul "$idPart" nu e un integer valid!');
+    return;
+  }
+
+  // 3. Construiește URI-ul de PUT în S3
+  final uploadUri = Uri.https(
+    'wrestlingdocumentsbucket.s3.us-east-1.amazonaws.com',
+    '/WrestlersMedicalDocuments/$encodedName',
+  );
+
+  // 4. Încarcă PDF-ul
+  final bytes = await file.readAsBytes();
+  final uploadRes = await http.put(
+    uploadUri,
+    headers: {
+      'Content-Type': 'application/pdf',
+      'x-amz-acl': 'bucket-owner-full-control',
+    },
+    body: bytes,
+  );
+
+  if (uploadRes.statusCode != 200) {
+    debugPrint('Eroare upload S3: ${uploadRes.statusCode}');
+    return;
+  }
+  final fileUrl = uploadUri.toString();
+  debugPrint('Upload reușit la: $fileUrl');
+
+  // 5. Trimite URL-ul și UUID-ul la Lambda
+  final ok = await AdminServices.updateMedicalDocument(
+    wrestlerUUID: wrestlerUUID,
+    url: fileUrl,
+  );
+  if (ok) {
+    debugPrint('DB actualizat cu URL-document medical pentru $wrestlerUUID');
+  } else {
+    debugPrint('Eroare la actualizarea DB-ului');
+  }
+}
 
   Future<List<Competition>> fetchCompetitions() async {
     final res = await http.get(Uri.parse(

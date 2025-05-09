@@ -53,7 +53,7 @@ CREATE TABLE `competitions_invitations` (
   `recipient_UUID` int NOT NULL,
   `recipient_role` ENUM ('Wrestling Club', 'Referee', 'Coach', 'Wrestler') NOT NULL,
   `weight_category` varchar(20),
-  `invitation_status` varchar(20) NOT NULL,
+  `invitation_status` ENUM ('Pending', 'Confirmed', 'Declined') NOT NULL DEFAULT 'Pending',
   `invitation_date` datetime NOT NULL,
   `invitation_deadline` datetime NOT NULL,
   `invitation_response_date` datetime,
