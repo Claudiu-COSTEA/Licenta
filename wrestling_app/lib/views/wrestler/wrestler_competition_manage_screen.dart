@@ -144,27 +144,6 @@ class _WrestlerCompetitionManageScreen extends State<WrestlerCompetitionManageSc
                 ],
               ),
 
-            if (invitation['invitation_status'] == "Accepted") ...[
-              const SizedBox(height: 20),
-              _buildActionButton("Documente medicale", () async {
-                WrestlerDocuments? documentsUrls = await _wrestlerService.fetchWrestlerUrls(widget.userUUID);
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                    builder: (context) => QRCodeScreen(url: documentsUrls?.medicalDocument))
-                );
-              }),
-              const SizedBox(height: 10),
-              _buildActionButton("Documente sportive", () async {
-                WrestlerDocuments? documentsUrls = await _wrestlerService.fetchWrestlerUrls(widget.userUUID);
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => QRCodeScreen(url: documentsUrls?.licenseDocument))
-                );
-              }),
-            ],
-
           ],
         ),
       ),

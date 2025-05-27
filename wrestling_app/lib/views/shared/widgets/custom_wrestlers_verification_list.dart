@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../models/wrestler_verification_model.dart';
 import '../../../services/referee_api_services.dart';
@@ -86,14 +87,20 @@ class _CustomWrestlersVerificationList extends State<CustomWrestlersVerification
                               ),
                               const SizedBox(height: 5),
                               Text(
-                                "Club: ${wrestler.wrestlingClubName}\nAntrenor: ${wrestler.coachName}\nGreutate: ${wrestler.weightCategory}\nStil: ${wrestler.wrestlingStyle}",
-                                style: const TextStyle(color: Colors.white70, fontSize: 14),
+                                'Club: ${wrestler.wrestlingClubName}\n'
+                                    'Antrenor: ${wrestler.coachName}\n'
+                                    'Greutate: ${wrestler.weightCategory}\n'
+                                    'Stil: ${wrestler.wrestlingStyle}',
+                                style: GoogleFonts.roboto(
+                                  color: Colors.white70,
+                                  fontSize: 14,
+                                ),
                               ),
 
                               const SizedBox(height: 10), // Space before buttons
 
                               // Buttons Row
-                              if(wrestler.refereeVerification == null)
+                              if(wrestler.refereeVerification == "")
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: [

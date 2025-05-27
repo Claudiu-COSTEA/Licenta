@@ -9,6 +9,10 @@ import '../../services/clubs_map_screen.dart';
 import '../../services/invitations_services.dart'; // Adjust path if necessary
 import '../../models/user_model.dart';
 import 'package:wrestling_app/services/auth_service.dart';
+import 'package:wrestling_app/models/wrestler_documents_model.dart';
+
+import '../../services/wrestler_apis_services.dart';
+import '../wrestler/get_qr_code.dart';
 
 class InvitationsListsScreen extends StatefulWidget {
   final UserModel? user;
@@ -25,6 +29,7 @@ class _InvitationsListsScreenState extends State<InvitationsListsScreen> {
   List<Map<String, dynamic>> pendingCompetitions = [];
   List<Map<String, dynamic>> respondedCompetitions = [];
   bool _isLoading = false;
+  final WrestlerService _wrestlerService = WrestlerService();
 
   @override
   void initState() {
@@ -46,7 +51,8 @@ class _InvitationsListsScreenState extends State<InvitationsListsScreen> {
         // Separate pending invitations (invitationStatus == "Pending")
         pendingCompetitions = invitations
             .where((invitation) => invitation.invitationStatus == 'Pending')
-            .map((invitation) => {
+            .map((invitation) =>
+        {
           'invitationUUID': invitation.invitationUUID,
           'competition_UUID': invitation.competitionUUID,
           'recipient_UUID': invitation.recipientUUID,
@@ -59,14 +65,16 @@ class _InvitationsListsScreenState extends State<InvitationsListsScreen> {
           'invitation_status': invitation.invitationStatus,
           'invitation_date': invitation.invitationDate.toString(),
           'invitation_deadline': invitation.invitationDeadline.toString(),
-          'invitation_response_date': invitation.invitationResponseDate?.toString() ?? "No Response"
+          'invitation_response_date': invitation.invitationResponseDate
+              ?.toString() ?? "No Response"
         })
             .toList();
 
         // Separate responded invitations (invitationStatus != "Pending")
         respondedCompetitions = invitations
             .where((invitation) => invitation.invitationStatus != 'Pending')
-            .map((invitation) => {
+            .map((invitation) =>
+        {
           'invitationUUID': invitation.invitationUUID,
           'competition_UUID': invitation.competitionUUID,
           'recipient_UUID': invitation.recipientUUID,
@@ -79,7 +87,8 @@ class _InvitationsListsScreenState extends State<InvitationsListsScreen> {
           'invitation_status': invitation.invitationStatus,
           'invitation_date': invitation.invitationDate.toString(),
           'invitation_deadline': invitation.invitationDeadline.toString(),
-          'invitation_response_date': invitation.invitationResponseDate?.toString() ?? "No Response"
+          'invitation_response_date': invitation.invitationResponseDate
+              ?.toString() ?? "No Response"
         })
             .toList();
       });
@@ -93,8 +102,7 @@ class _InvitationsListsScreenState extends State<InvitationsListsScreen> {
       });
     }
 
-    setState(() {
-    });
+    setState(() {});
   }
 
   @override
@@ -108,7 +116,7 @@ class _InvitationsListsScreenState extends State<InvitationsListsScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.black),
-            onPressed: () => _authService.signOut(context), 
+            onPressed: () => _authService.signOut(context),
           ),
         ],
       ),
@@ -129,19 +137,109 @@ class _InvitationsListsScreenState extends State<InvitationsListsScreen> {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const ClubsMapScreen()),
+                          MaterialPageRoute(builder: (
+                              _) => const ClubsMapScreen()),
                         );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFB4182D),
-                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 10, horizontal: 16),
                       ),
                       child: const Text(
                         'Locații cluburi sportive',
                         style: TextStyle(color: Colors.white, fontSize: 18),
                       ),
                     ),
+                  ),
+                ],
+              ),
+            ),
 
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 75),
+              child: Row(
+                children: [
+                  Flexible(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        final docs = await _wrestlerService
+                            .fetchWrestlerUrls(widget.user!.userUUID);
+
+                        print(docs);
+                        final licenseUrl = docs?.medicalDocument;
+
+                        print("AICIIIIIIIIIIIII");
+                        print(licenseUrl);
+                        if (licenseUrl == null || licenseUrl.isEmpty) {
+                          // Nothing to show – tell the user and bail out.
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Fără Document Medical')),
+                            );
+                          }
+                          return;                       // ← stop here
+                        }
+
+                        if (!context.mounted) return;   // safety: widget might be disposed
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => QRCodeScreen(url: licenseUrl, docType: DocType.medical),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFB4182D),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 10, horizontal: 32),
+                      ),
+                      child: const Text(
+                        'Document Medical',
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 75),
+              child: Row(
+                children: [
+                  Flexible(
+                    child: ElevatedButton(
+              onPressed: () async {
+                final docs = await _wrestlerService
+                    .fetchWrestlerUrls(widget.user!.userUUID);
+
+                final licenseUrl = docs?.licenseDocument;
+                if (licenseUrl == null || licenseUrl.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Fără Document Sportiv')),
+                  );
+                  return; // <-- don’t navigate
+                }
+
+                if (!context.mounted) return; // guard against disposed context
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => QRCodeScreen(url: licenseUrl, docType: DocType.medical),
+                  ),
+                );
+              },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFB4182D),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 10, horizontal: 28),
+                      ),
+                      child: const Text(
+                        'Documente Sportive',
+                        style: TextStyle(color: Colors.white, fontSize: 18),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -152,24 +250,54 @@ class _InvitationsListsScreenState extends State<InvitationsListsScreen> {
             const Center(
               child: Text(
                 'Lista invitații fără răspuns',
-                style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.black),
+                style: TextStyle(fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black),
               ),
             ),
             Expanded(
-              child: CustomList(items: pendingCompetitions, userUUID: widget.user!.userUUID, userType: widget.user!.userType, onRefresh: _fetchInvitations,),
+              child: CustomList(items: pendingCompetitions,
+                userUUID: widget.user!.userUUID,
+                userType: widget.user!.userType,
+                onRefresh: _fetchInvitations,),
             ),
 
             const SizedBox(height: 10),
             const Center(
               child: Text(
                 'Lista invitații cu răspuns',
-                style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.black),
+                style: TextStyle(fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black),
               ),
             ),
             Expanded(
-              child: CustomList(items: respondedCompetitions, userUUID: widget.user!.userUUID, userType: widget.user!.userType, onRefresh: _fetchInvitations,),
+              child: CustomList(items: respondedCompetitions,
+                userUUID: widget.user!.userUUID,
+                userType: widget.user!.userType,
+                onRefresh: _fetchInvitations,),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButton(String text, VoidCallback onPressed) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFFB4182D),
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10)),
+        ),
+        child: Text(
+          text,
+          style: const TextStyle(
+              color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
         ),
       ),
     );

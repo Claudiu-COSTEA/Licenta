@@ -74,49 +74,56 @@ class RefereeServices {
     }
   }
 
-
-  Future<List<WrestlerVerification>> fetchWrestlers(String wrestlingStyle,
+  Future<List<WrestlerVerification>> fetchWrestlers(
+      String wrestlingStyle,
       String weightCategory,
-      int competitionUUID,) async {
-    const String _url = AppConstants.baseUrl + "referee/getVerifiedWrestlers";
+      int    competitionUUID,
+      ) async {
+    // Build the URL *properly* (also escapes diacritics in the query)
+    final uri = Uri.parse(
+      '${AppConstants.baseUrl}referee/getVerifiedWrestlers',
+    ).replace(queryParameters: {
+      'wrestling_style' : wrestlingStyle,
+      'weight_category' : weightCategory,
+      'competition_UUID': competitionUUID.toString(),
+    });
 
     try {
-      // Build the full URL with query parameters
-      final uri = Uri.parse(
-          '$_url?wrestling_style=$wrestlingStyle&weight_category=$weightCategory&competition_UUID=$competitionUUID');
       final response = await http.get(uri);
 
-      if (response.statusCode == 200) {
-        final decodedResponse = json.decode(response.body);
-
-        // 🔹 Extract the "body" field from the top-level JSON
-        final dynamic rawBody = decodedResponse["body"];
-        // 🔹 If 'rawBody' is a string, decode it again. Otherwise, use directly.
-        final body = rawBody is String ? json.decode(rawBody) : rawBody;
-
-        // 🔹 Now 'body' should be a List of wrestlers OR an error message.
-        if (body is List) {
-          return body
-              .map((item) =>
-              WrestlerVerification.fromJson(Map<String, dynamic>.from(item)))
-              .toList();
-        } else if (body is Map<String, dynamic> && body.containsKey("error")) {
-          throw Exception(body["error"]);
-        } else {
-          throw Exception(
-              "Unexpected API response format (body is not a list).");
-        }
-      } else {
-        throw Exception(
-            'Failed to load wrestlers. Status code: ${response.statusCode}');
+      if (response.statusCode != 200) {
+        throw Exception('Failed to load wrestlers – '
+            'status ${response.statusCode}');
       }
-    } catch (e) {
+
+      /* ─── ALWAYS decode bytes with UTF-8 ─── */
+      final decodedResponse =
+      jsonDecode(utf8.decode(response.bodyBytes));       // 👈 key line
+
+      final body = decodedResponse['body'];
+
+      if (body is List) {
+        return body
+            .map((e) => WrestlerVerification.fromJson(
+          Map<String, dynamic>.from(e as Map),
+        ))
+            .toList();
+      }
+
+      if (body is Map<String, dynamic> && body.containsKey('error')) {
+        throw Exception(body['error']);
+      }
+
+      throw Exception('Unexpected API response format (body is not a list)');
+    } catch (e, s) {
       if (kDebugMode) {
         print('Error fetching wrestlers: $e');
+        print(s);
       }
-      return [];
+      return [];                                             // degrade gracefully
     }
   }
+
 
   Future<List<WrestlerWeightCategory>> fetchWeightCategories(
       int competitionUUID) async {

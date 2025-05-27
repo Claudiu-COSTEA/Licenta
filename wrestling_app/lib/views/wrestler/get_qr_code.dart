@@ -1,17 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+/// What kind of document are we showing?
+enum DocType { medical, sportive }
+
 class QRCodeScreen extends StatelessWidget {
-  final String? url;
+  final String url;
+  final DocType docType;                         // 🆕  parameter
 
-  const QRCodeScreen({super.key, required this.url}); // Replace with your URL
+  const QRCodeScreen({
+    super.key,
+    required this.url,
+    required this.docType,
+  });
 
-  Widget generateQRCode(String url, {double size = 200.0}) {
+  Widget generateQRCode(String data, {double size = 200}) {
     return QrImageView(
-      data: url,
+      data: data,
       version: QrVersions.auto,
       size: size,
     );
+  }
+
+  /// Pick a message based on the document type
+  String get _scanMessage {
+    switch (docType) {
+      case DocType.medical:
+        return 'Scanează aici pentru documentul medical';
+      case DocType.sportive:
+        return 'Scanează aici pentru documentul sportiv';
+    }
   }
 
   @override
@@ -24,16 +42,20 @@ class QRCodeScreen extends StatelessWidget {
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Center(child: generateQRCode(url!)), // Calling the function
-          SizedBox(height: 20),
+          Center(child: generateQRCode(url)),
+          const SizedBox(height: 20),
           Text(
-            "Scaneaza aici pentru documente",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            _scanMessage,                            // dynamic message
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
+      backgroundColor: Colors.white,
     );
   }
 }

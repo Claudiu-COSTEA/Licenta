@@ -120,7 +120,7 @@ class _RefereeCompetitionManageScreen extends State<RefereeCompetitionManageScre
                 ],
               ),
 
-            if (invitation['invitation_status'] == "Accepted")
+            if (invitation['invitation_status'] == "Confirmed")
               Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [

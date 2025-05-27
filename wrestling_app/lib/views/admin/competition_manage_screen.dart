@@ -113,7 +113,7 @@ class CompetitionManageScreen extends StatelessWidget {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
-                      _adminServices.updateCompetitionStatus(context, competitionId: competition.uuid, status: "Confirmed");
+                      _adminServices.updateCompetitionStatus(status: "Confirmed", competitionUUID: competition.uuid);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryColor,
@@ -128,7 +128,7 @@ class CompetitionManageScreen extends StatelessWidget {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
-                      _adminServices.updateCompetitionStatus(context, competitionId: competition.uuid, status: "Postponed");
+                      _adminServices.updateCompetitionStatus(competitionUUID: competition.uuid, status: "Postponed");
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: primaryColor,

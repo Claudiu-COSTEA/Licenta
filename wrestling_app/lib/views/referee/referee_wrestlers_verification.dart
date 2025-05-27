@@ -69,11 +69,11 @@ class _RefereeWrestlersVerificationState extends State<RefereeWrestlersVerificat
       Row(
         children: [
             Text(
-              'Lista luptatori ${widget.wrestlerWeightCategory}',
+              'Lista luptatori - ${widget.wrestlerWeightCategory} Kg',
               style: const TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.black),
             ),
 
-          const SizedBox(width: 80,),
+          const SizedBox(width: 50),
 
           IconButton(
             icon: Icon(Icons.qr_code_scanner, size: 50, color: Colors.black),

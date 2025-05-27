@@ -1,157 +1,201 @@
+// ignore_for_file: avoid_print
+
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:wrestling_app/services/notifications_services.dart';
+
 import 'package:wrestling_app/models/competition_model.dart';
+import 'package:wrestling_app/models/competitions_invitations_status.dart';
 import 'package:wrestling_app/services/constants.dart';
+import 'package:wrestling_app/services/notifications_services.dart';
 
-import '../models/competitions_invitations_status.dart';
+/// Signature for a function that picks a PDF and returns the [PlatformFile]
+/// or `null` if the user canceled the picker.
+typedef PickPdfFn = Future<PlatformFile?> Function();
 
+/// Signature for a function that reads a file's bytes given the path.
+typedef ReadBytesFn = Future<List<int>> Function(String path);
+
+/// Very small DTO returned by [addCompetition] & co. so UI can show a message
+/// without parsing exceptions.
+class ServiceResult {
+  const ServiceResult({required this.success, this.message});
+
+  final bool success;
+  final String? message;
+}
+
+/// A refactored version of **AdminServices** that—through dependency
+/// injection—removes direct Flutter UI calls.  Every external dependency is
+/// injectable, so each public method is *purely* testable in isolation.
 class AdminServices {
+  AdminServices({
+    http.Client? client,
+    PickPdfFn? pickPdf,
+    ReadBytesFn? readBytes,
+    NotificationsServices? notifications,
+  })  : _client = client ?? http.Client(),
+        _pickPdf = pickPdf ?? _defaultPickPdf,
+        _readBytes = readBytes ?? _defaultReadBytes,
+        _notifications = notifications ?? NotificationsServices();
 
-  Future<bool> addCompetition({
-    required BuildContext context,
-    required String competitionName,
-    required String competitionStartDate,
-    required String competitionEndDate,
-    required String competitionLocation,
+  //-------------------------------------------------------------------------
+  // Dependencies (all injectable)
+  //-------------------------------------------------------------------------
+  final http.Client _client;
+  final PickPdfFn _pickPdf;
+  final ReadBytesFn _readBytes;
+  final NotificationsServices _notifications;
+
+  static Future<PlatformFile?> _defaultPickPdf() => FilePicker.platform.pickFiles(
+    type: FileType.custom,
+    allowedExtensions: const ['pdf'],
+  ).then((result) => result?.files.single);
+
+  static Future<List<int>> _defaultReadBytes(String path) => File(path).readAsBytes();
+
+  //-------------------------------------------------------------------------
+  // 1. Competition CRUD & related helpers
+  //-------------------------------------------------------------------------
+
+  Future<ServiceResult> addCompetition({
+    required String name,
+    required String startDate, // YYYY-MM-DD HH:MM:SS
+    required String endDate,   // YYYY-MM-DD HH:MM:SS
+    required String location,
   }) async {
+    final uri = Uri.parse('${AppConstants.baseUrl}admin/addCompetition');
+
     try {
-      const String _url = AppConstants.baseUrl + 'admin/addCompetition';
-
-      // Show loading indicator
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const Center(child: CircularProgressIndicator()),
-      );
-
-
-      final response = await http.post(
-        Uri.parse(_url),
-        headers: {
-          "Content-Type": "application/json",
-        },
+      final res = await _client.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          "competition_name": competitionName,
-          "competition_start_date": competitionStartDate,
-          // Format: YYYY-MM-DD HH:MM:SS
-          "competition_end_date": competitionEndDate,
-          // Format: YYYY-MM-DD HH:MM:SS
-          "competition_location": competitionLocation,
+          'competition_name': name,
+          'competition_start_date': startDate,
+          'competition_end_date': endDate,
+          'competition_location': location,
         }),
       );
 
-      // Close loading dialog
-      if (context.mounted) Navigator.pop(context);
-
-      if (response.statusCode == 200) {
-        // Decode the response body
-        final responseData = json.decode(response.body);
-
-        // Check if the 'body' field exists and contains the 'message'
-        if (responseData.containsKey("body") &&
-            responseData["body"]["message"] ==
-                "Competition added successfully") {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Competiție adăugată cu succes !"),
-                backgroundColor: Colors.green),
-          );
-          return true;
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(responseData["error"] ?? "Unknown error"),
-                backgroundColor: Colors.red),
-          );
-          return false;
-        }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Eșuare la adăugarea competiției !"),
-              backgroundColor: Colors.red),
-        );
-        return false;
+      if (res.statusCode == 200) {
+        final decoded = json.decode(res.body) as Map<String, dynamic>;
+        final body = _unwrapProxy(decoded);
+        return ServiceResult(success: true, message: body['message'] as String?);
       }
+      return ServiceResult(success: false, message: 'HTTP ${res.statusCode}');
     } catch (e) {
-      if (context.mounted) Navigator.pop(
-          context); // Close loading dialog if error occurs
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
-      );
-
-      return false;
+      return ServiceResult(success: false, message: '$e');
     }
   }
 
+  Future<ServiceResult> updateCompetitionStatus({
+    required int competitionUUID,
+    required String status, // e.g. "open" | "closed"
+  }) async {
+    final uri = Uri.parse('${AppConstants.baseUrl}admin/postCompetitionStatus');
 
-  Future<bool> sendInvitation({
+    try {
+      final res = await _client.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'competition_UUID': competitionUUID,
+          'competition_status': status,
+        }),
+      );
+
+      if (res.statusCode == 200) {
+        final decoded = json.decode(res.body) as Map<String, dynamic>;
+        final body = _unwrapProxy(decoded);
+        return ServiceResult(success: true, message: body['message'] as String?);
+      }
+      return ServiceResult(success: false, message: 'HTTP ${res.statusCode}');
+    } catch (e) {
+      return ServiceResult(success: false, message: '$e');
+    }
+  }
+
+  Future<List<Competition>> fetchCompetitions() async {
+    final uri = Uri.parse('${AppConstants.baseUrl}admin/getCompetitions');
+    final res = await _client.get(uri);
+    if (res.statusCode != 200) {
+      throw Exception('HTTP ${res.statusCode}: ${res.body}');
+    }
+
+    final envelope = json.decode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
+    final body = _unwrapProxy(envelope) as List<dynamic>;
+    return body.map((e) => Competition.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  //-------------------------------------------------------------------------
+  // 2. Invitations
+  //-------------------------------------------------------------------------
+
+  Future<ServiceResult> sendInvitation({
     required int competitionUUID,
     required int recipientUUID,
     required String recipientRole,
-    String? weightCategory, // Optional if role is not "Wrestler"
-    required String invitationStatus,
-    required String invitationDeadline,
-    String? refereeVerification, // Optional field
+    String? weightCategory,
+    required String status,
+    required String deadline,
+    String? refereeVerification,
   }) async {
-    try {
-      const String _url = AppConstants.baseUrl + 'admin/sendInvitation';
+    final uri = Uri.parse('${AppConstants.baseUrl}admin/sendInvitation');
 
-      final response = await http.post(
-        Uri.parse(_url),
-        headers: {"Content-Type": "application/json"},
+    try {
+      final res = await _client.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          "competition_UUID": competitionUUID,
-          "recipient_UUID": recipientUUID,
-          "recipient_role": recipientRole,
-          "weight_category": weightCategory,
-          "invitation_status": invitationStatus,
-          "invitation_deadline": invitationDeadline,
-          "referee_verification": refereeVerification,
+          'competition_UUID': competitionUUID,
+          'recipient_UUID': recipientUUID,
+          'recipient_role': recipientRole,
+          'weight_category': weightCategory,
+          'invitation_status': status,
+          'invitation_deadline': deadline,
+          'referee_verification': refereeVerification,
         }),
       );
 
-      // Check for 200 or 201
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final responseData = json.decode(response.body);
+      if (res.statusCode == 200 || res.statusCode == 201) {
+        final decoded = json.decode(res.body) as Map<String, dynamic>;
+        final body = _unwrapProxy(decoded);
 
-        // If your Lambda uses the standard "body" wrapping
-        final dynamic rawBody = responseData["body"];
-        // Might be a Map directly OR a JSON string. Let's handle both:
-        final body = rawBody is String ? json.decode(rawBody) : rawBody;
-
-        // Check "message" or "success"
-        if (body is Map<String, dynamic>) {
-          if (body.containsKey("message")) {
-            // Send FCM notification if needed
-            NotificationsServices notificationService = NotificationsServices();
-            String? token = await notificationService.getUserFCMToken(
-                recipientUUID);
-            if (token != null) {
-              notificationService.sendFCMMessage(token);
-            }
-
-            return true; // Invitation was successfully created
-          } else if (body.containsKey("error")) {
-            throw Exception(body["error"]);
-          } else {
-            throw Exception("Unknown response format");
-          }
-        } else {
-          throw Exception("Unexpected response format");
+        // send notification (fire-and-forget)
+        try {
+          final String? token = await _notifications.getUserFCMToken(recipientUUID);
+          if (token != null) await _notifications.sendFCMMessage(token);
+        } catch (_) {
+          // swallow notification errors in service layer
         }
-      } else {
-        throw Exception(
-            "Failed to send invitation. Status: ${response.statusCode}");
+
+        return ServiceResult(success: true, message: body['message'] as String?);
       }
+      return ServiceResult(success: false, message: 'HTTP ${res.statusCode}');
     } catch (e) {
-      print("Error sending invitation: $e");
-      return false;
+      return ServiceResult(success: false, message: '$e');
     }
   }
+
+  Future<List<ClubInvitation>> fetchClubsInvitationsStatus() async {
+    final uri = Uri.parse('${AppConstants.baseUrl}admin/getCompetitionsInvitationsStatus');
+
+    final res = await _client.get(uri, headers: {'Content-Type': 'application/json'});
+    if (res.statusCode != 200) {
+      throw Exception('HTTP ${res.statusCode}: ${res.body}');
+    }
+
+    final envelope = json.decode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
+    final body = _unwrapProxy(envelope) as List<dynamic>;
+    return body.map((e) => ClubInvitation.fromJson(e as Map<String, dynamic>)).toList();
+  }
+
+  //-------------------------------------------------------------------------
+  // 3. ML prediction endpoint
+  //-------------------------------------------------------------------------
 
   Future<Map<String, dynamic>> predictWinner({
     required double w1WinRate,
@@ -165,304 +209,122 @@ class AdminServices {
     required int w2PointsLost,
     required int w2WinsVsW1,
   }) async {
-    const url = AppConstants.baseUrl + 'admin/prediction';
-
-    final payload = {
-      "wrestler1_win_rate_last_50": w1WinRate,
-      "wrestler1_experience_years": w1Years,
-      "wrestler1_technical_points_won_last_50": w1PointsWon,
-      "wrestler1_technical_points_lost_last_50": w1PointsLost,
-      "wrestler1_wins_against_wrestler2": w1WinsVsW2,
-      "wrestler2_win_rate_last_50": w2WinRate,
-      "wrestler2_experience_years": w2Years,
-      "wrestler2_technical_points_won_last_50": w2PointsWon,
-      "wrestler2_technical_points_lost_last_50": w2PointsLost,
-      "wrestler2_wins_against_wrestler1": w2WinsVsW1,
-    };
+    final uri = Uri.parse('${AppConstants.baseUrl}admin/prediction');
 
     try {
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: json.encode(payload),
-      );
-
-      if (response.statusCode == 200) {
-        final body = json.decode(response.body);
-        final prediction = json.decode(body['body']); // decode stringified JSON
-
-        return {
-          'winner': prediction['predicted_winner'],
-          'probability': prediction['prediction_probability'],
-        };
-      } else {
-        throw Exception('Failed with status: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Error: $e');
-      return {
-        'winner': 'unknown',
-        'probability': 0.0,
-      };
-    }
-  }
-
-  static Future<bool> updateLicenseDocument({
-    required int wrestlerUUID,
-    required String url,
-  }) async {
-    final uri = Uri.parse(
-        AppConstants.baseUrl + "admin/postWrestlerUrl"
-    );
-    final payload = {
-      'wrestler_UUID': wrestlerUUID,
-      'type': 'license',
-      'url': url,
-    };
-    final res = await http.post(
-      uri,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(payload),
-    );
-    return res.statusCode == 200;
-  }
-
-  Future<void> pickAndUploadLicensePdf() async {
-    // 1. Alege fișierul .pdf
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf'],
-    );
-    if (result == null) return;
-
-    final file = File(result.files.single.path!);
-    final fileName = result.files.single.name; // ex: "11_Alex_Popescu.pdf"
-    final encodedName = Uri.encodeComponent(fileName);
-
-    // 2. Extrage wrestlerUUID din prefix (înainte de underscore)
-    final parts = fileName.split('_');
-    if (parts.isEmpty) {
-      debugPrint('Numele fișierului nu conține "_" pentru UUID!');
-      return;
-    }
-    final idPart = parts[0];
-    final wrestlerUUID = int.tryParse(idPart);
-    if (wrestlerUUID == null) {
-      debugPrint('Prefix-ul "$idPart" nu e un integer valid!');
-      return;
-    }
-
-    // 3. Construiește URI-ul pentru PUT în S3
-    final uploadUri = Uri.https(
-      'wrestlingdocumentsbucket.s3.us-east-1.amazonaws.com',
-      '/WrestlersLicenseDocuments/$encodedName',
-    );
-
-    // 4. Încarcă PDF-ul
-    final bytes = await file.readAsBytes();
-    final res = await http.put(
-      uploadUri,
-      headers: {
-        'Content-Type': 'application/pdf',
-        'x-amz-acl': 'bucket-owner-full-control',
-      },
-      body: bytes,
-    );
-
-    if (res.statusCode != 200) {
-      debugPrint('Eroare la upload S3: ${res.statusCode}');
-      return;
-    }
-    final fileUrl = uploadUri.toString();
-    debugPrint('Upload licență reușit: $fileUrl');
-
-    // 5. Trimite URL-ul și UUID-ul la Lambda/API Gateway
-    final ok = await AdminServices.updateLicenseDocument(
-      wrestlerUUID: wrestlerUUID,
-      url: fileUrl,
-    );
-    if (ok) {
-      debugPrint('DB actualizat cu license_document pentru wrestler $wrestlerUUID');
-    } else {
-      debugPrint('Eroare la actualizarea DB-ului pentru license_document');
-    }
-  }
-
-  static Future<bool> updateMedicalDocument({
-    required int wrestlerUUID,
-    required String url,
-  }) async {
-    final uri = Uri.parse(
-        AppConstants.baseUrl + "admin/postWrestlerUrl"
-    );
-    final payload = {
-      'wrestler_UUID': wrestlerUUID,
-      'type': 'medical',
-      'url': url,
-    };
-    final res = await http.post(
-      uri,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(payload),
-    );
-    return res.statusCode == 200;
-  }
-
-Future<void> pickAndUploadMedicalPdf() async {
-  // 1. Alege fișierul PDF
-  final result = await FilePicker.platform.pickFiles(
-    type: FileType.custom,
-    allowedExtensions: ['pdf'],
-  );
-  if (result == null) return;
-
-  final file = File(result.files.single.path!);
-  final fileName = result.files.single.name; // ex: "11_Alex_Popescu.pdf"
-  final encodedName = Uri.encodeComponent(fileName);
-
-  // 2. Extrage wrestlerUUID din prefix (înainte de '_')
-  final parts = fileName.split('_');
-  if (parts.isEmpty) {
-    debugPrint('Numele fișierului nu conține underscore!');
-    return;
-  }
-  final idPart = parts[0];
-  final wrestlerUUID = int.tryParse(idPart);
-  if (wrestlerUUID == null) {
-    debugPrint('Prefix-ul "$idPart" nu e un integer valid!');
-    return;
-  }
-
-  // 3. Construiește URI-ul de PUT în S3
-  final uploadUri = Uri.https(
-    'wrestlingdocumentsbucket.s3.us-east-1.amazonaws.com',
-    '/WrestlersMedicalDocuments/$encodedName',
-  );
-
-  // 4. Încarcă PDF-ul
-  final bytes = await file.readAsBytes();
-  final uploadRes = await http.put(
-    uploadUri,
-    headers: {
-      'Content-Type': 'application/pdf',
-      'x-amz-acl': 'bucket-owner-full-control',
-    },
-    body: bytes,
-  );
-
-  if (uploadRes.statusCode != 200) {
-    debugPrint('Eroare upload S3: ${uploadRes.statusCode}');
-    return;
-  }
-  final fileUrl = uploadUri.toString();
-  debugPrint('Upload reușit la: $fileUrl');
-
-  // 5. Trimite URL-ul și UUID-ul la Lambda
-  final ok = await AdminServices.updateMedicalDocument(
-    wrestlerUUID: wrestlerUUID,
-    url: fileUrl,
-  );
-  if (ok) {
-    debugPrint('DB actualizat cu URL-document medical pentru $wrestlerUUID');
-  } else {
-    debugPrint('Eroare la actualizarea DB-ului');
-  }
-}
-
-  Future<List<Competition>> fetchCompetitions() async {
-    final res = await http.get(Uri.parse(
-        AppConstants.baseUrl + 'admin/getCompetitions'
-    ));
-    if (res.statusCode != 200) {
-      throw Exception('Failed to load competitions (${res.statusCode})');
-    }
-
-    // Decode UTF-8 raw bytes to preserve diacritics
-    final envelope = jsonDecode(utf8.decode(res.bodyBytes))
-    as Map<String, dynamic>;
-
-    // The API Gateway proxy wraps the real array as a JSON-string in "body"
-    final bodyString = envelope['body'] as String;
-
-    // Parse that string into a List<dynamic>
-    final List<dynamic> list = jsonDecode(bodyString) as List<dynamic>;
-
-    // Map each entry into your Competition model
-    return list
-        .map((e) => Competition.fromJson(e as Map<String, dynamic>))
-        .toList();
-  }
-
-  Future<void> updateCompetitionStatus(BuildContext context, {
-    required int competitionId,
-    required String status,
-  }) async {
-    final uri = Uri.parse(AppConstants.baseUrl + "admin/postCompetitionStatus");
-    final payload = {
-      'competition_UUID': competitionId,
-      'competition_status': status,
-    };
-
-    try {
-      final res = await http.post(
+      final res = await _client.post(
         uri,
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(payload),
+        body: json.encode({
+          'wrestler1_win_rate_last_50': w1WinRate,
+          'wrestler1_experience_years': w1Years,
+          'wrestler1_technical_points_won_last_50': w1PointsWon,
+          'wrestler1_technical_points_lost_last_50': w1PointsLost,
+          'wrestler1_wins_against_wrestler2': w1WinsVsW2,
+          'wrestler2_win_rate_last_50': w2WinRate,
+          'wrestler2_experience_years': w2Years,
+          'wrestler2_technical_points_won_last_50': w2PointsWon,
+          'wrestler2_technical_points_lost_last_50': w2PointsLost,
+          'wrestler2_wins_against_wrestler1': w2WinsVsW1,
+        }),
       );
-      if (res.statusCode != 200) {
-        throw Exception('HTTP ${res.statusCode}: ${res.body}');
-      }
 
-      // Decode both proxy‐wrapped and direct bodies:
-      final decoded = jsonDecode(res.body) as Map<String, dynamic>;
-      final dynamic body = decoded['body'] ?? decoded;
-      final result = body is String
-          ? jsonDecode(body) as Map<String, dynamic>
-          : body as Map<String, dynamic>;
-
-      if (result['message'] != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result['message'] as String)),
-        );
-      } else {
-        throw Exception(result['error'] ?? 'Unknown error');
+      if (res.statusCode == 200) {
+        final decoded = json.decode(res.body) as Map<String, dynamic>;
+        final body = _unwrapProxy(decoded) as Map<String, dynamic>;
+        return {
+          'winner': body['predicted_winner'],
+          'probability': body['prediction_probability'],
+        };
       }
+      throw Exception('HTTP ${res.statusCode}: ${res.body}');
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error updating status: $e')),
-      );
+      return {'winner': 'unknown', 'probability': 0.0};
     }
   }
 
-  Future<List<ClubInvitation>> fetchClubsInvitationsStatus() async {
-    final uri = Uri.parse(
-        '${AppConstants.baseUrl}admin/getCompetitionsInvitationsStatus'
+  //-------------------------------------------------------------------------
+  // 4. Wrestler documents (license & medical)  -----------------------------
+  //-------------------------------------------------------------------------
+
+  Future<ServiceResult> pickAndUploadLicensePdf() async {
+    return _pickAndUploadPdf(
+      folder: 'WrestlersLicenseDocuments',
+      update: (uuid, url) => _updateWrestlerDoc(uuid: uuid, url: url, type: 'license'),
     );
+  }
 
-    final res = await http.get(uri, headers: {
-      'Content-Type': 'application/json',
-    });
+  Future<ServiceResult> pickAndUploadMedicalPdf() async {
+    return _pickAndUploadPdf(
+      folder: 'WrestlersMedicalDocuments',
+      update: (uuid, url) => _updateWrestlerDoc(uuid: uuid, url: url, type: 'medical'),
+    );
+  }
 
-    if (res.statusCode != 200) {
-      throw Exception(
-          'Failed to load invitations (${res.statusCode}): ${res.body}');
+  // Internal helper that does the heavy lifting for both licence & medical.
+  Future<ServiceResult> _pickAndUploadPdf({
+    required String folder,
+    required Future<bool> Function(int uuid, String url) update,
+  }) async {
+    try {
+      final picked = await _pickPdf();
+      if (picked == null) return ServiceResult(success: false, message: 'cancelled');
+
+      final fileName = picked.name; // e.g. "11_Alex_Popescu.pdf"
+      final parts = fileName.split('_');
+      if (parts.isEmpty) {
+        return ServiceResult(success: false, message: 'Filename must start with wrestler UUID');
+      }
+      final uuid = int.tryParse(parts[0]);
+      if (uuid == null) {
+        return ServiceResult(success: false, message: 'Invalid UUID prefix');
+      }
+
+      final uploadUri = Uri.https(
+        'wrestlingdocumentsbucket.s3.us-east-1.amazonaws.com',
+        '/$folder/${Uri.encodeComponent(fileName)}',
+      );
+
+      final bytes = await _readBytes(picked.path!);
+      final uploadRes = await _client.put(
+        uploadUri,
+        headers: {
+          'Content-Type': 'application/pdf',
+          'x-amz-acl': 'bucket-owner-full-control',
+        },
+        body: bytes,
+      );
+
+      if (uploadRes.statusCode != 200) {
+        return ServiceResult(success: false, message: 'S3 HTTP ${uploadRes.statusCode}');
+      }
+
+      final ok = await update(uuid, uploadUri.toString());
+      return ServiceResult(success: ok, message: ok ? 'uploaded' : 'db-error');
+    } catch (e) {
+      return ServiceResult(success: false, message: '$e');
     }
+  }
 
-    // Decode UTF-8 to preserve diacritics
-    final envelope = jsonDecode(utf8.decode(res.bodyBytes))
-    as Map<String, dynamic>;
+  Future<bool> _updateWrestlerDoc({required int uuid, required String url, required String type}) async {
+    final uri = Uri.parse('${AppConstants.baseUrl}admin/postWrestlerUrl');
+    final res = await _client.post(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({'wrestler_UUID': uuid, 'type': type, 'url': url}),
+    );
+    return res.statusCode == 200;
+  }
 
-    // The proxy wraps the real array as a JSON string in "body"
-    final bodyString = envelope['body'] as String;
+  //-------------------------------------------------------------------------
+  // Helpers
+  //-------------------------------------------------------------------------
 
-    // Parse that string into a List<dynamic>
-    final List<dynamic> list = jsonDecode(bodyString) as List<dynamic>;
-
-    // Map each element into your model
-    return list
-        .map((e) => ClubInvitation.fromJson(e as Map<String, dynamic>))
-        .toList();
+  /// Lambda proxy integrations wrap the *real* payload in a string-encoded
+  /// JSON found in the "body" key.  This helper unwraps it automatically.
+  static dynamic _unwrapProxy(Map<String, dynamic> maybeWrapped) {
+    final dynamic rawBody = maybeWrapped['body'];
+    if (rawBody == null) return maybeWrapped;
+    return rawBody is String ? json.decode(rawBody) : rawBody;
   }
 }

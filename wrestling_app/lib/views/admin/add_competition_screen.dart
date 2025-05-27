@@ -18,7 +18,7 @@ class _AddCompetitionScreenState extends State<AddCompetitionScreen> {
   final TextEditingController _endDateController = TextEditingController();
 
   LatLng? _selectedLocation;
-  final AdminServices _competitionService = AdminServices();
+  final admin = AdminServices();
   bool _isLoading = false;
   final Color primaryColor = const Color(0xFFB4182D); // Custom color
 
@@ -88,28 +88,38 @@ class _AddCompetitionScreenState extends State<AddCompetitionScreen> {
       _isLoading = true;
     });
 
-    bool success = await _competitionService.addCompetition(
-      competitionName: _nameController.text.trim(),
-      competitionStartDate: _startDateController.text.trim(),
-      competitionEndDate: _endDateController.text.trim(),
-      competitionLocation: "${_selectedLocation!.latitude}, ${_selectedLocation!.longitude}",
-      context: context,
+    final success = await admin.addCompetition(
+      name: _nameController.text.trim(),
+      startDate: _startDateController.text.trim(),
+      endDate: _endDateController.text.trim(),
+      location: "${_selectedLocation!.latitude}, ${_selectedLocation!.longitude}",
     );
 
     setState(() {
       _isLoading = false;
     });
 
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Competition added successfully!')),
-      );
-      Navigator.pop(context);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to add competition.')),
-      );
-    }
+    final ServiceResult res = await admin.addCompetition(
+      name: _nameController.text.trim(),
+      startDate: _startDateController.text.trim(),   // "YYYY-MM-DD HH:MM:SS"
+      endDate: _endDateController.text.trim(),
+      location:
+      "${_selectedLocation!.latitude}, ${_selectedLocation!.longitude}",
+    );
+
+// tratezi rezultatul în UI
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          res.message ?? (res.success
+              ? 'Competiție adăugată cu succes!'
+              : 'Eroare la adăugare'),
+        ),
+        backgroundColor: res.success ? Colors.green : Colors.red,
+      ),
+    );
   }
 
   @override

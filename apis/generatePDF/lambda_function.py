@@ -36,12 +36,10 @@ def db():
     )
     return _conn
 
-# ─── DIACRITICS STRIPPER ─────────────────────────────────────
 def strip_diacritics(text: str) -> str:
     nfkd = unicodedata.normalize('NFKD', text)
     return ''.join(c for c in nfkd if unicodedata.category(c) != 'Mn')
 
-# ─── HELPER TO LOOK UP DETAILS ────────────────────────────────
 def get_details(cur, uid):
     cur.execute("SELECT user_full_name FROM users WHERE user_UUID=%s", (uid,))
     name = strip_diacritics(cur.fetchone().get("user_full_name",""))
@@ -108,7 +106,6 @@ def fetch_podium(comp_id:int):
                     })
     return podium
 
-# ─── BUILD FILENAME ──────────────────────────────────────────
 def build_filename(cur, comp_id:int):
     cur.execute("SELECT competition_name, competition_start_date FROM competitions WHERE competition_UUID=%s", (comp_id,))
     row = cur.fetchone() or {}
@@ -118,7 +115,6 @@ def build_filename(cur, comp_id:int):
     safe = name.replace(' ', '_')
     return f"{date_str}_{safe}_podium.pdf"
 
-# ─── PDF GENERATION ─────────────────────────────────────────
 def make_pdf(podium, filepath):
     pdf=FPDF('L','mm','A4')
     pdf.add_page()

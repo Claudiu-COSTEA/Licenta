@@ -78,35 +78,46 @@ class WrestlerService {
   }
 
   Future<WrestlerDocuments?> fetchWrestlerUrls(int wrestlerUUID) async {
-    try {
-      final uri = Uri.parse(AppConstants.baseUrl + "wrestler/getWrestlerUrls?wrestler_UUID=$wrestlerUUID");
+    final uri = Uri.parse(
+      '${AppConstants.baseUrl}wrestler/getWrestlerUrls?wrestler_UUID=$wrestlerUUID',
+    );
 
+    try {
       final response = await http.get(uri);
 
-      if (response.statusCode == 200) {
-        final decoded = json.decode(response.body);
-
-        final body = decoded['body'];
-
-        if (body is Map<String, dynamic> &&
-            body.containsKey("medical_document") &&
-            body.containsKey("license_document")) {
-          return WrestlerDocuments.fromJson(body);
-        } else if (body is Map<String, dynamic> && body.containsKey("error")) {
-          if (kDebugMode) print("API error: ${body["error"]}");
-        } else {
-          if (kDebugMode) print("Unexpected response structure: $body");
-        }
-      } else {
+      /* ───────────────────────────────────────────────────────── status check */
+      if (response.statusCode != 200) {
         if (kDebugMode) {
-          print(
-              "Failed to load documents. Status code: ${response.statusCode}");
+          print('Failed to load documents. Status code: ${response.statusCode}');
         }
+        return null;
       }
-    } catch (e) {
-      if (kDebugMode) print("Exception fetching documents: $e");
-    }
 
-    return null; // In case of any error
+      /* ────────────────────────────────────────────────────────── JSON parse */
+      final decoded = jsonDecode(response.body);
+      final body = decoded['body'];
+
+      if (body is! Map<String, dynamic>) {
+        if (kDebugMode) print('Unexpected response structure: $body');
+        return null;
+      }
+
+      /* ───────────────────────────────────────────── build model regardless */
+      final docs = WrestlerDocuments.fromJson(body);
+
+      // If *both* URLs are missing, treat this as “nothing useful”.
+      if (docs.medicalDocument == null && docs.licenseDocument == null) {
+        if (kDebugMode) print('No documents returned for $wrestlerUUID');
+        return null;
+      }
+
+      return docs;                       // everything went fine
+    } catch (e, s) {
+      if (kDebugMode) {
+        print('Exception fetching documents: $e');
+        print(s);
+      }
+      return null;
+    }
   }
 }

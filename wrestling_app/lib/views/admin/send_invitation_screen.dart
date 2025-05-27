@@ -20,7 +20,7 @@ class _SendInvitationScreenState extends State<SendInvitationScreen> {
   String _selectedRole = 'Coach';
   bool _isLoading = false;
   bool _loadingComps = true;
-  final AdminServices _invitationService = AdminServices();
+  final admin = AdminServices();
   final Color primaryColor = const Color(0xFFB4182D);
 
   @override
@@ -31,7 +31,7 @@ class _SendInvitationScreenState extends State<SendInvitationScreen> {
 
   Future<void> _loadCompetitions() async {
     try {
-      final comps = await _invitationService.fetchCompetitions();
+      final comps = await admin.fetchCompetitions();
       setState(() {
         _competitions = comps;
         _loadingComps = false;
@@ -63,22 +63,32 @@ class _SendInvitationScreenState extends State<SendInvitationScreen> {
       return;
     }
     setState(() => _isLoading = true);
-    final success = await _invitationService.sendInvitation(
+
+    final ServiceResult res = await admin.sendInvitation(
       competitionUUID: _selectedCompetition!.uuid,
       recipientUUID: int.parse(_recipientUUIDController.text.trim()),
       recipientRole: _selectedRole,
-      weightCategory: _selectedRole == 'Wrestler'
-          ? _weightCategoryController.text.trim()
-          : null,
-      invitationStatus: 'Pending',
-      invitationDeadline: _invitationDeadlineController.text.trim(),
+      weightCategory:
+      _selectedRole == 'Wrestler' ? _weightCategoryController.text.trim() : null,
+      status: 'pending',                     // ex. „pending” / „accepted”
+      deadline: _invitationDeadlineController.text.trim(),
     );
+
     setState(() => _isLoading = false);
-    final msg = success
-        ? 'Invitation sent successfully!'
-        : 'Failed to send invitation.';
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
-    if (success) Navigator.pop(context);
+
+// Afișează mesajul venit de la backend, dacă există.
+    final snack = SnackBar(
+      content: Text(
+        res.message ??
+            (res.success
+                ? 'Invitation sent successfully!'
+                : 'Failed to send invitation.'),
+      ),
+      backgroundColor: res.success ? Colors.green : Colors.red,
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snack);
+
+    if (res.success) Navigator.pop(context);
   }
 
   @override
