@@ -1,3 +1,4 @@
+// lib/services/referee_api_services.dart
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +9,11 @@ import '../models/wrestler_weight_category_model.dart';
 import '../models/wrestler_verification_model.dart';
 
 class RefereeServices {
+  // ← acceptă client injectabil
+  RefereeServices({http.Client? client}) : _client = client ?? http.Client();
 
+  // folosește-l în loc de http.get/post direct
+  final http.Client _client;
 
   Future<void> updateInvitationStatus({
     required BuildContext context,
@@ -18,15 +23,13 @@ class RefereeServices {
     required String invitationStatus,
   }) async {
     try {
-      // Show loading indicator
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const Center(child: CircularProgressIndicator()),
+        builder: (_) => const Center(child: CircularProgressIndicator()),
       );
 
-      // Prepare request body
-      final response = await http.post(
+      final response = await _client.post(
         Uri.parse(AppConstants.baseUrl + "sendInvitationResponse"),
         headers: {"Content-Type": "application/json"},
         body: json.encode({
@@ -37,37 +40,24 @@ class RefereeServices {
         }),
       );
 
-      // Close loading dialog
       if (context.mounted) Navigator.pop(context);
 
-      // Handle response
       if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
-
-        if (responseData.containsKey("message")) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text(responseData["message"]),
-                backgroundColor: Colors.green),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text(responseData["error"] ?? "Unknown error"),
-                backgroundColor: Colors.red),
-          );
-        }
+        final data = json.decode(response.body);
+        final color = data.containsKey("message") ? Colors.green : Colors.red;
+        final text = data["message"] ?? data["error"] ?? "Unknown error";
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(text), backgroundColor: color));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text("Failed to update invitation"),
-              backgroundColor: Colors.red),
+            content: Text("Failed to update invitation"),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } catch (e) {
-      if (context.mounted) Navigator.pop(
-          context); // Close loading dialog if error occurs
-
+      if (context.mounted) Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
       );
@@ -77,93 +67,66 @@ class RefereeServices {
   Future<List<WrestlerVerification>> fetchWrestlers(
       String wrestlingStyle,
       String weightCategory,
-      int    competitionUUID,
+      int competitionUUID,
       ) async {
-    // Build the URL *properly* (also escapes diacritics in the query)
-    final uri = Uri.parse(
-      '${AppConstants.baseUrl}referee/getVerifiedWrestlers',
-    ).replace(queryParameters: {
-      'wrestling_style' : wrestlingStyle,
-      'weight_category' : weightCategory,
+    final uri = Uri.parse('${AppConstants.baseUrl}referee/getVerifiedWrestlers')
+        .replace(queryParameters: {
+      'wrestling_style': wrestlingStyle,
+      'weight_category': weightCategory,
       'competition_UUID': competitionUUID.toString(),
     });
 
     try {
-      final response = await http.get(uri);
-
+      final response = await _client.get(uri);
       if (response.statusCode != 200) {
-        throw Exception('Failed to load wrestlers – '
-            'status ${response.statusCode}');
+        throw Exception('Failed to load wrestlers – status ${response.statusCode}');
       }
-
-      /* ─── ALWAYS decode bytes with UTF-8 ─── */
-      final decodedResponse =
-      jsonDecode(utf8.decode(response.bodyBytes));       // 👈 key line
-
-      final body = decodedResponse['body'];
-
-      if (body is List) {
-        return body
-            .map((e) => WrestlerVerification.fromJson(
-          Map<String, dynamic>.from(e as Map),
-        ))
+      final decoded = json.decode(utf8.decode(response.bodyBytes));
+      final body = decoded['body'];
+      if (body is String) {
+        return (json.decode(body) as List)
+            .map((e) => WrestlerVerification.fromJson(Map.from(e)))
             .toList();
       }
-
-      if (body is Map<String, dynamic> && body.containsKey('error')) {
+      if (body is List) {
+        return body
+            .map((e) => WrestlerVerification.fromJson(Map.from(e)))
+            .toList();
+      }
+      if (body is Map && body.containsKey('error')) {
         throw Exception(body['error']);
       }
-
-      throw Exception('Unexpected API response format (body is not a list)');
-    } catch (e, s) {
-      if (kDebugMode) {
-        print('Error fetching wrestlers: $e');
-        print(s);
-      }
-      return [];                                             // degrade gracefully
+      throw Exception('Unexpected API response format');
+    } catch (e) {
+      if (kDebugMode) print('Error fetching wrestlers: $e');
+      return [];
     }
   }
 
-
   Future<List<WrestlerWeightCategory>> fetchWeightCategories(
-      int competitionUUID) async {
+      int competitionUUID,
+      ) async {
+    final uri = Uri.parse(
+        '${AppConstants.baseUrl}referee/getCompetitionWeightCategories?competition_UUID=$competitionUUID');
     try {
-
-      const String _baseUrl = AppConstants.baseUrl + "referee/getCompetitionWeightCategories";
-
-      final response = await http.get(
-        Uri.parse("$_baseUrl?competition_UUID=$competitionUUID"),
-      );
-
-      if (response.statusCode == 200) {
-        final decodedResponse = json.decode(response.body);
-
-        // 1) Extract the "body" key
-        final dynamic rawBody = decodedResponse["body"];
-
-        // 2) If 'rawBody' is a string, decode it again. Otherwise use it directly.
-        final body = rawBody is String ? json.decode(rawBody) : rawBody;
-
-        // 3) Now 'body' should be a List (the array of weight categories)
-        if (body is List) {
-          return body
-              .map((jsonItem) => WrestlerWeightCategory.fromJson(jsonItem))
-              .toList();
-        } else if (body is Map<String, dynamic> && body.containsKey("error")) {
-          throw Exception(body["error"]);
-        } else {
-          throw Exception(
-              "Unexpected API response format (body is not a list).");
-        }
-      } else {
-        throw Exception(
-            'Failed to load weight categories. Status code: ${response
-                .statusCode}');
+      final response = await _client.get(uri);
+      if (response.statusCode != 200) {
+        throw Exception('Failed to load weight categories. Status: ${response.statusCode}');
       }
+      final decoded = json.decode(response.body);
+      final rawBody = decoded['body'];
+      final body = rawBody is String ? json.decode(rawBody) : rawBody;
+      if (body is List) {
+        return body
+            .map((e) => WrestlerWeightCategory.fromJson(Map.from(e)))
+            .toList();
+      }
+      if (body is Map && body.containsKey('error')) {
+        throw Exception(body['error']);
+      }
+      throw Exception('Unexpected response format');
     } catch (e) {
-      if (kDebugMode) {
-        print('Error fetching weight categories: $e');
-      }
+      if (kDebugMode) print('Error fetching weight categories: $e');
       return [];
     }
   }
@@ -172,50 +135,34 @@ class RefereeServices {
     required int competitionUUID,
     required int recipientUUID,
     required String recipientRole,
-    required String refereeVerification, // Allowed values: "Confirmed", "Declined"
+    required String refereeVerification,
   }) async {
-    const String url = AppConstants.baseUrl + "referee/sendWrestlerVerificationStatus";
-
+    final uri = Uri.parse(
+        '${AppConstants.baseUrl}referee/sendWrestlerVerificationStatus');
     try {
-      final response = await http.post(
-        Uri.parse(url),
+      final response = await _client.post(
+        uri,
         headers: {"Content-Type": "application/json"},
         body: json.encode({
           "competition_UUID": competitionUUID,
           "recipient_UUID": recipientUUID,
           "recipient_role": recipientRole,
           "referee_verification": refereeVerification,
-          // "Confirmed" or "Declined"
         }),
       );
-
       if (response.statusCode == 200) {
-        final decodedResponse = json.decode(response.body);
-
-        // Extract "body" from the top-level response
-        final dynamic rawBody = decodedResponse["body"];
-        // In some cases, 'rawBody' might be a string; decode again if needed
+        final decoded = json.decode(response.body);
+        final rawBody = decoded['body'];
         final body = rawBody is String ? json.decode(rawBody) : rawBody;
-
-        // Check for "success" or "error" in body
-        if (body is Map<String, dynamic> && body.containsKey("success")) {
-          return true; // Update successful
-        } else if (body is Map<String, dynamic> && body.containsKey("error")) {
-          throw Exception(body["error"]);
-        } else {
-          throw Exception("Unknown response format");
-        }
+        if (body is Map && body.containsKey('success')) return true;
+        if (body is Map && body.containsKey('error')) throw Exception(body['error']);
+        throw Exception('Unknown response format');
       } else {
-        throw Exception(
-            "Failed to update referee verification. Status: ${response
-                .statusCode}");
+        throw Exception('Failed status: ${response.statusCode}');
       }
     } catch (e) {
-      if (kDebugMode) {
-        print("Error updating referee verification: $e");
-      }
+      if (kDebugMode) print('Error updating referee verification: $e');
       return false;
     }
   }
 }
-

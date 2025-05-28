@@ -9,6 +9,7 @@ class WrestlerVerification {
   final String wrestlingClubName;
   final int competitionUUID;
   final String competitionName;
+  final String invitationStatus;
   final String? refereeVerification;
 
   WrestlerVerification({
@@ -22,6 +23,7 @@ class WrestlerVerification {
     required this.wrestlingClubName,
     required this.competitionUUID,
     required this.competitionName,
+    required this.invitationStatus,
     this.refereeVerification,
   });
 
@@ -38,6 +40,7 @@ class WrestlerVerification {
       wrestlingClubName: json['wrestling_club_name'],
       competitionUUID: json['competition_UUID'],
       competitionName: json['competition_name'],
+      invitationStatus: json['invitation_status'],
       refereeVerification: json['referee_verification'],
     );
   }

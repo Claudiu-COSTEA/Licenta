@@ -11,15 +11,10 @@ import 'package:wrestling_app/models/competitions_invitations_status.dart';
 import 'package:wrestling_app/services/constants.dart';
 import 'package:wrestling_app/services/notifications_services.dart';
 
-/// Signature for a function that picks a PDF and returns the [PlatformFile]
-/// or `null` if the user canceled the picker.
 typedef PickPdfFn = Future<PlatformFile?> Function();
 
-/// Signature for a function that reads a file's bytes given the path.
 typedef ReadBytesFn = Future<List<int>> Function(String path);
 
-/// Very small DTO returned by [addCompetition] & co. so UI can show a message
-/// without parsing exceptions.
 class ServiceResult {
   const ServiceResult({required this.success, this.message});
 
@@ -27,9 +22,6 @@ class ServiceResult {
   final String? message;
 }
 
-/// A refactored version of **AdminServices** that—through dependency
-/// injection—removes direct Flutter UI calls.  Every external dependency is
-/// injectable, so each public method is *purely* testable in isolation.
 class AdminServices {
   AdminServices({
     http.Client? client,

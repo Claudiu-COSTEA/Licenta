@@ -1,19 +1,92 @@
-// test/admin_services_add_competition_test.dart
+
+
 import 'dart:convert';
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/testing.dart';
 import 'package:http/http.dart' as http;
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
 import 'package:wrestling_app/services/admin_apis_services.dart';
-
 import 'package:wrestling_app/services/notifications_services.dart';
+import 'package:wrestling_app/services/constants.dart';
 
-/// ─────────────── Stub Notifications (fără Firebase) ───────────────
-///  ⚠️  Implementăm interfața, NU extindem clasa, deci nu se rulează
-///  constructorul care ar accesa FirebaseMessaging.instance.
-/// Stub care *nu* atinge Firebase.  Implementează toate metodele publice
-/// din NotificationsServices cu corpuri „goale”.
+import 'competition_service_test.mocks.dart';
+
+@GenerateMocks([http.Client, NotificationsServices])
+
+
+void main() {
+  group('AdminServices.addCompetition', () {
+    late MockClient mockClient;
+    late AdminServices adminServices;
+
+    setUp(() {
+      mockClient = MockClient();
+      adminServices = AdminServices(
+        client: mockClient,
+        notifications: _StubNotifications(),
+      );
+    });
+
+    test('returnează succes când serverul răspunde cu status 200', () async {
+      final responseBody = jsonEncode({
+        'body': jsonEncode({'message': 'Competition added successfully'}),
+      });
+
+      when(mockClient.post(
+        Uri.parse('${AppConstants.baseUrl}admin/addCompetition'),
+        headers: {'Content-Type': 'application/json'},
+        body: anyNamed('body'),
+      )).thenAnswer((_) async => http.Response(responseBody, 200));
+
+      final result = await adminServices.addCompetition(
+        name: 'Demo',
+        startDate: '2025-06-01 10:00:00',
+        endDate: '2025-06-02 18:00:00',
+        location: 'Cluj',
+      );
+
+      expect(result.success, isTrue);
+      expect(result.message, 'Competition added successfully');
+    });
+
+    test('returnează eșec când serverul răspunde cu status diferit de 200', () async {
+      when(mockClient.post(
+        Uri.parse('${AppConstants.baseUrl}admin/addCompetition'),
+        headers: {'Content-Type': 'application/json'},
+        body: anyNamed('body'),
+      )).thenAnswer((_) async => http.Response('Internal Server Error', 500));
+
+      final result = await adminServices.addCompetition(
+        name: 'Demo',
+        startDate: '2025-06-01 10:00:00',
+        endDate: '2025-06-02 18:00:00',
+        location: 'Cluj',
+      );
+
+      expect(result.success, isFalse);
+      expect(result.message, 'HTTP 500');
+    });
+
+    test('returnează eșec când apare o excepție (ex: problemă de rețea)', () async {
+      when(mockClient.post(
+        Uri.parse('${AppConstants.baseUrl}admin/addCompetition'),
+        headers: {'Content-Type': 'application/json'},
+        body: anyNamed('body'),
+      )).thenThrow(Exception('Network error'));
+
+      final result = await adminServices.addCompetition(
+        name: 'Demo',
+        startDate: '2025-06-01 10:00:00',
+        endDate: '2025-06-02 18:00:00',
+        location: 'Cluj',
+      );
+
+      expect(result.success, isFalse);
+      expect(result.message, contains('Exception'));
+    });
+  });
+}
+
 class _StubNotifications implements NotificationsServices {
   @override
   Future<String> getAccessToken() async => '';
@@ -36,86 +109,4 @@ class _StubNotifications implements NotificationsServices {
 
   @override
   Future<void> storeFcmToken(int userId, String token) async {}
-}
-
-
-
-/// ─────────────── Widget-harness ───────────────
-class _Harness extends StatelessWidget {
-  const _Harness({required this.service, super.key});
-  final AdminServices service;
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: Builder(
-            builder: (ctx) => ElevatedButton(
-              key: const Key('invoke'),
-              onPressed: () async {
-                final res = await service.addCompetition(
-                  name: 'Demo',
-                  startDate: '2025-06-01 10:00:00',
-                  endDate: '2025-06-02 18:00:00',
-                  location: 'Cluj',
-                );
-
-                ScaffoldMessenger.of(ctx).showSnackBar(
-                  SnackBar(
-                    content: Text(res.message ??
-                        (res.success
-                            ? 'Competition added successfully!'
-                            : 'Failed to add competition.')),
-                    backgroundColor:
-                    res.success ? Colors.green : Colors.red,
-                  ),
-                );
-              },
-              child: const Text('CALL'),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-void main() {
-  group('AdminServices.addCompetition (refactor)', () {
-    testWidgets('→ HTTP 200 ⇒ SnackBar verde', (tester) async {
-      // răspuns fake al Lambda-ului
-      final okJson = jsonEncode({
-        'body': jsonEncode({'message': 'Competition added successfully'})
-      });
-
-      // injectăm MockClient + StubNotifications
-      final admin = AdminServices(
-        client: MockClient((req) async => http.Response(okJson, 200)),
-        notifications: _StubNotifications(),
-      );
-
-      await tester.pumpWidget(_Harness(service: admin));
-      await tester.tap(find.byKey(const Key('invoke')));
-      await tester.pumpAndSettle();
-
-      // SnackBar ar trebui să fie verde
-      final snackBar = tester.widget<SnackBar>(find.byType(SnackBar));
-      expect(snackBar.backgroundColor, Colors.green);
-    });
-
-    testWidgets('→ HTTP 500 ⇒ SnackBar roşu', (tester) async {
-      final admin = AdminServices(
-        client: MockClient((req) async => http.Response('err', 500)),
-        notifications: _StubNotifications(),
-      );
-
-      await tester.pumpWidget(_Harness(service: admin));
-      await tester.tap(find.byKey(const Key('invoke')));
-      await tester.pumpAndSettle();
-
-      final snackBar = tester.widget<SnackBar>(find.byType(SnackBar));
-      expect(snackBar.backgroundColor, Colors.red);
-    });
-  });
 }
