@@ -6,6 +6,7 @@ import 'package:wrestling_app/views/shared/widgets/custom_label.dart';
 import 'package:wrestling_app/services/auth_service.dart';
 import 'package:wrestling_app/views/shared/invitations_lists_screen.dart';
 import 'package:wrestling_app/services/notifications_services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 import '../../models/user_model.dart';
 import '../admin/admin_actions.dart';
@@ -28,6 +29,28 @@ class _SignInScreenState extends State<SignInScreen> {
  // Create UserService instance
   final NotificationsServices _notificationsServices = NotificationsServices();
 
+  void arataMesajSucces(String text) {
+    Fluttertoast.showToast(
+      msg: text,
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.TOP,
+      backgroundColor: const Color(0xFF4CAF50), // verde
+      textColor: Colors.white,
+      fontSize: 16,
+    );
+  }
+
+  void arataMesajEroare(String text) {
+    Fluttertoast.showToast(
+      msg: text,
+      toastLength: Toast.LENGTH_LONG,
+      gravity: ToastGravity.BOTTOM,
+      backgroundColor: const Color(0xFFF44336), // roşu
+      textColor: Colors.white,
+      fontSize: 16,
+    );
+  }
+
   Future<void> _handleSignIn(BuildContext context) async {
     String email = _emailController.text.trim();
     String password = _passwordController.text.trim();
@@ -37,9 +60,7 @@ class _SignInScreenState extends State<SignInScreen> {
       UserModel? userModel = await _userService.fetchUserByEmail(email);
       print(userModel?.userUUID);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Successfully signed in!')),
-      );
+      arataMesajSucces("Autentificare cu succes !");
 
       if(userModel != null) {
         _notificationsServices.saveTokenToServer(userModel.userUUID);
@@ -62,9 +83,7 @@ class _SignInScreenState extends State<SignInScreen> {
         }
       }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to sign in')),
-      );
+      arataMesajEroare("Date incorecte !");
     }
   }
 
@@ -98,18 +117,65 @@ class _SignInScreenState extends State<SignInScreen> {
                 ),
                 SizedBox(height: 40),
                 CustomLabel(text: 'Email'),
-                CustomTextField(
+                TextFormField(
                   controller: _emailController,
-                  obscureText: false,
-                  label: '',
+                  keyboardType: TextInputType.emailAddress,
+
+                  decoration: InputDecoration(
+                    hintText: 'nume.prenume@frl.ro',
+                    hintStyle: const TextStyle(
+                      color: Colors.white,          // ←  culoarea hint-ului
+                      fontWeight: FontWeight.w400,
+                    ),
+
+                    filled: true,
+                    fillColor: const Color(0xFFB4182D),   // fundal roşu
+
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(40),
+                      borderSide: const BorderSide(color: Colors.white), // linie albă
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(40),
+                      borderSide: const BorderSide(color: Colors.white), // linie albă şi la focus
+                    ),
+                  ),
+
+                  cursorColor: Colors.white,
+                  style: const TextStyle(color: Colors.white),            // text introdus = alb
                 ),
+
+
                 SizedBox(height: 16),
-                CustomLabel(text: 'Parola'),
-                CustomTextField(
+                CustomLabel(text: 'Parolă'),
+                TextFormField(
                   controller: _passwordController,
                   obscureText: true,
-                  label: '',
+                  decoration: InputDecoration(
+                    hintText: 'Parolă',
+                    hintStyle: const TextStyle(
+                      color: Colors.white,          // ← hint ALB
+                      fontWeight: FontWeight.w400,
+                    ),
+                    filled: true,
+                    fillColor: Color(0xFFB4182D),   // fundal roșu brand
+                    contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+
+                    // bordură albă în ambele stări
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(40),
+                      borderSide: const BorderSide(color: Colors.white, width: 2),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(40),
+                      borderSide: const BorderSide(color: Colors.white, width: 2),
+                    ),
+                  ),
+                  cursorColor: Colors.white,         // cursor alb
+                  style: const TextStyle(color: Colors.white), // text introdus = alb
                 ),
+
+
                 SizedBox(height: 8),
                 Align(
                   alignment: Alignment.centerRight,

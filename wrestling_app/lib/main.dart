@@ -35,6 +35,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: ThemeData(
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,          // text & iconiţe AppBar
+          systemOverlayStyle: SystemUiOverlayStyle.dark,
+        ),
+      ),
       title: 'Wrestling App',
       debugShowCheckedModeBanner: false,
       initialRoute: '/signIn',
