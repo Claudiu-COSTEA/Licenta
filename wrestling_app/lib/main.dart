@@ -1,6 +1,10 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:wrestling_app/views/admin/coaches_invitations_screen.dart';
+import 'package:wrestling_app/views/admin/referees_invitations_screen.dart';
+import 'package:wrestling_app/views/admin/wrestlers_invitations_screen.dart';
+import 'package:wrestling_app/views/admin/wrestling_clubs_invitations_screen.dart';
 import 'package:wrestling_app/views/shared/sign_in_screen.dart';
 import 'package:wrestling_app/services/notifications_services.dart';
 import 'firebase_options.dart';
@@ -47,6 +51,8 @@ class MyApp extends StatelessWidget {
       initialRoute: '/signIn',
       routes: {
         '/signIn': (context) => SignInScreen(),
+        '/coaches':    (_) => const CoachesListScreen(),
+        '/wrestlers':  (_) => const WrestlersListScreen(),
       },
     );
   }

@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:wrestling_app/services/user_apis_services.dart';
 import 'package:wrestling_app/views/shared/widgets/custom_buttons.dart';
-import 'package:wrestling_app/views/shared/widgets/custom_text_field.dart';
 import 'package:wrestling_app/views/shared/widgets/custom_label.dart';
 import 'package:wrestling_app/services/auth_service.dart';
 import 'package:wrestling_app/views/shared/invitations_lists_screen.dart';
 import 'package:wrestling_app/services/notifications_services.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:wrestling_app/views/shared/widgets/toast_helper.dart';
 
 import '../../models/user_model.dart';
 import '../admin/admin_actions.dart';
@@ -29,28 +28,6 @@ class _SignInScreenState extends State<SignInScreen> {
  // Create UserService instance
   final NotificationsServices _notificationsServices = NotificationsServices();
 
-  void arataMesajSucces(String text) {
-    Fluttertoast.showToast(
-      msg: text,
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.TOP,
-      backgroundColor: const Color(0xFF4CAF50), // verde
-      textColor: Colors.white,
-      fontSize: 16,
-    );
-  }
-
-  void arataMesajEroare(String text) {
-    Fluttertoast.showToast(
-      msg: text,
-      toastLength: Toast.LENGTH_LONG,
-      gravity: ToastGravity.BOTTOM,
-      backgroundColor: const Color(0xFFF44336), // roşu
-      textColor: Colors.white,
-      fontSize: 16,
-    );
-  }
-
   Future<void> _handleSignIn(BuildContext context) async {
     String email = _emailController.text.trim();
     String password = _passwordController.text.trim();
@@ -60,7 +37,7 @@ class _SignInScreenState extends State<SignInScreen> {
       UserModel? userModel = await _userService.fetchUserByEmail(email);
       print(userModel?.userUUID);
 
-      arataMesajSucces("Autentificare cu succes !");
+      ToastHelper.succes("Autentificare cu succes !");
 
       if(userModel != null) {
         _notificationsServices.saveTokenToServer(userModel.userUUID);
@@ -83,7 +60,7 @@ class _SignInScreenState extends State<SignInScreen> {
         }
       }
     } else {
-      arataMesajEroare("Date incorecte !");
+      ToastHelper.eroare("Date incorecte !");
     }
   }
 

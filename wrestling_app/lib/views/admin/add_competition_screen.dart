@@ -3,6 +3,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:wrestling_app/services/admin_apis_services.dart';
 import 'map_picker_screen.dart';
 import 'package:intl/intl.dart'; // For formatting date & time
+import 'package:wrestling_app/views/shared/widgets/toast_helper.dart';
 
 class AddCompetitionScreen extends StatefulWidget {
   const AddCompetitionScreen({super.key});
@@ -77,50 +78,68 @@ class _AddCompetitionScreenState extends State<AddCompetitionScreen> {
   }
 
   Future<void> _submitForm() async {
+    // 1. Validare
     if (!_formKey.currentState!.validate() || _selectedLocation == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all fields and select a location')),
-      );
+      ToastHelper.eroare('Date incomplete!');
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
-    final success = await admin.addCompetition(
-      name: _nameController.text.trim(),
-      startDate: _startDateController.text.trim(),
-      endDate: _endDateController.text.trim(),
-      location: "${_selectedLocation!.latitude}, ${_selectedLocation!.longitude}",
-    );
-
-    setState(() {
-      _isLoading = false;
-    });
-
+    // 2. Un singur apel către API
     final ServiceResult res = await admin.addCompetition(
       name: _nameController.text.trim(),
-      startDate: _startDateController.text.trim(),   // "YYYY-MM-DD HH:MM:SS"
+      startDate: _startDateController.text.trim(), // „YYYY-MM-DD HH:MM:SS”
       endDate: _endDateController.text.trim(),
       location:
-      "${_selectedLocation!.latitude}, ${_selectedLocation!.longitude}",
+      '${_selectedLocation!.latitude}, ${_selectedLocation!.longitude}',
     );
 
-// tratezi rezultatul în UI
-    if (!mounted) return;
+    setState(() => _isLoading = false);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          res.message ?? (res.success
-              ? 'Competiție adăugată cu succes!'
-              : 'Eroare la adăugare'),
+    if (!mounted) return; // dacă widget-ul a fost scos din arbore
+
+    // 3. Afișează toast în funcție de rezultat
+    if (res.success) {
+      ToastHelper.succes(res.message ?? 'Competiție adăugată cu succes!');
+      Navigator.pop(context); // opțional: întoarce-te după succes
+    } else {
+      ToastHelper.eroare(res.message ?? 'Eroare la adăugare!');
+    }
+  }
+
+  Widget _infoLocatie() {
+    if (_selectedLocation == null) {
+      return const Text(
+        'Alege locația competiției',
+        style: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
         ),
-        backgroundColor: res.success ? Colors.green : Colors.red,
-      ),
+      );
+    }
+
+    final lat = _selectedLocation!.latitude.toStringAsFixed(5);   // max 5 zecimale
+    final lng = _selectedLocation!.longitude.toStringAsFixed(5);
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.location_on, color: Colors.white, size: 18),
+        const SizedBox(width: 4),
+        Text(
+          'Lat: $lat,  Lon: $lng',
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+      ],
     );
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -220,13 +239,7 @@ class _AddCompetitionScreenState extends State<AddCompetitionScreen> {
                     // Location Picker
                     ElevatedButton.icon(
                       onPressed: _pickLocation,
-                      icon: const Icon(Icons.location_on, color: Colors.white),
-                      label: Text(
-                        _selectedLocation == null
-                            ? "Alege locația competiției"
-                            : "Locație: ${_selectedLocation!.latitude}, ${_selectedLocation!.longitude}",
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-                      ),
+                      label: _infoLocatie(),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: primaryColor,
                         padding: const EdgeInsets.symmetric(vertical: 14),

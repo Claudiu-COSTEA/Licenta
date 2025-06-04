@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:wrestling_app/services/constants.dart';
 import '../models/competition_invitation_model.dart';
 
+
 class InvitationsService {
 
   Future<List<CompetitionInvitation>> fetchInvitations(int recipientUUID) async {

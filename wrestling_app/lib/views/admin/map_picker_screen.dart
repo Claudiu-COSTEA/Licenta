@@ -1,124 +1,198 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:google_places_flutter/google_places_flutter.dart';
+import 'package:http/http.dart' as http;
+
+const kGoogleApiKey = 'AIzaSyBbbpq-P9vhkUpzvreBoGC4bONPf561gr4';
+const kPrimaryRed   = Color(0xFFB4182D);
 
 class MapPickerScreen extends StatefulWidget {
   const MapPickerScreen({super.key});
-
-  @override
-  _MapPickerScreenState createState() => _MapPickerScreenState();
+  @override State<MapPickerScreen> createState() => _MapPickerScreenState();
 }
 
 class _MapPickerScreenState extends State<MapPickerScreen> {
-  LatLng? _selectedLocation;
-  final TextEditingController _searchController = TextEditingController();
-  late GoogleMapController _mapController;
+  final _searchCtrl = TextEditingController();
+  GoogleMapController? _mapCtrl;
+  LatLng? _picked;
+  List<_PlaceSuggestion> _suggestions = [];
 
-  void _onMapTapped(LatLng position) {
-    setState(() {
-      _selectedLocation = position;
-    });
-  }
-
-  void _confirmLocation() {
-    if (_selectedLocation != null) {
-      Navigator.pop(context, _selectedLocation);
+  // ======== GOOGLE PLACES AUTOCOMPLETE =============
+  Future<void> _search(String input) async {
+    if (input.length < 3) {                      // nu spama API-ul
+      setState(() => _suggestions = []);
+      return;
     }
-  }
+    final url = Uri.https(
+      'maps.googleapis.com',
+      '/maps/api/place/autocomplete/json',
+      {
+        'input'        : input,
+        'key'          : kGoogleApiKey,
+        'components'   : 'country:ro',           // doar România
+        'language'     : 'ro'
+      },
+    );
 
-  void _moveCameraToLocation(LatLng location) {
-    _mapController.animateCamera(CameraUpdate.newLatLng(location));
+    final resp = await http.get(url);
+    if (resp.statusCode != 200) return;
+
+    final data = jsonDecode(resp.body);
+    if (data['status'] != 'OK') return;
+
     setState(() {
-      _selectedLocation = location;
+      _suggestions = (data['predictions'] as List)
+          .map((p) => _PlaceSuggestion(
+        desc   : p['description'],
+        placeId: p['place_id'],
+      ))
+          .toList();
     });
   }
 
+  // ======== PLACE DETAILS (lat/lng) =============
+  Future<void> _selectSuggestion(_PlaceSuggestion s) async {
+    setState(() => _suggestions = []);
+    final url = Uri.https(
+      'maps.googleapis.com',
+      '/maps/api/place/details/json',
+      {
+        'place_id': s.placeId,
+        'key'     : kGoogleApiKey,
+        'fields'  : 'geometry'
+      },
+    );
+    final resp = await http.get(url);
+    if (resp.statusCode != 200) return;
+
+    final data = jsonDecode(resp.body);
+    if (data['status'] != 'OK') return;
+    final loc = data['result']['geometry']['location'];
+    final latLng = LatLng(
+      (loc['lat'] as num).toDouble(),
+      (loc['lng'] as num).toDouble(),
+    );
+
+    _mapCtrl?.animateCamera(CameraUpdate.newLatLng(latLng));
+    setState(() => _picked = latLng);
+  }
+
+  // =================================================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: _buildRedAppBar(context),
       body: Stack(
         children: [
           GoogleMap(
             initialCameraPosition: const CameraPosition(
-              target: LatLng(44.4268, 26.1025), // Default to Bucharest
-              zoom: 14,
+              target: LatLng(44.4268, 26.1025),
+              zoom  : 14,
             ),
-            onMapCreated: (controller) => _mapController = controller,
-            onTap: _onMapTapped,
-            markers: _selectedLocation != null
-                ? {
-              Marker(
-                  markerId: const MarkerId("selected"),
-                  position: _selectedLocation!)
-            }
-                : {},
+            onMapCreated: (c) => _mapCtrl = c,
+            onTap: (pos) => setState(() => _picked = pos),
+            markers: _picked == null
+                ? {}
+                : {Marker(markerId: const MarkerId('sel'), position: _picked!)},
           ),
+          if (_suggestions.isNotEmpty) _buildOverlaySuggestions(),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed:
+        _picked == null ? null : () => Navigator.pop(context, _picked),
+        backgroundColor: kPrimaryRed,
+        child: const Icon(Icons.check, color: Colors.white),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+    );
+  }
 
-          // Search Bar
-          Positioned(
-            top: 50,
-            left: 20,
-            right: 20,
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 5,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-              child: GooglePlaceAutoCompleteTextField(
-                textEditingController: _searchController,
-                googleAPIKey: "AIzaSyBbbpq-P9vhkUpzvreBoGC4bONPf561gr4",
-                inputDecoration: const InputDecoration(
-                  hintText: "Search for a location",
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.all(10),
+  PreferredSizeWidget _buildRedAppBar(BuildContext context) {
+    return AppBar(
+      backgroundColor: kPrimaryRed,
+      automaticallyImplyLeading: false,
+      titleSpacing: 0,
+      title: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.pop(context),
+            splashRadius: 24,
+          ),
+          Expanded(
+            child: TextField(
+              controller: _searchCtrl,
+              onChanged: _search,
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                hintText: 'Caută o locație',
+                hintStyle: const TextStyle(color: Colors.white70),
+                border: InputBorder.none,
+                contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                suffixIcon:
+                _searchCtrl.text.isEmpty
+                    ? null
+                    : IconButton(
+                  icon: const Icon(Icons.clear, color: Colors.white),
+                  onPressed: () {
+                    _searchCtrl.clear();
+                    setState(() => _suggestions = []);
+                  },
                 ),
-                debounceTime: 800,
-                countries: ["ro"], // Optional: Restrict to Romania
-                getPlaceDetailWithLatLng: (placeDetail) {
-                  //final String? latString = placeDetail.lat;
-                  //final String? lngString = placeDetail.lng;
-
-                  // if (latString != null && lngString != null) {
-                  //   final double? lat = double.tryParse(latString);
-                  //   final double? lng = double.tryParse(lngString);
-                  //
-                  //   if (lat != null && lng != null) {
-                  //     _moveCameraToLocation(LatLng(lat, lng));
-                  //   } else {
-                  //     ScaffoldMessenger.of(context).showSnackBar(
-                  //       const SnackBar(content: Text("Invalid coordinates received.")),
-                  //     );
-                  //   }
-                  // } else {
-                  //   ScaffoldMessenger.of(context).showSnackBar(
-                  //     const SnackBar(content: Text("Failed to fetch location coordinates.")),
-                  //   );
-                  // }
-                },
-
               ),
             ),
           ),
         ],
       ),
-
-      floatingActionButton: FloatingActionButton(
-        onPressed: _confirmLocation,
-        backgroundColor: Colors.red,
-        child: const Icon(Icons.check, color: Colors.white),
-      ),
-
-      // bottom-left, floating above content
-      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
-
     );
   }
+
+  Widget _buildOverlaySuggestions() {
+    // înălţimea barei de stare (notch) + AppBar
+    final double topOffset =
+        MediaQuery.of(context).padding.top + kToolbarHeight + 4;
+
+    final maxH = MediaQuery.of(context).size.height * .45;
+
+    return Positioned(// ⇦ mai sus decât înainte
+      left: 16,
+      right: 16,
+      child: Material(
+        elevation: 6,
+        borderRadius: BorderRadius.circular(8),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: maxH),
+          child: ListView.separated(
+            padding: EdgeInsets.zero,
+            shrinkWrap: true,
+            itemCount: _suggestions.length,
+            separatorBuilder: (_, __) => const Divider(height: 1),
+            itemBuilder: (_, i) {
+              final s = _suggestions[i];
+              return ListTile(
+                dense: true,
+                title: Text(
+                  s.desc,
+                  style: const TextStyle(fontSize: 14),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                onTap: () => _selectSuggestion(s),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ======== helper small class =========
+class _PlaceSuggestion {
+  final String desc;
+  final String placeId;
+  _PlaceSuggestion({required this.desc, required this.placeId});
 }

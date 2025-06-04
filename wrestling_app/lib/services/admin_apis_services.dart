@@ -8,8 +8,12 @@ import 'package:http/http.dart' as http;
 
 import 'package:wrestling_app/models/competition_model.dart';
 import 'package:wrestling_app/models/competitions_invitations_status.dart';
+import 'package:wrestling_app/models/referee_complete_model.dart';
 import 'package:wrestling_app/services/constants.dart';
 import 'package:wrestling_app/services/notifications_services.dart';
+
+import '../models/competition_invitation_model.dart';
+import '../models/wrestling_club_model.dart';
 
 typedef PickPdfFn = Future<PlatformFile?> Function();
 
@@ -172,6 +176,32 @@ class AdminServices {
     }
   }
 
+  Future<List<WrestlingClub>> fetchClubs() async {
+    final res = await http.get(Uri.parse(AppConstants.baseUrl + "getWrestlingClubs"));
+
+    if (res.statusCode != 200) {
+      throw Exception('Failed to load clubs (${res.statusCode})');
+    }
+
+    // 1) Decode the raw body bytes as UTF-8:
+    final decodedEnvelope = jsonDecode(utf8.decode(res.bodyBytes))
+    as Map<String, dynamic>;
+
+    // 2) Extract the inner `body`, which is itself a JSON-string:
+    final bodyString = decodedEnvelope['body'] as String;
+
+    // 3) Decode that string again as UTF-8 bytes (to preserve diacritics):
+    final fixedBodyJson = utf8.decode(utf8.encode(bodyString));
+
+    // 4) Parse into a Dart List:
+    final List<dynamic> list = jsonDecode(fixedBodyJson) as List<dynamic>;
+
+    // 5) Map into your model:
+    return list
+        .map((e) => WrestlingClub.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
   Future<List<ClubInvitation>> fetchClubsInvitationsStatus() async {
     final uri = Uri.parse('${AppConstants.baseUrl}admin/getCompetitionsInvitationsStatus');
 
@@ -308,6 +338,66 @@ class AdminServices {
     return res.statusCode == 200;
   }
 
+  Future<List<CompetitionInvitation>> fetchInvitationsByRole({
+    required String role,
+    required String competitionUUID,
+  }) async {
+    final uri = Uri.parse(
+      '${AppConstants.baseUrl}admin/getUsersInvitationsByRole'
+          '?recipient_role=${Uri.encodeComponent(role)}'
+          '&competition_UUID=$competitionUUID',
+    );
+
+    final res = await http.get(uri);
+    if (res.statusCode != 200) {
+      throw Exception(
+          'Failed to load invitations (${res.statusCode}): ${res.body}');
+    }
+
+    // 1️⃣ API-ul tău îmbracă răspunsul în „envelope”:
+    final envelope =
+    jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
+
+    // 2️⃣ „body” conține un JSON-string cu lista propriu-zisă
+    final innerString = envelope['body'] as String;
+
+    // 3️⃣ decodăm din nou – pentru a păstra diacriticele
+    final List<dynamic> rawList =
+    jsonDecode(utf8.decode(utf8.encode(innerString)));
+
+    // 4️⃣ mapăm în model
+    return rawList
+        .map((e) => CompetitionInvitation.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<List<RefereeCompleteModel>> fetchReferees() async {
+    final uri =
+    Uri.parse('${AppConstants.baseUrl}admin/getReferees'); // ↩️  endpoint
+
+    final res = await _client.get(uri);
+
+    if (res.statusCode != 200) {
+      throw Exception(
+          'Failed to load referees (HTTP ${res.statusCode}): ${res.body}');
+    }
+
+    // ▸ API Gateway proxy: răspunsul real e string-ul din câmpul "body"
+    final envelope = jsonDecode(utf8.decode(res.bodyBytes))
+    as Map<String, dynamic>;
+
+    final bodyString = envelope['body'] as String;
+
+    // codificare/decodificare suplimentară → păstrează diacriticele
+    final fixedBodyJson = utf8.decode(utf8.encode(bodyString));
+
+    final List<dynamic> list = jsonDecode(fixedBodyJson) as List<dynamic>;
+
+    // transformă în model
+    return list
+        .map((e) => RefereeCompleteModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
   //-------------------------------------------------------------------------
   // Helpers
   //-------------------------------------------------------------------------

@@ -2,7 +2,7 @@
   "openapi" : "3.0.1",
   "info" : {
     "title" : "Wrestling REST API",
-    "version" : "2025-05-08T14:58:09Z"
+    "version" : "2025-06-04T18:09:17Z"
   },
   "servers" : [ {
     "url" : "https://b0i2d55s30.execute-api.us-east-1.amazonaws.com/{basePath}",
@@ -269,6 +269,35 @@
         }
       }
     },
+    "/admin/getReferees" : {
+      "get" : {
+        "responses" : {
+          "200" : {
+            "description" : "200 response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Empty"
+                }
+              }
+            }
+          }
+        },
+        "x-amazon-apigateway-integration" : {
+          "httpMethod" : "POST",
+          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:getRefereesFunction/invocations",
+          "responses" : {
+            "default" : {
+              "statusCode" : "200"
+            }
+          },
+          "passthroughBehavior" : "when_no_match",
+          "timeoutInMillis" : 29000,
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
+        }
+      }
+    },
     "/getUserByEmail" : {
       "get" : {
         "responses" : {
@@ -293,6 +322,38 @@
           },
           "requestTemplates" : {
             "application/json" : "{\r\n     \"email\": \"$input.params('email')\"\r\n}"
+          },
+          "passthroughBehavior" : "when_no_match",
+          "timeoutInMillis" : 29000,
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
+        }
+      }
+    },
+    "/admin/getUsersInvitationsByRole" : {
+      "get" : {
+        "responses" : {
+          "200" : {
+            "description" : "200 response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Empty"
+                }
+              }
+            }
+          }
+        },
+        "x-amazon-apigateway-integration" : {
+          "httpMethod" : "POST",
+          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:getUsersIvitationsByRoleFunction/invocations",
+          "responses" : {
+            "default" : {
+              "statusCode" : "200"
+            }
+          },
+          "requestTemplates" : {
+            "application/json" : "{\r\n     \"recipient_role\": \"$input.params('recipient_role')\",\r\n     \"competition_UUID\": \"$input.params('competition_UUID')\"\r\n}"
           },
           "passthroughBehavior" : "when_no_match",
           "timeoutInMillis" : 29000,

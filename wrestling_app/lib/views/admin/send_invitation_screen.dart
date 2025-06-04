@@ -1,231 +1,181 @@
+// file: lib/screens/invitations/invitation_hub_screen.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:wrestling_app/models/competition_model.dart';
-import 'package:wrestling_app/services/admin_apis_services.dart';
+import 'package:wrestling_app/views/admin/referees_invitations_screen.dart';
+import 'package:wrestling_app/views/admin/wrestling_clubs_invitations_screen.dart';
+import '../../models/competition_model.dart';
+import '../../services/admin_apis_services.dart';
 
 class SendInvitationScreen extends StatefulWidget {
-  const SendInvitationScreen({super.key});
+  const SendInvitationScreen({Key? key}) : super(key: key);
 
   @override
-  State<SendInvitationScreen> createState() => _SendInvitationScreenState();
+  State<SendInvitationScreen> createState() => _SendInvitationScreen();
 }
 
-class _SendInvitationScreenState extends State<SendInvitationScreen> {
-  final _formKey = GlobalKey<FormState>();
-  Competition? _selectedCompetition;
+class _SendInvitationScreen extends State<SendInvitationScreen> {
+  final _admin = AdminServices();
   List<Competition> _competitions = [];
-  final TextEditingController _recipientUUIDController = TextEditingController();
-  final TextEditingController _invitationDeadlineController = TextEditingController();
-  final TextEditingController _weightCategoryController = TextEditingController();
-  String _selectedRole = 'Coach';
-  bool _isLoading = false;
-  bool _loadingComps = true;
-  final admin = AdminServices();
-  final Color primaryColor = const Color(0xFFB4182D);
+  Competition? _selected;
+  bool _loading = true;
+
+  static const Color primary = Color(0xFFB4182D);
 
   @override
   void initState() {
     super.initState();
-    _loadCompetitions();
+    _loadComps();
   }
 
-  Future<void> _loadCompetitions() async {
+  Future<void> _loadComps() async {
     try {
-      final comps = await admin.fetchCompetitions();
-      setState(() {
-        _competitions = comps;
-        _loadingComps = false;
-      });
-    } catch (e) {
-      setState(() => _loadingComps = false);
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Eroare încărcare competiții: $e')));
+      _competitions = await _admin.fetchCompetitions();
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
   }
 
-  Future<void> _pickInvitationDeadline() async {
-    DateTime? pickedDate = await showDatePicker(
-        context: context, initialDate: DateTime.now(),
-        firstDate: DateTime.now(), lastDate: DateTime(2100));
-    if (pickedDate == null) return;
-    TimeOfDay? pickedTime = await showTimePicker(
-        context: context, initialTime: TimeOfDay.now());
-    if (pickedTime == null) return;
-    final combined = DateTime(
-        pickedDate.year, pickedDate.month, pickedDate.day,
-        pickedTime.hour, pickedTime.minute);
-    _invitationDeadlineController.text =
-        DateFormat('yyyy-MM-dd HH:mm:ss').format(combined);
-  }
-
-  Future<void> _submitForm() async {
-    if (!_formKey.currentState!.validate() || _selectedCompetition == null) {
-      return;
-    }
-    setState(() => _isLoading = true);
-
-    final ServiceResult res = await admin.sendInvitation(
-      competitionUUID: _selectedCompetition!.uuid,
-      recipientUUID: int.parse(_recipientUUIDController.text.trim()),
-      recipientRole: _selectedRole,
-      weightCategory:
-      _selectedRole == 'Wrestler' ? _weightCategoryController.text.trim() : null,
-      status: 'pending',                     // ex. „pending” / „accepted”
-      deadline: _invitationDeadlineController.text.trim(),
-    );
-
-    setState(() => _isLoading = false);
-
-// Afișează mesajul venit de la backend, dacă există.
-    final snack = SnackBar(
-      content: Text(
-        res.message ??
-            (res.success
-                ? 'Invitation sent successfully!'
-                : 'Failed to send invitation.'),
+  // card generic
+  Widget _card({
+    required IconData icon,
+    required String label,
+    required VoidCallback? onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: primary,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 42, color: Colors.white),
+            const SizedBox(height: 12),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            )
+          ],
+        ),
       ),
-      backgroundColor: res.success ? Colors.green : Colors.red,
     );
-    ScaffoldMessenger.of(context).showSnackBar(snack);
+  }
 
-    if (res.success) Navigator.pop(context);
+  // navighează către ecranele tale de listă
+  void _goTo(String routeName) {
+    if (_selected == null) return;
+    Navigator.pushNamed(
+      context,
+      routeName,
+      arguments: {"competitionUUID": _selected!.uuid},
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Padding(
-          padding: const EdgeInsets.all(16),
-          child: SingleChildScrollView(
-              child: Form(
-                key: _formKey,
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, size: 28),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  const Center(
-                      child: Text("Send Invitation",
-                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
-                  const SizedBox(height: 20),
-
-                  // 1) Dropdown pentru competiții
-                  _loadingComps
-                      ? const Center(child: CircularProgressIndicator())
-                      : DropdownButtonFormField<Competition>(
-                    decoration: const InputDecoration(
-                      labelText: 'Competiție',
-                      border: OutlineInputBorder(),
-                    ),
-                    value: _selectedCompetition,
-                    items: _competitions.map((c) {
-                      return DropdownMenuItem(
-                        value: c,
-                        child: Text('${c.name} (${DateFormat('yyyy-MM-dd').format(c.startDate)})'),
-                      );
-                    }).toList(),
-                    onChanged: (c) => setState(() => _selectedCompetition = c),
-                    validator: (c) => c == null ? 'Alege competiția' : null,
-                  ),
-
-                  // 2) Afișează detalii competiție selecționată
-                  if (_selectedCompetition != null)
-                    Table(
-                      columnWidths: const {
-                        0: IntrinsicColumnWidth(),
-                        1: FlexColumnWidth(),
-                      },
-                      children: [
-                        _buildRow('Denumire : ', _selectedCompetition!.name),
-                        _buildRow('Începe : ', DateFormat('yyyy-MM-dd').format(_selectedCompetition!.startDate)),
-                        _buildRow('Se termină : ', DateFormat('yyyy-MM-dd').format(_selectedCompetition!.endDate)),
-                        _buildRow('Locație : ', _selectedCompetition!.location),
-                        _buildRow('Status : ', _selectedCompetition!.status),
-                      ],
-                    ),
-
-                  const SizedBox(height: 20),
-
-                  // 3) Recipient UUID (poți înlocui cu un selector similar)
-                  _buildTextField(_recipientUUIDController, "Recipient UUID", "Enter recipient ID"),
-
-                  const SizedBox(height: 10),
-                  const Text("Invitation Deadline"),
-                  TextFormField(
-                    controller: _invitationDeadlineController,
-                    readOnly: true,
-                    onTap: _pickInvitationDeadline,
-                    decoration: InputDecoration(
-                      hintText: "Select Deadline Date & Time",
-                      suffixIcon: const Icon(Icons.calendar_today),
-                      enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: primaryColor)),
-                      focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: primaryColor, width: 2)),
-                    ),
-                    validator: (v) => v!.isEmpty ? "Select invitation deadline" : null,
-                  ),
-
-                  const SizedBox(height: 10),
-                  const Text("Select Role"),
-                  DropdownButtonFormField<String>(
-                    value: _selectedRole,
-                    items: ['Wrestling Club','Referee','Coach','Wrestler']
-                        .map((role) => DropdownMenuItem(value: role, child: Text(role)))
-                        .toList(),
-                    onChanged: (val) => setState(() => _selectedRole = val!),
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                  ),
-
-                  const SizedBox(height: 10),
-                  if (_selectedRole == 'Wrestler')
-                    _buildTextField(_weightCategoryController, "Weight Category", "Enter weight category"),
-
-                  const SizedBox(height: 20),
-                  _isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _submitForm,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryColor,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: const Text("Send Invitation",
-                          style: TextStyle(color: Colors.white, fontSize: 18)),
-                    ),
-                  ),
-                ]),
-              ))),
-    );
-  }
-
-  Widget _buildTextField(TextEditingController c, String label, String hint) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: TextFormField(
-        controller: c,
-        decoration: InputDecoration(
-          labelText: label, hintText: hint,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+      appBar: AppBar(
+        title: const Text(
+          'Trimite invitaţii',
+          style: TextStyle(color: Colors.black),
         ),
-        validator: (v) => v!.isEmpty ? "Field cannot be empty" : null,
+        iconTheme: const IconThemeData(color: Colors.black),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            //── dropdown competiții
+            DropdownButtonFormField<Competition>(
+              decoration: const InputDecoration(
+                labelText: 'Alege competiţia',
+                border: OutlineInputBorder(),
+              ),
+              value: _selected,
+              items: _competitions.map((c) {
+                final date = DateFormat('yyyy-MM-dd').format(c.startDate);
+                return DropdownMenuItem(
+                  value: c,
+                  child: Text('${c.name} ($date)'),
+                );
+              }).toList(),
+              onChanged: (c) => setState(() => _selected = c),
+              validator: (c) => c == null ? 'Selectează competiţia' : null,
+            ),
+            const SizedBox(height: 24),
+
+            //── grid cu 4 card-uri
+            Expanded(
+              child: GridView.count(
+                crossAxisCount: 2,
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
+                childAspectRatio: 4 / 3,
+                children: [
+                  // În loc de _goTo('/clubs')
+                  _card(
+                    icon : Icons.groups,
+                    label: 'Cluburi sportive',
+                    onTap: _selected == null
+                        ? null
+                        : () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ClubsListScreen(
+                            competitionUUID: _selected!.uuid,   // ← UUID ales
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+
+                  _card(
+                    icon: Icons.gavel,
+                    label: 'Arbitri',
+                    onTap:
+                    _selected == null ? null : () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => RefereesListScreen(
+                            competitionUUID: _selected!.uuid,   // ← UUID ales
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  _card(
+                    icon: Icons.school,
+                    label: 'Antrenori',
+                    onTap: _selected == null
+                        ? null
+                        : () => _goTo('/coaches'),
+                  ),
+                  _card(
+                    icon: Icons.fitness_center,
+                    label: 'Luptători',
+                    onTap: _selected == null
+                        ? null
+                        : () => _goTo('/wrestlers'),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
-  }
-
-  TableRow _buildRow(String left, String right) {
-    return TableRow(children: [
-      Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Text(left, style: const TextStyle(fontWeight: FontWeight.bold))),
-      Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Text(right)),
-    ]);
   }
 }
