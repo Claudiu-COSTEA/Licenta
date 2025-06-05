@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../models/competition_model.dart';
 import '../../services/constants.dart';
 import '../../services/admin_apis_services.dart';
+import '../shared/widgets/toast_helper.dart';
 
 class GeneratePdfScreen extends StatefulWidget {
   const GeneratePdfScreen({Key? key}) : super(key: key);
@@ -20,6 +21,7 @@ class _GeneratePdfScreenState extends State<GeneratePdfScreen> {
   late Future<List<Competition>> _futureComps;
   Competition? _selected;
   bool _isLoading = false;
+  static const Color primary = Color(0xFFB4182D);
 
   @override
   void initState() {
@@ -28,67 +30,66 @@ class _GeneratePdfScreenState extends State<GeneratePdfScreen> {
   }
 
   Future<void> _generatePdf() async {
-    if (_selected == null) return;
+    if (_selected == null) {
+      ToastHelper.eroare('Vă rog selectați mai întâi o competiție');
+      return;
+    }
+
     setState(() => _isLoading = true);
 
-    final uri = Uri.parse(
-      AppConstants.baseUrl + 'admin/generatePDF',
-    );
-    final res = await http.post(
-      uri,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'competition_UUID': _selected!.uuid}),
-    );
-
-    setState(() => _isLoading = false);
-
-    if (res.statusCode == 200) {
-      final Map<String, dynamic> outer = jsonDecode(res.body);
-      // If your API Gateway is using Lambda Proxy, it'll wrap your body as a string:
-      final Map<String, dynamic> payload = outer.containsKey('body')
-          ? jsonDecode(outer['body'] as String)
-          : outer;
-      final String? pdfUrl = payload['pdfUrl'] as String?;
-      if (pdfUrl == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('PDF URL missing in response')),
-        );
-        return;
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('PDF generat cu succes!')),
+    try {
+      final uri = Uri.parse(
+        AppConstants.baseUrl + 'admin/generatePDF',
       );
-      final uri2 = Uri.parse(pdfUrl);
-      if (await canLaunchUrl(uri2)) {
-        await launchUrl(uri2, mode: LaunchMode.externalApplication);
+      final res = await http.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'competition_UUID': _selected!.uuid}),
+      );
+
+      setState(() => _isLoading = false);
+
+      if (res.statusCode == 200) {
+        final Map<String, dynamic> outer = jsonDecode(res.body);
+        // Dacă API Gateway folosește Lambda Proxy, payload-ul real vine în câmpul "body"
+        final Map<String, dynamic> payload = outer.containsKey('body')
+            ? jsonDecode(outer['body'] as String)
+            : outer;
+
+        final String? pdfUrl = payload['pdfUrl'] as String?;
+        if (pdfUrl == null) {
+          ToastHelper.eroare('Link-ul PDF lipsește din răspuns');
+          return;
+        }
+
+        ToastHelper.succes('PDF generat cu succes!');
+
+        final uri2 = Uri.parse(pdfUrl);
+        if (await canLaunchUrl(uri2)) {
+          await launchUrl(uri2, mode: LaunchMode.externalApplication);
+        } else {
+          ToastHelper.eroare('Nu pot deschide URL-ul PDF');
+        }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Nu pot deschide URL-ul PDF')),
-        );
+        ToastHelper.eroare('Eroare la generarea PDF (cod HTTP: ${res.statusCode})');
       }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Eroare la generarea PDF: ${res.statusCode}')),
-      );
+    } catch (e) {
+      setState(() => _isLoading = false);
+      ToastHelper.eroare('Eroare neașteptată: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
-      ),
+      backgroundColor: Colors.white,
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: FutureBuilder<List<Competition>>(
           future: _futureComps,
           builder: (context, snap) {
             if (snap.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator(color: primary,));
             }
             if (snap.hasError) {
               return Center(child: Text('Eroare: ${snap.error}'));
@@ -98,18 +99,25 @@ class _GeneratePdfScreenState extends State<GeneratePdfScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
 
+                const SizedBox(height: 20,),
+
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back, size: 28, color: Colors.black),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                ),
                 Center(
                   child: Text(
-                    'Lista Competiții',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
+                    "Generare PDF",
+                    style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 28),
                   ),
                 ),
 
-                const SizedBox(height: 50),
+                const SizedBox(height: 40,),
 
                 const Text(
                   'Selectează competiția:',
@@ -118,24 +126,60 @@ class _GeneratePdfScreenState extends State<GeneratePdfScreen> {
 
                 const SizedBox(height: 8),
                 DropdownButtonFormField<Competition>(
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
+                  // ── DECORAȚIA (bordură + fundal) ───────────────────────────
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: primary, // bordură roșie când nu e focus
+                        width: 1.5,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: primary, // bordură roșie la focus
+                        width: 2.5,
+                      ),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                   ),
-                  items: comps
-                      .map((c) => DropdownMenuItem(
-                    value: c,
-                    child: Text(c.name),
-                  ))
-                      .toList(),
+
+                  // ── SĂGEATĂ ȘI TEXTE ───────────────────────────────────────
+                  iconEnabledColor: primary,    // iconița dropdown pe roșu
+                  dropdownColor: Colors.white,     // fundal alb pentru lista derulantă
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontSize: 16,
+                  ), // stil text
+
+                  // ── ITEM-ELE ────────────────────────────────────────────────
+                  items: comps.map((c) {
+                    return DropdownMenuItem<Competition>(
+                      value: c,
+                      child: Text(c.name),
+                    );
+                  }).toList(),
+
+                  // ── VALOAREA SELECTATĂ ──────────────────────────────────────
                   value: _selected,
+
+                  // ── CÂND SE SCHIMBĂ ───────────────────────────────────────
                   onChanged: (c) => setState(() => _selected = c),
-                  hint: const Text('Alege competiția'),
+
+                  // ── PLACEHOLDER (dacă nu e selectat nimic) ────────────────
+                  hint: const Text(
+                    'Alege competiția',
+                    style: TextStyle(color: Colors.black54),
+                  ),
                 ),
 
                 const SizedBox(height: 50),
 
                 _isLoading
-                    ? const Center(child: CircularProgressIndicator())
+                    ? const Center(child: CircularProgressIndicator(color: primary,))
                     : ElevatedButton.icon(
                   onPressed: _selected == null ? null : _generatePdf,
                   icon: const Icon(Icons.picture_as_pdf, color: Colors.white,),
@@ -147,6 +191,21 @@ class _GeneratePdfScreenState extends State<GeneratePdfScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFB4182D),
                     padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                ),
+
+                const SizedBox(height: 100),
+
+                Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset(
+                        'assets/images/wrestling_logo.png',
+                        height: 300,
+                      ),
+                      const SizedBox(height: 20),
+                    ],
                   ),
                 ),
               ],

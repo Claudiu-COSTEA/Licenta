@@ -6,6 +6,7 @@ import 'package:wrestling_app/services/constants.dart';
 
 class WrestlingClubService {
 
+  static const Color primary  = Color(0xFFB4182D);
 
   Future<List<Map<String, dynamic>>?> fetchCoachesForClub(
       int wrestlingClubUUID, int competitionUUID) async {
@@ -69,7 +70,7 @@ class WrestlingClubService {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const Center(child: CircularProgressIndicator()),
+        builder: (context) => const Center(child: CircularProgressIndicator(color: primary,)),
       );
 
       // Prepare request body

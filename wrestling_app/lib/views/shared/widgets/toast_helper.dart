@@ -22,7 +22,7 @@ class ToastHelper {
     Fluttertoast.showToast(
       msg: text,
       toastLength: Toast.LENGTH_LONG,
-      gravity: ToastGravity.BOTTOM,
+      gravity: ToastGravity.TOP,
       backgroundColor: const Color(0xFFF44336), // roșu
       textColor: Colors.white,
       fontSize: 16,

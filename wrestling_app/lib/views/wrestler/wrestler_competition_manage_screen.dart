@@ -21,6 +21,7 @@ class _WrestlerCompetitionManageScreen extends State<WrestlerCompetitionManageSc
 
   final WrestlerService _wrestlerService = WrestlerService();
   final bool _isLoading = false;
+  static const Color primary  = Color(0xFFB4182D);
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +37,7 @@ class _WrestlerCompetitionManageScreen extends State<WrestlerCompetitionManageSc
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? const Center(child: CircularProgressIndicator(color: primary,))
             : Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [

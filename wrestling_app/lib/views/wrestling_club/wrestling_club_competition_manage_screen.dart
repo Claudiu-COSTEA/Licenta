@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
-import 'package:wrestling_app/services/constants.dart';
 import '../../services/google_maps_lunch.dart';
 import '../../services/wrestling_clubs_apis_services.dart';
 import 'coach_selection_list.dart';
@@ -22,6 +21,7 @@ class WrestlingClubCompetitionManageScreen extends StatefulWidget {
 class _WrestlingClubCompetitionManageScreen extends State<WrestlingClubCompetitionManageScreen> {
   final WrestlingClubService _wrestlingClubService = WrestlingClubService();
   final bool _isLoading = false;
+  static const Color primary  = Color(0xFFB4182D);
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +37,7 @@ class _WrestlingClubCompetitionManageScreen extends State<WrestlingClubCompetiti
       body: Padding(
         padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 0.0),
         child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? const Center(child: CircularProgressIndicator(color: primary,))
             : Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [

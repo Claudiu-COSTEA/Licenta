@@ -21,7 +21,7 @@ class _AddCompetitionScreenState extends State<AddCompetitionScreen> {
   LatLng? _selectedLocation;
   final admin = AdminServices();
   bool _isLoading = false;
-  final Color primaryColor = const Color(0xFFB4182D); // Custom color
+  static const Color primaryColor = Color(0xFFB4182D);
 
   Future<void> _pickStartDate() async {
     DateTime? pickedDate = await _pickDate();
@@ -80,7 +80,7 @@ class _AddCompetitionScreenState extends State<AddCompetitionScreen> {
   Future<void> _submitForm() async {
     // 1. Validare
     if (!_formKey.currentState!.validate() || _selectedLocation == null) {
-      ToastHelper.eroare('Date incomplete!');
+      ToastHelper.eroare('Date incomplete !');
       return;
     }
 
@@ -101,10 +101,10 @@ class _AddCompetitionScreenState extends State<AddCompetitionScreen> {
 
     // 3. Afișează toast în funcție de rezultat
     if (res.success) {
-      ToastHelper.succes(res.message ?? 'Competiție adăugată cu succes!');
+      ToastHelper.succes('Competiție adăugată cu succes !');
       Navigator.pop(context); // opțional: întoarce-te după succes
     } else {
-      ToastHelper.eroare(res.message ?? 'Eroare la adăugare!');
+      ToastHelper.eroare('Eroare la adăugare!');
     }
   }
 
@@ -145,60 +145,76 @@ class _AddCompetitionScreenState extends State<AddCompetitionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back, size: 28, color: Colors.black),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
+      // În loc de Column + Expanded, folosim SingleChildScrollView
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+
+              Align(
+                alignment: Alignment.centerLeft,
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back, size: 28, color: Colors.black),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
               ),
-            ),
-
-            const SizedBox(height: 50),
-
-            const Center(
-              child: Text(
-                "Aăugare competiție",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
+              Center(
+                child: Text(
+                  "Adăugare competiții",
+                  style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 28),
+                ),
               ),
-            ),
 
-            const SizedBox(height: 30),
-
-            Expanded(
-              child: Form(
+              const SizedBox(height: 20,),
+              // ─── Form ──────────────────────────────────────────
+              Form(
                 key: _formKey,
-                child: ListView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text("Denumirea competiției"),
-
+                    // Denumire competiție
+                    const Text(
+                      "Denumirea competiției",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
                     TextFormField(
                       controller: _nameController,
                       decoration: InputDecoration(
                         hintText: "Introduce-ți denumirea competiției",
-                        hintStyle: TextStyle(color: primaryColor),
+                        hintStyle: const TextStyle(color: primaryColor),
                         enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: primaryColor),
+                          borderSide: const BorderSide(color: primaryColor),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: primaryColor, width: 2),
+                          borderSide: const BorderSide(color: primaryColor, width: 2),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-
-                      validator: (value) => value!.isEmpty
+                      validator: (value) => (value == null || value.isEmpty)
                           ? "Vă rog introduce-ți denumirea competiției"
                           : null,
-                      style: TextStyle(color: primaryColor),
+                      style: const TextStyle(color: primaryColor),
                     ),
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 24),
 
-                    const Text("Dată început"),
+                    // Data început
+                    const Text(
+                      "Dată început",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
                     TextFormField(
                       controller: _startDateController,
                       readOnly: true,
@@ -207,17 +223,30 @@ class _AddCompetitionScreenState extends State<AddCompetitionScreen> {
                         hintText: "Selectează dată și oră de început",
                         suffixIcon: const Icon(Icons.calendar_today),
                         enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: primaryColor),
+                          borderSide: const BorderSide(color: primaryColor),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: primaryColor, width: 2),
+                          borderSide: const BorderSide(color: primaryColor, width: 2),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      validator: (value) => value!.isEmpty ? "Selectează dată și oră de început" : null,
+                      validator: (value) => (value == null || value.isEmpty)
+                          ? "Selectează dată și oră de început"
+                          : null,
+                      style: const TextStyle(color: primaryColor),
                     ),
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 24),
 
-                    const Text("Dată sfârșit"),
+                    // Data sfârșit
+                    const Text(
+                      "Dată sfârșit",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
                     TextFormField(
                       controller: _endDateController,
                       readOnly: true,
@@ -226,30 +255,55 @@ class _AddCompetitionScreenState extends State<AddCompetitionScreen> {
                         hintText: "Selectează dată și oră de sfârșit",
                         suffixIcon: const Icon(Icons.calendar_today),
                         enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: primaryColor),
+                          borderSide: const BorderSide(color: primaryColor),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: primaryColor, width: 2),
+                          borderSide: const BorderSide(color: primaryColor, width: 2),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      validator: (value) => value!.isEmpty ? "Selectează dată și oră de sfârșit" : null,
+                      validator: (value) => (value == null || value.isEmpty)
+                          ? "Selectează dată și oră de sfârșit"
+                          : null,
+                      style: const TextStyle(color: primaryColor),
                     ),
                     const SizedBox(height: 30),
 
-                    // Location Picker
-                    ElevatedButton.icon(
-                      onPressed: _pickLocation,
-                      label: _infoLocatie(),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryColor,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                    // Picker locație
+                    Center(
+                      child: ElevatedButton(
+                        onPressed: _pickLocation,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryColor,
+                          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 75),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          // Aceasta va centra conținutul butonului
+                          alignment: Alignment.center,
+                        ),
+                        // În loc de ElevatedButton.icon(...), folosim child = Row(...)
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const SizedBox(width: 8),
+                            _infoLocatie(), // deja returnează un Text cu stilul dorit
+                          ],
+                        ),
                       ),
                     ),
 
                     const SizedBox(height: 30),
 
+                    // Buton „Adaugă competiție”
                     _isLoading
-                        ? const Center(child: CircularProgressIndicator())
+                        ? Center(
+                      child: CircularProgressIndicator(
+                        color: primaryColor,
+                      ),
+                    )
                         : SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -257,18 +311,39 @@ class _AddCompetitionScreenState extends State<AddCompetitionScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: primaryColor,
                           padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
                         child: const Text(
                           "Adaugă competiție",
-                          style: TextStyle(color: Colors.white, fontSize: 18),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
-          ],
+
+              // ─── Logo la final (în interiorul aceluiași scroll) ───
+              Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image.asset(
+                      'assets/images/wrestling_logo.png',
+                      height: 300,
+                      fit: BoxFit.contain,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

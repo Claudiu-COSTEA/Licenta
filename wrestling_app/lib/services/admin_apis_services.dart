@@ -12,8 +12,11 @@ import 'package:wrestling_app/models/referee_complete_model.dart';
 import 'package:wrestling_app/services/constants.dart';
 import 'package:wrestling_app/services/notifications_services.dart';
 
+import '../models/coach_complete_model.dart';
 import '../models/competition_invitation_model.dart';
+import '../models/wrestler_complete_model.dart';
 import '../models/wrestling_club_model.dart';
+import '../views/shared/widgets/toast_helper.dart';
 
 typedef PickPdfFn = Future<PlatformFile?> Function();
 
@@ -269,44 +272,56 @@ class AdminServices {
   // 4. Wrestler documents (license & medical)  -----------------------------
   //-------------------------------------------------------------------------
 
-  Future<ServiceResult> pickAndUploadLicensePdf() async {
-    return _pickAndUploadPdf(
+  /// După modificare, aceste metode nu mai întorc ServiceResult,
+  /// ci doar Future<void>, pentru că intern folosesc toast-uri.
+  Future<void> pickAndUploadLicensePdf() async {
+    await _pickAndUploadPdf(
       folder: 'WrestlersLicenseDocuments',
       update: (uuid, url) => _updateWrestlerDoc(uuid: uuid, url: url, type: 'license'),
     );
   }
 
-  Future<ServiceResult> pickAndUploadMedicalPdf() async {
-    return _pickAndUploadPdf(
+  Future<void> pickAndUploadMedicalPdf() async {
+    await _pickAndUploadPdf(
       folder: 'WrestlersMedicalDocuments',
       update: (uuid, url) => _updateWrestlerDoc(uuid: uuid, url: url, type: 'medical'),
     );
   }
 
-  // Internal helper that does the heavy lifting for both licence & medical.
-  Future<ServiceResult> _pickAndUploadPdf({
+  /// Acum _pickAndUploadPdf întoarce Future<void> (_nu_ Future<ServiceResult>),
+  /// pentru că afișează toast-uri intern și nu returnează un obiect ServiceResult.
+  Future<void> _pickAndUploadPdf({
     required String folder,
     required Future<bool> Function(int uuid, String url) update,
   }) async {
     try {
+      // 1) Alegerea fișierului PDF
       final picked = await _pickPdf();
-      if (picked == null) return ServiceResult(success: false, message: 'cancelled');
+      if (picked == null) {
+        ToastHelper.eroare('Operațiune anulată');
+        return;
+      }
 
-      final fileName = picked.name; // e.g. "11_Alex_Popescu.pdf"
+      // 2) Extragem UUID-ul din numele fișierului (prefix „11_…”)
+      final fileName = picked.name; // ex: "11_Alex_Popescu.pdf"
       final parts = fileName.split('_');
       if (parts.isEmpty) {
-        return ServiceResult(success: false, message: 'Filename must start with wrestler UUID');
+        ToastHelper.eroare('Numele fișierului trebuie să înceapă cu UUID-ul sportivului');
+        return;
       }
       final uuid = int.tryParse(parts[0]);
       if (uuid == null) {
-        return ServiceResult(success: false, message: 'Invalid UUID prefix');
+        ToastHelper.eroare('Denumirea documentului incorectă !');
+        return;
       }
 
+      // 3) Construim URI-ul pentru upload în S3
       final uploadUri = Uri.https(
         'wrestlingdocumentsbucket.s3.us-east-1.amazonaws.com',
         '/$folder/${Uri.encodeComponent(fileName)}',
       );
 
+      // 4) Citim bytes și facem PUT către S3
       final bytes = await _readBytes(picked.path!);
       final uploadRes = await _client.put(
         uploadUri,
@@ -318,15 +333,23 @@ class AdminServices {
       );
 
       if (uploadRes.statusCode != 200) {
-        return ServiceResult(success: false, message: 'S3 HTTP ${uploadRes.statusCode}');
+        ToastHelper.eroare('Eroare la încărcare PDF (S3 HTTP ${uploadRes.statusCode})');
+        return;
       }
 
+      // 5) Actualizăm în baza de date URL-ul documentului
       final ok = await update(uuid, uploadUri.toString());
-      return ServiceResult(success: ok, message: ok ? 'uploaded' : 'db-error');
+      if (ok) {
+        ToastHelper.succes('Document încărcat cu succes !');
+      } else {
+        ToastHelper.eroare('Eroare la salvarea URL-ului în baza de date');
+      }
     } catch (e) {
-      return ServiceResult(success: false, message: '$e');
+      // 6) Orice excepție neașteptată
+      ToastHelper.eroare('Exception: $e');
     }
   }
+
 
   Future<bool> _updateWrestlerDoc({required int uuid, required String url, required String type}) async {
     final uri = Uri.parse('${AppConstants.baseUrl}admin/postWrestlerUrl');
@@ -398,6 +421,69 @@ class AdminServices {
         .map((e) => RefereeCompleteModel.fromJson(e as Map<String, dynamic>))
         .toList();
   }
+
+  Future<List<WrestlerCompleteModel>> fetchWrestlers() async {
+    final uri = Uri.parse('${AppConstants.baseUrl}admin/getWrestlers');
+    final res = await _client.get(uri);   // <== _client: http.Client definit deja în service
+
+    if (res.statusCode != 200) {
+      throw Exception('Eroare ${res.statusCode} când am încercat să citesc wrestlers');
+    }
+
+    // 1️⃣  decodăm UTF-8 pentru a păstra diacriticele
+    final envelope = jsonDecode(utf8.decode(res.bodyBytes))
+    as Map<String, dynamic>;
+
+    // 2️⃣  API Gateway proxy îţi pune array-ul ca STRING în "body"
+    final bodyString = envelope['body'] as String;
+
+    // 3️⃣  iarăşi UTF-8 (diacritice)
+    final listJson  = jsonDecode(utf8.decode(utf8.encode(bodyString)))
+    as List<dynamic>;
+
+    // 4️⃣  map-ăm în model
+    final wrestlers = listJson
+        .map((e) => WrestlerCompleteModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    // (opţional) le ordonăm alfabetic
+    wrestlers.sort((a, b) => a.name.compareTo(b.name));
+    return wrestlers;
+  }
+
+  Future<List<CoachCompleteModel>> fetchCoaches() async {
+    final uri = Uri.parse('${AppConstants.baseUrl}admin/getCoaches');
+
+    final response = await _client.get(uri, headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    });
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        'Failed to load coaches (status: ${response.statusCode})',
+      );
+    }
+
+    // 1) Decodăm răspunsul „envelope”:
+    //    { "statusCode":200, "headers":{…}, "body":"[ { … }, { … } ]" }
+    final envelope = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+
+    // 2) Extragem câmpul „body” (care e un JSON-string):
+    final bodyString = envelope['body'] as String;
+
+    // 3) Reconstruim corpul cu UTF-8 pentru a păstra diacriticele:
+    final fixedJson = utf8.decode(utf8.encode(bodyString));
+
+    // 4) Decodăm lista de obiecte:
+    final List<dynamic> rawList = jsonDecode(fixedJson) as List<dynamic>;
+
+    // 5) Mapăm fiecare element într-un CoachCompleteModel
+    return rawList
+        .map((e) => CoachCompleteModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
   //-------------------------------------------------------------------------
   // Helpers
   //-------------------------------------------------------------------------

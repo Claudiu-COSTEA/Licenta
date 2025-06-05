@@ -1,15 +1,11 @@
-import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:wrestling_app/views/shared/widgets/custom_list.dart';
 import '../../models/competition_invitation_model.dart';
 import '../../services/clubs_map_screen.dart';
 import '../../services/invitations_services.dart'; // Adjust path if necessary
 import '../../models/user_model.dart';
 import 'package:wrestling_app/services/auth_service.dart';
-import 'package:wrestling_app/models/wrestler_documents_model.dart';
 
 import '../../services/wrestler_apis_services.dart';
 import '../wrestler/get_qr_code.dart';
@@ -30,6 +26,7 @@ class _InvitationsListsScreenState extends State<InvitationsListsScreen> {
   List<Map<String, dynamic>> respondedCompetitions = [];
   bool _isLoading = false;
   final WrestlerService _wrestlerService = WrestlerService();
+  static const Color primaryColor = Color(0xFFB4182D);
 
   @override
   void initState() {
@@ -123,7 +120,7 @@ class _InvitationsListsScreenState extends State<InvitationsListsScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? const Center(child: CircularProgressIndicator(color: primaryColor))
             : Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -278,26 +275,6 @@ class _InvitationsListsScreenState extends State<InvitationsListsScreen> {
                 onRefresh: _fetchInvitations,),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActionButton(String text, VoidCallback onPressed) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFB4182D),
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10)),
-        ),
-        child: Text(
-          text,
-          style: const TextStyle(
-              color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
         ),
       ),
     );

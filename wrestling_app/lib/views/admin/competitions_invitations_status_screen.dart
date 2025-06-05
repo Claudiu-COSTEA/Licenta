@@ -110,7 +110,7 @@ class _ClubInvitationsScreenState extends State<ClubInvitationsScreen> {
               future: _futureInvitations,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator(color: primaryColor));
                 }
                 if (snapshot.hasError) {
                   return Center(child: Text('Eroare: ${snapshot.error}'));

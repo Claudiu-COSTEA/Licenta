@@ -20,6 +20,7 @@ class _ClubsMapScreenState extends State<ClubsMapScreen> {
   WrestlingClub? _selectedClub;
   bool _loading = true;
   static const _romaniaCenter = LatLng(45.9432, 24.9668);
+  static const Color primary  = Color(0xFFB4182D);
 
   @override
   void initState() {
@@ -54,7 +55,7 @@ class _ClubsMapScreenState extends State<ClubsMapScreen> {
       body: Stack(
         children: [
           _loading
-              ? const Center(child: CircularProgressIndicator())
+              ? const Center(child: CircularProgressIndicator(color: primary,))
               : GoogleMap(
             initialCameraPosition:
             const CameraPosition(target: _romaniaCenter, zoom: 6),

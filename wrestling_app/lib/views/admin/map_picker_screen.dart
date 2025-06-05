@@ -125,10 +125,10 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
             child: TextField(
               controller: _searchCtrl,
               onChanged: _search,
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               decoration: InputDecoration(
                 hintText: 'Caută o locație',
-                hintStyle: const TextStyle(color: Colors.white70),
+                hintStyle: const TextStyle(color: Colors.white),
                 border: InputBorder.none,
                 contentPadding:
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

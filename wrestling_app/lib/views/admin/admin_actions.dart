@@ -42,47 +42,70 @@ class AdminActions extends StatelessWidget {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(12),
-        child: GridView.count(
-          crossAxisCount: 2,              // ← 3 coloane ➜ 7 carduri intr-un singur ecran
-          physics: const NeverScrollableScrollPhysics(), // fără scroll
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: 1.1,          // ← mai “scund” decât larg (ajustează după gust)
-          children: _items.map((a) {
-            return GestureDetector(
-              onTap: () => a.onTap(context),
-              child: Card(
-                elevation: 3,
-                color: _primary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(a.icon, size: 35, color: Colors.white),
-                      const SizedBox(height: 6),
-                      Text(
-                        a.title,
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                          height: 1.2,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ─── Titlul de deasupra gridului ───
+              Center(
+                child: const Text(
+                  'Listă acțiuni administrator',
+                  style: TextStyle(
+                    fontSize: 27,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
                   ),
                 ),
               ),
-            );
-          }).toList(),
+        
+              const SizedBox(height: 20),
+              // ─── Grid-ul cu carduri ───
+              Expanded(
+                child: GridView.count(
+                  crossAxisCount: 2, // 2 coloane
+                  physics: const NeverScrollableScrollPhysics(),
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  childAspectRatio: 1.15,
+                  children: _items.map((a) {
+                    return GestureDetector(
+                      onTap: () => a.onTap(context),
+                      child: Card(
+                        elevation: 3,
+                        color: _primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(a.icon, size: 35, color: Colors.white),
+                              const SizedBox(height: 6),
+                              Text(
+                                a.title,
+                                textAlign: TextAlign.center,
+                                maxLines: 2,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  height: 1.2,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

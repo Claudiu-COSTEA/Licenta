@@ -74,12 +74,15 @@ class _ClubsListScreenState extends State<ClubsListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Cluburi sportive'), backgroundColor: kRed),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+          title: const Text('Cluburi sportive', style: TextStyle(fontWeight: FontWeight.bold),),
+          backgroundColor: Colors.transparent),
       body: FutureBuilder<void>(
         future: _initFuture,
         builder: (_, snap) {
           if (snap.connectionState != ConnectionState.done) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator(color: kRed,));
           }
           if (snap.hasError) {
             return Center(child: Text('Eroare: ${snap.error}'));

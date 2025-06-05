@@ -22,6 +22,7 @@ class _WrestlersSelectionList extends State<WrestlersSelectionList> {
   final CoachService _coachService = CoachService();
   List<Map<String, dynamic>> coachWrestlers = [];
   bool _isLoading = true;
+  static const Color primaryColor = Color(0xFFB4182D);
 
   @override
   void initState() {
@@ -60,7 +61,7 @@ class _WrestlersSelectionList extends State<WrestlersSelectionList> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? const Center(child: CircularProgressIndicator(color: primaryColor))
             : Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

@@ -76,12 +76,15 @@ class _RefereesListScreenState extends State<RefereesListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Arbitri'), backgroundColor: primary),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+          title: const Text('Arbitri', style: TextStyle(fontWeight: FontWeight.bold),),
+          backgroundColor: Colors.transparent),
       body: FutureBuilder<void>(
         future: _loader,
         builder: (_, snap) {
           if (snap.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator(color: primary,));
           }
           if (snap.hasError) {
             return Center(child: Text('Eroare: ${snap.error}'));
@@ -174,10 +177,15 @@ class _RefereesListScreenState extends State<RefereesListScreen> {
   Widget _buildChip(String labelRO, String valueEN) {
     final selected = _selectedStyle == valueEN;
     return ChoiceChip(
-      label: Text(labelRO,
-          style: TextStyle(color: selected ? Colors.white : Colors.black)),
+      checkmarkColor: Colors.white,
+      label: Text(
+        labelRO,
+        style: TextStyle(color: selected ? Colors.white : Colors.black),
+      ),
       selected: selected,
-      selectedColor: primary,
+      backgroundColor: Colors.white,               // fundal alb când nu e selectat
+      selectedColor: primary,                       // fundal roșu când e selectat
+      side: BorderSide(color: primary, width: 1.5), // contur roșu
       onSelected: (_) => setState(() => _selectedStyle = valueEN),
     );
   }
