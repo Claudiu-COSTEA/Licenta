@@ -2,7 +2,7 @@
   "openapi" : "3.0.1",
   "info" : {
     "title" : "Wrestling REST API",
-    "version" : "2025-06-04T18:09:17Z"
+    "version" : "2025-06-05T11:26:41Z"
   },
   "servers" : [ {
     "url" : "https://b0i2d55s30.execute-api.us-east-1.amazonaws.com/{basePath}",
@@ -708,6 +708,35 @@
         }
       }
     },
+    "/admin/getCoaches" : {
+      "get" : {
+        "responses" : {
+          "200" : {
+            "description" : "200 response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Empty"
+                }
+              }
+            }
+          }
+        },
+        "x-amazon-apigateway-integration" : {
+          "httpMethod" : "POST",
+          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:getCoachesFunction/invocations",
+          "responses" : {
+            "default" : {
+              "statusCode" : "200"
+            }
+          },
+          "passthroughBehavior" : "when_no_match",
+          "timeoutInMillis" : 29000,
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
+        }
+      }
+    },
     "/admin/sendInvitation" : {
       "post" : {
         "responses" : {
@@ -793,6 +822,35 @@
           },
           "requestTemplates" : {
             "application/json" : "{\r\n     \"competition_uuid\": \"$input.params('competition_uuid')\",\r\n     \"wrestling_style\": \"$input.params('wrestling_style')\",\r\n     \"weight_category\": \"$input.params('weight_category')\"\r\n}"
+          },
+          "passthroughBehavior" : "when_no_match",
+          "timeoutInMillis" : 29000,
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
+        }
+      }
+    },
+    "/admin/getWrestlers" : {
+      "get" : {
+        "responses" : {
+          "200" : {
+            "description" : "200 response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Empty"
+                }
+              }
+            }
+          }
+        },
+        "x-amazon-apigateway-integration" : {
+          "httpMethod" : "POST",
+          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:590523816667:function:getWrestlersFunction/invocations",
+          "responses" : {
+            "default" : {
+              "statusCode" : "200"
+            }
           },
           "passthroughBehavior" : "when_no_match",
           "timeoutInMillis" : 29000,

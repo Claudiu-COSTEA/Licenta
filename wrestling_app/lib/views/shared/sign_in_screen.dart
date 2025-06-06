@@ -33,15 +33,21 @@ class _SignInScreenState extends State<SignInScreen> {
     String password = _passwordController.text.trim();
 
     final user = await _authService.signIn(email, password);
+
+    print("!!! 1");
+    print(user);
     if (user != null) {
       UserModel? userModel = await _userService.fetchUserByEmail(email);
       print(userModel?.userUUID);
 
-      ToastHelper.succes("Autentificare cu succes !");
+      print("!!! 2");
+      print(userModel);
 
       if(userModel != null) {
+        ToastHelper.succes("Autentificare cu succes !");
         _notificationsServices.saveTokenToServer(userModel.userUUID);
         // Navigate to the next screen
+
 
         if(userModel.userType == 'Admin') {
 
@@ -52,6 +58,8 @@ class _SignInScreenState extends State<SignInScreen> {
           );
 
         } else {
+
+
           Navigator.push(
             context,
             MaterialPageRoute(

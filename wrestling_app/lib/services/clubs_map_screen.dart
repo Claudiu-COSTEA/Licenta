@@ -48,6 +48,7 @@ class _ClubsMapScreenState extends State<ClubsMapScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        title: Text("Locații culuburi sportive", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),),
         backgroundColor: const Color(0xFFB4182D),
         iconTheme: const IconThemeData(color: Colors.white),  // ← aici!
       ),
@@ -66,16 +67,16 @@ class _ClubsMapScreenState extends State<ClubsMapScreen> {
           // Buton care apare doar după tap pe marker
           if (_selectedClub != null)
             Positioned(
-              bottom: 20,
-              left: 16,
-              right: 16,
+              bottom: 70,
+              left: 100,
+              right: 100,
               child: ElevatedButton.icon(
                 onPressed: () => _openInGoogleMaps(_selectedClub!),
                 icon: const Icon(Icons.map, color: Colors.white,),
                 label: const Text('Deschide în Google Maps', style: TextStyle(color: Colors.white),),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFB4182D),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  padding: const EdgeInsets.symmetric(vertical: 14,),
                 ),
               ),
             ),

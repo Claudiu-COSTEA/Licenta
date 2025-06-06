@@ -22,7 +22,6 @@ class _CoachSelectionListState extends State<CoachSelectionList> {
   final WrestlingClubService _wrestlingClubService = WrestlingClubService();
   List<Map<String, dynamic>> wrestlingClubCoaches = [];
   bool _isLoading = true;
-  static const Color primaryColor = Color(0xFFB4182D);
 
   @override
   void initState() {
@@ -59,7 +58,7 @@ class _CoachSelectionListState extends State<CoachSelectionList> {
         centerTitle: true,
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: primaryColor,))
+          ? const Center(child: CircularProgressIndicator())
           : Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -79,13 +78,13 @@ class _CoachSelectionListState extends State<CoachSelectionList> {
           const SizedBox(height: 30),
 
           if(widget.invitationStatus == 'Pending')
-          Expanded(
-            child: CustomCoachesList(
-              userUUID: widget.userUUID,
-              competitionUUID: widget.competitionUUID,
-              competitionDeadline: widget.competitionDeadline, coaches: wrestlingClubCoaches,
-            ),
-          )
+            Expanded(
+              child: CustomCoachesList(
+                userUUID: widget.userUUID,
+                competitionUUID: widget.competitionUUID,
+                competitionDeadline: widget.competitionDeadline, coaches: wrestlingClubCoaches,
+              ),
+            )
           else
             Expanded(
               child: CustomListCoachesRespond(

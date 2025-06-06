@@ -1,3 +1,5 @@
+USE wrestlingMobileAppDatabase;
+
 /* ───────────────────────── USERS (40) ───────────────────────── */
 INSERT INTO users
         (user_UUID, user_email,                   user_full_name,           user_type,        fcm_token)

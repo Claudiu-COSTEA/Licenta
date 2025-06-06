@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:wrestling_app/services/constants.dart';
+import 'package:wrestling_app/views/shared/widgets/toast_helper.dart';
 
 class WrestlingClubService {
 
@@ -66,14 +67,16 @@ class WrestlingClubService {
     required String invitationStatus,
   }) async {
     try {
-      // Show loading indicator
+      // Afișează indicator de loading
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const Center(child: CircularProgressIndicator(color: primary,)),
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(color: primary),
+        ),
       );
 
-      // Prepare request body
+      // Trimite request-ul
       final response = await http.post(
         Uri.parse(AppConstants.baseUrl + "sendInvitationResponse"),
         headers: {"Content-Type": "application/json"},
@@ -85,40 +88,52 @@ class WrestlingClubService {
         }),
       );
 
-      // Close loading dialog
+      // Închide indicatorul de loading
       if (context.mounted) Navigator.pop(context);
 
-      // Handle response
+      // Procesare răspuns API
       if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
+        final responseData = json.decode(response.body) as Map<String, dynamic>;
 
-        if (responseData.containsKey("message")) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text(responseData["message"]),
-                backgroundColor: Colors.green),
-          );
+        if (responseData.containsKey("body") &&
+            responseData["body"] is Map<String, dynamic>) {
+          final body = responseData["body"] as Map<String, dynamic>;
+
+          if (body.containsKey("message")) {
+           ToastHelper.succes("Raspuns trimis cu succes !");
+          } else {
+            // Dacă nu există câmpul "message" în interiorul "body"
+            ToastHelper.eroare("Eroare la trimiterea raspunsului !");
+          }
         } else {
+          // Dacă nu există câmpul "body" în răspunsul JSON
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text(responseData["error"] ?? "Unknown error"),
-                backgroundColor: Colors.red),
+            const SnackBar(
+              content: Text("Răspuns neașteptat de la server"),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       } else {
+        // Dacă status code != 200
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text("Failed to update invitation"),
-              backgroundColor: Colors.red),
+            content: Text("Nu s-a putut actualiza starea invitației"),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } catch (e) {
-      if (context.mounted) Navigator.pop(context); // Close loading dialog if error occurs
+      if (context.mounted) Navigator.pop(context); // Închide indicatorul de loading
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text("Eroare: $e"),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
+
 
 }

@@ -5,8 +5,11 @@ import 'package:http/http.dart' as http;
 import 'package:wrestling_app/services/constants.dart';
 
 import '../models/wrestler_documents_model.dart';
+import '../views/shared/widgets/toast_helper.dart';
 
 class WrestlerService {
+
+  static const Color primary = Color(0xFFB4182D);
 
   Future<void> updateInvitationStatus({
     required BuildContext context,
@@ -16,14 +19,14 @@ class WrestlerService {
     required String invitationStatus,
   }) async {
     try {
-      // Show loading dialog
+      // 1) Afișează dialogul de loading
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const Center(child: CircularProgressIndicator()),
+        builder: (context) => const Center(child: CircularProgressIndicator(color: primary,)),
       );
 
-      // Make the POST request
+      // 2) Trimite cererea POST către API
       final response = await http.post(
         Uri.parse(AppConstants.baseUrl + "sendInvitationResponse"),
         headers: {"Content-Type": "application/json"},
@@ -35,45 +38,29 @@ class WrestlerService {
         }),
       );
 
-      // Close the loading dialog
+      // 3) Închide dialogul de loading
       if (context.mounted) Navigator.pop(context);
 
-      // Decode response
+      // 4) Decodează răspunsul
       final responseData = json.decode(response.body);
       final body = responseData["body"];
 
+      // 5) Verifică formatul răspunsului și afișează toast corespunzător
       if (body is Map<String, dynamic>) {
         if (body.containsKey("message")) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text(body["message"]), backgroundColor: Colors.green),
-          );
-        } else if (body.containsKey("success")) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text(body["success"]), backgroundColor: Colors.green),
-          );
+          ToastHelper.succes("Răspunsul invitației a fost trimis cu succes!");
         } else if (body.containsKey("error")) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(body["error"]), backgroundColor: Colors.red),
-          );
+          ToastHelper.eroare("A apărut o eroare la actualizarea invitației!");
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Unknown response format"),
-                backgroundColor: Colors.red),
-          );
+          ToastHelper.eroare("Răspuns necunoscut de la server");
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Unexpected response format"),
-              backgroundColor: Colors.red),
-        );
+        ToastHelper.eroare("Format de răspuns neașteptat");
       }
     } catch (e) {
-      if (context.mounted) Navigator.pop(context); // close dialog on error
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
-      );
+      // 6) Dacă apare o excepție, închide dialogul și afișează toast de eroare
+      if (context.mounted) Navigator.pop(context);
+      ToastHelper.eroare("Eroare: $e");
     }
   }
 

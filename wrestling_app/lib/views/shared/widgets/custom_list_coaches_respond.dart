@@ -13,22 +13,73 @@ class CustomListCoachesRespond extends StatefulWidget {
   });
 
   @override
-  State<CustomListCoachesRespond> createState() => _CustomListCoachesRespondState();
+  State<CustomListCoachesRespond> createState() =>
+      _CustomListCoachesRespondState();
 }
 
 class _CustomListCoachesRespondState extends State<CustomListCoachesRespond> {
-  String selectedStyle = "All"; // Default to show all wrestling styles
-  String selectedInvitationStatus = "All"; // Default to show all invitations
+  // Selectări în română
+  String selectedStyle = "Toate";          // Default: afișează toate stilurile
+  String selectedInvitationStatus = "Toate"; // Default: afișează toate statusurile
 
-  final List<String> wrestlingStyles = ["All", "Greco Roman", "Freestyle", "Women"];
-  final List<String> invitationStatuses = ["All", "Accepted", "Declined"];
+  // Liste de opțiuni în română
+  final List<String> wrestlingStylesRO = [
+    "Toate",
+    "Greco-romane",
+    "Libere",
+    "Feminine",
+  ];
+
+  final List<String> invitationStatusesRO = [
+    "Toate",
+    "Acceptat",
+    "Refuzat",
+  ];
+
+  // Mapări RO → EN pentru filtrele de stil
+  final Map<String, String> roToEnStyle = {
+    "Greco-romane": "Greco Roman",
+    "Libere": "Freestyle",
+    "Feminine": "Women",
+  };
+
+  // Mapări RO → EN pentru filtrele de status invitație
+  final Map<String, String> roToEnStatus = {
+    "Acceptat": "Accepted",
+    "Refuzat": "Declined",
+  };
 
   @override
   Widget build(BuildContext context) {
-    // ✅ Filtering logic (Both filters applied)
+    // Filtrăm lista pe baza selecțiilor (în română), dar comparăm valorile EN din date
     List<Map<String, dynamic>> filteredCoaches = widget.coaches.where((coach) {
-      bool matchesStyle = selectedStyle == "All" || coach['wrestling_style'] == selectedStyle;
-      bool matchesStatus = coach['invitation_status'] != null && ( selectedInvitationStatus == "All" || coach['invitation_status'] == selectedInvitationStatus );
+      final String enStyle = coach['wrestling_style'] as String? ?? "";
+      final String? invitationStatusEN =
+      coach['invitation_status'] as String?;
+
+      // 1) Filtru Stil
+      bool matchesStyle;
+      if (selectedStyle == "Toate") {
+        matchesStyle = true;
+      } else {
+        final String? enForSelected = roToEnStyle[selectedStyle];
+        matchesStyle = enStyle == enForSelected;
+      }
+
+      // 2) Filtru Status invitație
+      bool matchesStatus;
+      if (selectedInvitationStatus == "Toate") {
+        // includem atât cei cu invitation_status != null
+        // cât și cei cu invitation_status == null
+        matchesStatus = true;
+      } else {
+        // dacă s-a selectat „Acceptat” sau „Refuzat”, includem doar cei care au acel EN
+        final String? enForSelectedStatus =
+        roToEnStatus[selectedInvitationStatus];
+        matchesStatus =
+        (invitationStatusEN != null && invitationStatusEN == enForSelectedStatus);
+      }
+
       return matchesStyle && matchesStatus;
     }).toList();
 
@@ -38,32 +89,59 @@ class _CustomListCoachesRespondState extends State<CustomListCoachesRespond> {
         children: [
           const SizedBox(height: 10),
 
-          // Wrestling Style Filter Buttons
-          _buildWrestlingStyleFilterButtons(),
+          // *** Filtrul pe Stiluri (buton orizontal) ***
+          _buildFilterButtons(
+            wrestlingStylesRO,
+            selectedStyle,
+                (style) {
+              setState(() {
+                selectedStyle = style;
+              });
+            },
+          ),
 
           const SizedBox(height: 10),
 
-          // Invitation Status Filter Buttons
-          _buildInvitationStatusFilterButtons(),
+          // *** Filtrul pe Status invitație (buton orizontal) ***
+          _buildFilterButtons(
+            invitationStatusesRO,
+            selectedInvitationStatus,
+                (status) {
+              setState(() {
+                selectedInvitationStatus = status;
+              });
+            },
+          ),
 
           const SizedBox(height: 10),
 
-          //  Coaches ListView
+          // *** Lista de antrenori, după filtrare ***
           Expanded(
             child: filteredCoaches.isEmpty
                 ? const Center(
               child: Text(
                 "Nu există antrenori disponibili.",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style:
+                TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             )
                 : ListView.builder(
               itemCount: filteredCoaches.length,
               itemBuilder: (context, index) {
                 final coach = filteredCoaches[index];
+                final String enStyle =
+                    coach['wrestling_style'] as String? ?? "";
+                final String roStyle = _roStyle(enStyle);
+
+                final String? invitationStatusEN =
+                coach['invitation_status'] as String?;
+                final String roStatus = invitationStatusEN != null
+                    ? _roStatus(invitationStatusEN)
+                    : "Neinvitat";
 
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 8),
                   child: Container(
                     decoration: BoxDecoration(
                       color: const Color(0xFFB4182D),
@@ -72,10 +150,12 @@ class _CustomListCoachesRespondState extends State<CustomListCoachesRespond> {
                     child: ListTile(
                       title: Text(
                         coach['coach_name'],
-                        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white),
                       ),
                       subtitle: Text(
-                        "Style: ${coach['wrestling_style']}\nStatus: ${coach['invitation_status']}",
+                        "Stil: $roStyle\nStatus: $roStatus",
                         style: const TextStyle(color: Colors.white70),
                       ),
                     ),
@@ -89,31 +169,35 @@ class _CustomListCoachesRespondState extends State<CustomListCoachesRespond> {
     );
   }
 
-  // ✅ Builds Wrestling Style Filter Buttons
-  Widget _buildWrestlingStyleFilterButtons() {
+  /// Construieste un rând de butoane de filtrare orizontal
+  Widget _buildFilterButtons(
+      List<String> optionsRO,
+      String selectedRO,
+      Function(String) onTap,
+      ) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Wrap(
         spacing: 8,
-        children: wrestlingStyles.map((style) {
+        children: optionsRO.map((optionRO) {
+          final bool isSelected = optionRO == selectedRO;
           return ElevatedButton(
-            onPressed: () {
-              setState(() {
-                selectedStyle = style;
-              });
-            },
+            onPressed: () => onTap(optionRO),
             style: ElevatedButton.styleFrom(
-              backgroundColor: selectedStyle == style ? const Color(0xFFB4182D) : Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              backgroundColor:
+              isSelected ? const Color(0xFFB4182D) : Colors.white,
+              padding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
                 side: const BorderSide(color: Color(0xFFB4182D), width: 2),
               ),
             ),
             child: Text(
-              style,
+              optionRO,
               style: TextStyle(
-                color: selectedStyle == style ? Colors.white : const Color(0xFFB4182D),
+                color: isSelected ? Colors.white : const Color(0xFFB4182D),
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -123,37 +207,33 @@ class _CustomListCoachesRespondState extends State<CustomListCoachesRespond> {
     );
   }
 
-  // ✅ Builds Invitation Status Filter Buttons
-  Widget _buildInvitationStatusFilterButtons() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Wrap(
-        spacing: 8,
-        children: invitationStatuses.map((status) {
-          return ElevatedButton(
-            onPressed: () {
-              setState(() {
-                selectedInvitationStatus = status;
-              });
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: selectedInvitationStatus == status ? const Color(0xFFB4182D) : Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-                side: const BorderSide(color: Color(0xFFB4182D), width: 2),
-              ),
-            ),
-            child: Text(
-              status,
-              style: TextStyle(
-                color: selectedInvitationStatus == status ? Colors.white : const Color(0xFFB4182D),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
+  /// Traducere “wrestling_style” din EN în RO
+  String _roStyle(String en) {
+    switch (en) {
+      case 'Greco Roman':
+        return 'Greco-romane';
+      case 'Freestyle':
+        return 'Libere';
+      case 'Women':
+        return 'Feminine';
+      default:
+        return en;
+    }
+  }
+
+  /// Traducere “invitation_status” din EN în RO
+  String _roStatus(String statusEN) {
+    switch (statusEN.toLowerCase()) {
+      case 'accepted':
+        return 'Acceptat';
+      case 'declined':
+        return 'Refuzat';
+      case 'confirmed':
+        return 'Confirmat';
+      case 'pending':
+        return 'În așteptare';
+      default:
+        return statusEN;
+    }
   }
 }

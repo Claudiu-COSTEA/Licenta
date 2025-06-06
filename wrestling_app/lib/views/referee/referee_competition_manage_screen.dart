@@ -72,7 +72,7 @@ class _RefereeCompetitionManageScreen extends State<RefereeCompetitionManageScre
             // Location Button
             ElevatedButton.icon(
               onPressed: () {
-                openGoogleMaps(invitation['competition_location']);
+                openGoogleMaps(context, invitation['competition_location']);
               },
               icon: const Icon(Icons.location_on, color: Colors.white),
               label: const Text(

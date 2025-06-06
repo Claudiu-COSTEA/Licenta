@@ -18,14 +18,32 @@ class CustomList extends StatelessWidget {
     required this.onRefresh, // ✅ Receive callback
   });
 
+  /// Traduce `invitation_status` din engleză în română
+  String _roStatus(String en) {
+    switch (en) {
+      case 'Pending':
+        return 'În așteptare';
+      case 'Confirmed':
+        return 'Confirmată';
+      case 'Accepted':
+        return 'Acceptată';
+      case 'Declined':
+        return 'Refuzată';
+      default:
+        return en;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
       itemCount: items.length,
       itemBuilder: (context, index) {
         final item = items[index];
-        final competitionName = item['competition_name'] ?? 'Unknown Competition';
-        final invitationStatus = item['invitation_status'] ?? 'Unknown Status';
+        final competitionName =
+            item['competition_name'] ?? 'Competiție necunoscută';
+        final invitationStatusRaw = item['invitation_status'] ?? 'Unknown';
+        final invitationStatus = _roStatus(invitationStatusRaw);
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -47,19 +65,17 @@ class CustomList extends StatelessWidget {
                 style: const TextStyle(color: Colors.white70),
               ),
               onTap: () {
-                // Example condition based on user type
                 if (userType == "Wrestling club") {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => WrestlingClubCompetitionManageScreen(
-                        competitionInvitation: item,
-                        userUUID: userUUID,
-                      ),
+                      builder: (context) =>
+                          WrestlingClubCompetitionManageScreen(
+                            competitionInvitation: item,
+                            userUUID: userUUID,
+                          ),
                     ),
-                  ).then((_) {
-                    onRefresh(); // ✅ Refresh parent screen after returning
-                  });
+                  ).then((_) => onRefresh());
                 } else if (userType == "Coach") {
                   Navigator.push(
                     context,
@@ -69,38 +85,33 @@ class CustomList extends StatelessWidget {
                         userUUID: userUUID,
                       ),
                     ),
-                  ).then((_) {
-                    onRefresh(); // ✅ Refresh parent screen after returning
-                  });
+                  ).then((_) => onRefresh());
                 } else if (userType == "Wrestler") {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => WrestlerCompetitionManageScreen(
-                        competitionInvitation: item,
-                        userUUID: userUUID,
-                      ),
+                      builder: (context) =>
+                          WrestlerCompetitionManageScreen(
+                            competitionInvitation: item,
+                            userUUID: userUUID,
+                          ),
                     ),
-                  ).then((_) {
-                    onRefresh(); // ✅ Refresh parent screen after returning
-                  });
+                  ).then((_) => onRefresh());
                 } else if (userType == "Referee") {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => RefereeCompetitionManageScreen(
-                        competitionInvitation: item,
-                        userUUID: userUUID,
-                      ),
+                      builder: (context) =>
+                          RefereeCompetitionManageScreen(
+                            competitionInvitation: item,
+                            userUUID: userUUID,
+                          ),
                     ),
-                  ).then((_) {
-                    onRefresh(); // ✅ Refresh parent screen after returning
-                  });
+                  ).then((_) => onRefresh());
                 } else {
-                  // Default fallback if userType doesn't match any known type
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text("Unauthorized Access"),
+                      content: Text("Acces neautorizat"),
                       backgroundColor: Colors.red,
                     ),
                   );

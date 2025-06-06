@@ -1,3 +1,5 @@
+USE wrestlingMobileAppDatabase;
+
 CREATE TABLE `users` (
   `user_UUID` int PRIMARY KEY AUTO_INCREMENT,
   `user_email` varchar(50) UNIQUE NOT NULL,

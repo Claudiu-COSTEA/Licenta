@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:wrestling_app/services/constants.dart';
 import 'package:wrestling_app/services/notifications_services.dart';
-
-import '../../../services/constants.dart';
+import 'package:wrestling_app/views/shared/widgets/toast_helper.dart';
 
 class CustomWrestlersList extends StatefulWidget {
   final List<Map<String, dynamic>> wrestlers;
@@ -25,136 +25,206 @@ class CustomWrestlersList extends StatefulWidget {
 }
 
 class _CustomWrestlersListState extends State<CustomWrestlersList> {
-  final NotificationsServices _notificationsServices = NotificationsServices();
-  String invitationFilter = "All"; // Default: Show all invitations
-  final List<String> invitationFilters = ["All", "Invited", "Not Invited"];
+  static const Color primary = Color(0xFFB4182D);
+
+  String selectedInvitationFilter = "Toate";
+  final List<String> invitationFiltersRO = ["Toate", "Invitat", "Neinvitat"];
+
+  final NotificationsServices notificationService = NotificationsServices();
+
+  // Controller pentru fiecare wrestler (pentru câmpul "Kg")
+  final Map<int, TextEditingController> _controllers = {};
+  // Flag pentru a preveni invitații multiple simultan
+  final Map<int, bool> _isSending = {};
+
+  @override
+  void initState() {
+    super.initState();
+    for (var w in widget.wrestlers) {
+      final int id = w['wrestler_UUID'] as int;
+      _controllers[id] = TextEditingController();
+      _isSending[id] = false;
+    }
+  }
+
+  @override
+  void dispose() {
+    for (var c in _controllers.values) {
+      c.dispose();
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Filter the list based on selected criteria
-    List<Map<String, dynamic>> filteredWrestlers = widget.wrestlers.where((wrestler) {
-      bool matchesInvitation = (invitationFilter == "All") ||
-          (invitationFilter == "Invited" && wrestler['invitation_status'] != null) ||
-          (invitationFilter == "Not Invited" && wrestler['invitation_status'] == null);
-      return matchesInvitation;
+    final filteredWrestlers = widget.wrestlers.where((w) {
+      final String? enStatus = w['invitation_status'] as String?;
+      if (selectedInvitationFilter == "Toate") return true;
+      if (selectedInvitationFilter == "Invitat") {
+        // „Invitat” = orice status diferit de null
+        return enStatus != null;
+      }
+      // „Neinvitat” = status == null
+      return enStatus == null;
     }).toList();
 
     return Column(
       children: [
         const SizedBox(height: 10),
 
-        // **Invitation Status Filter Buttons**
-        _buildFilterButtons(invitationFilters, invitationFilter, (filter) {
-          setState(() {
-            invitationFilter = filter;
-          });
-        }),
+        // Butoane de filtrare după invitation_status
+        _buildFilterButtons(),
 
         const SizedBox(height: 10),
 
-        // **Wrestlers ListView**
+        // Lista lupători
         Expanded(
           child: filteredWrestlers.isEmpty
               ? const Center(
             child: Text(
-              "Nu există sportivi disponibili.",
+              "Nu există luptători disponibili.",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           )
               : ListView.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             itemCount: filteredWrestlers.length,
             itemBuilder: (context, index) {
               final wrestler = filteredWrestlers[index];
-              TextEditingController weightController = TextEditingController(); // Controller for weight category
+              final int id = wrestler['wrestler_UUID'] as int;
+              final String name =
+                  wrestler['wrestler_name'] ?? "Nume necunoscut";
+              final String? enStatus =
+              wrestler['invitation_status'] as String?;
+              final String roStatus = enStatus != null
+                  ? _roStatus(enStatus)
+                  : "Neinvitat";
 
               return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(vertical: 6),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFFB4182D),
+                    color: primary,
                     borderRadius: BorderRadius.circular(12),
+                    boxShadow: const [
+                      BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 4,
+                          offset: Offset(0, 2)),
+                    ],
                   ),
-                  child: ListTile(
-                    title: Text(
-                      wrestler['wrestler_name'],
-                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-                    ),
-                    subtitle: Column(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 12, horizontal: 16),
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start, // Ensures items align properly
-                          children: [
-                            Text(
-                              "Status: ${wrestler['invitation_status'] ?? "Not Invited"}",
-                              style: const TextStyle(color: Colors.white70),
-                            ),
-
-                            const SizedBox(width: 110), // Add spacing between status and weight category
-
-                            if (wrestler["weight_category"] != null)
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: Colors.black,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  "${wrestler["weight_category"]}",
-                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 5), // Space between status and input field
-
-                        // **Weight Category Input Field**
-                        if (wrestler["weight_category"] == null)
-                        TextField(
-                          controller: weightController,
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                            filled: true,
-                            fillColor: Colors.white,
-                            hintText: "Introduceți categoria de greutate",
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(color: Colors.black),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        // Nume luptător
+                        Text(
+                          name,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Colors.white,
                           ),
                         ),
+                        const SizedBox(height: 4),
 
-                        const SizedBox(height: 10), // **⬆️ Space added here between input & button**
-
-                        // **Invitation Button (Now Moved Up)**
-                          if (wrestler["weight_category"] == null)
-                          ElevatedButton(
-                            onPressed: () {
-                              String weightCategory = weightController.text.trim();
-                              if (weightCategory.isNotEmpty) {
-                                _onSelectWrestler(context, wrestler['wrestler_UUID'], weightCategory);
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text("Introduceți o categorie de greutate!"),
-                                    backgroundColor: Colors.red,
+                        // Dacă invitation_status != null => afișăm categoria și status
+                        if (enStatus != null) ...[
+                          Text(
+                            "Categorie: ${wrestler['weight_category'] ?? ''} Kg",
+                            style: const TextStyle(
+                                fontSize: 14, color: Colors.white),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            "Status: $roStatus",
+                            style: const TextStyle(
+                                fontSize: 14, color: Colors.white),
+                          ),
+                        ] else ...[
+                          // Dacă invitation_status == null => afișăm câmpul "Kg" + status "Neinvitat"
+                          Text(
+                            "Status: Neinvitat",
+                            style: const TextStyle(
+                                fontSize: 14, color: Colors.white),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              SizedBox(
+                                width: 60,
+                                height: 28,
+                                child: TextField(
+                                  controller: _controllers[id],
+                                  style: const TextStyle(
+                                      color: Colors.black, fontSize: 14),
+                                  decoration: InputDecoration(
+                                    hintText: "Kg",
+                                    hintStyle: const TextStyle(
+                                        color: Colors.black54,
+                                        fontSize: 14),
+                                    filled: true,
+                                    fillColor: Colors.white,
+                                    border: OutlineInputBorder(
+                                      borderRadius:
+                                      BorderRadius.circular(8),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                    contentPadding:
+                                    const EdgeInsets.symmetric(
+                                      vertical: 2,
+                                      horizontal: 8,
+                                    ),
                                   ),
-                                );
-                              }
-                            }
-                                , // Disable button if already invited
+                                  keyboardType: TextInputType.number,
+                                  textInputAction: TextInputAction.done,
+                                  onSubmitted: (_) {
+                                    _submitInvitation(id);
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              const Text(
+                                "Kg",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+
+                        const SizedBox(height: 8),
+
+                        // Buton „Trimite invitație”
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: ElevatedButton(
+                            onPressed: enStatus == null
+                                ? () => _submitInvitation(id)
+                                : null,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: wrestler['invitation_status'] == null ? Colors.black : Colors.grey,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                              backgroundColor: enStatus == null
+                                  ? Colors.black
+                                  : Colors.grey,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 8),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
                             child: const Text(
                               "Trimite invitație",
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold),
                             ),
                           ),
-                          const SizedBox(width: 96), // Add some spacing between button and weight category
+                        ),
                       ],
                     ),
                   ),
@@ -167,27 +237,33 @@ class _CustomWrestlersListState extends State<CustomWrestlersList> {
     );
   }
 
-  // **Builds Filter Buttons (For Invitation Status)**
-  Widget _buildFilterButtons(List<String> options, String selected, Function(String) onTap) {
+  Widget _buildFilterButtons() {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Wrap(
         spacing: 8,
-        children: options.map((option) {
+        children: invitationFiltersRO.map((optionRO) {
+          final bool isSelected = optionRO == selectedInvitationFilter;
           return ElevatedButton(
-            onPressed: () => onTap(option),
+            onPressed: () {
+              setState(() {
+                selectedInvitationFilter = optionRO;
+              });
+            },
             style: ElevatedButton.styleFrom(
-              backgroundColor: selected == option ? const Color(0xFFB4182D) : Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              backgroundColor: isSelected ? primary : Colors.white,
+              padding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
-                side: const BorderSide(color: Color(0xFFB4182D), width: 2),
+                side: const BorderSide(color: primary, width: 2),
               ),
             ),
             child: Text(
-              option,
+              optionRO,
               style: TextStyle(
-                color: selected == option ? Colors.white : const Color(0xFFB4182D),
+                color: isSelected ? Colors.white : primary,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -197,23 +273,50 @@ class _CustomWrestlersListState extends State<CustomWrestlersList> {
     );
   }
 
-  void _onSelectWrestler(BuildContext context, int wrestlerUUID, String weightCategory) async {
-    const _url = AppConstants.baseUrl + "coach/sendWrestlerInvitation";
+  String _roStatus(String statusEN) {
+    switch (statusEN.toLowerCase()) {
+      case 'accepted':
+        return 'Acceptat';
+      case 'declined':
+        return 'Refuzat';
+      case 'confirmed':
+        return 'Confirmat';
+      case 'pending':
+        return 'În așteptare';
+      default:
+        return statusEN;
+    }
+  }
+
+  void _submitInvitation(int id) {
+    final String enteredCategory = _controllers[id]?.text.trim() ?? "";
+    if (enteredCategory.isEmpty) {
+      ToastHelper.eroare("Introduceți categoria !");
+      return;
+    }
+    _onSelectWrestler(context, id, enteredCategory);
+  }
+
+  void _onSelectWrestler(
+      BuildContext context, int wrestlerUUID, String weightCategory) async {
+    const String _url =
+        AppConstants.baseUrl + "coach/sendWrestlerInvitation";
 
     try {
-      // Format deadline
-      DateTime competitionDeadline = DateTime.parse(widget.competitionDeadline);
-      DateTime newDeadline = competitionDeadline.subtract(const Duration(days: 7));
-      String formattedDeadline = DateFormat("yyyy-MM-dd HH:mm:ss").format(newDeadline);
+      DateTime competitionDeadline =
+      DateTime.parse(widget.competitionDeadline);
+      DateTime newDeadline =
+      competitionDeadline.subtract(const Duration(days: 7));
+      String formattedDeadline =
+      DateFormat("yyyy-MM-dd HH:mm:ss").format(newDeadline);
 
-      // Show loading spinner
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const Center(child: CircularProgressIndicator()),
+        builder: (context) =>
+        const Center(child: CircularProgressIndicator(color: primary)),
       );
 
-      // Send POST request
       final response = await http.post(
         Uri.parse(_url),
         headers: {"Content-Type": "application/json"},
@@ -225,47 +328,47 @@ class _CustomWrestlersListState extends State<CustomWrestlersList> {
         }),
       );
 
-      Navigator.pop(context); // Dismiss loading spinner
+      Navigator.pop(context); // Închide indicatorul
 
-      if (response.statusCode == 200) {
-        final decoded = json.decode(response.body);
-        final body = decoded["body"];
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData =
+        json.decode(response.body) as Map<String, dynamic>;
 
-        if (body is Map<String, dynamic> && body.containsKey("success")) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(body["success"]), backgroundColor: Colors.green),
-          );
+        if (responseData.containsKey("body") &&
+            responseData["body"] is Map<String, dynamic>) {
+          final body = responseData["body"] as Map<String, dynamic>;
 
-          setState(() {
-            int index = widget.wrestlers.indexWhere((c) => c['wrestler_UUID'] == wrestlerUUID);
-            if (index != -1) {
-              widget.wrestlers[index]['invitation_status'] = "Pending";
-              widget.wrestlers[index]['weight_category'] = weightCategory;
+          if (body.containsKey("success")) {
+            ToastHelper.succes('Invitația a fost trimisă cu succes !');
+
+            setState(() {
+              int index = widget.wrestlers
+                  .indexWhere((c) => c['wrestler_UUID'] == wrestlerUUID);
+              if (index != -1) {
+                widget.wrestlers[index]['invitation_status'] = "Pending";
+                widget.wrestlers[index]['weight_category'] = weightCategory;
+                _controllers[wrestlerUUID]?.text = weightCategory;
+              }
+            });
+
+            final token =
+            await notificationService.getUserFCMToken(wrestlerUUID);
+            if (token != null) {
+              notificationService.sendFCMMessage(token);
             }
-          });
-
-          String? token = await _notificationsServices.getUserFCMToken(wrestlerUUID);
-          if (token != null) {
-            _notificationsServices.sendFCMMessage(token);
+          } else {
+            ToastHelper.eroare("Eroare la trimiterea invitației.");
           }
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(body["error"] ?? "Unknown error"), backgroundColor: Colors.red),
-          );
+          ToastHelper.eroare("Răspuns neașteptat de la server.");
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Failed to send invitation"), backgroundColor: Colors.red),
-        );
+        ToastHelper.eroare("Eroare la trimiterea invitației.");
       }
     } catch (e) {
       if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
-        );
+        ToastHelper.eroare("Eroare la trimiterea invitației.");
       }
     }
   }
-
 }
