@@ -7,6 +7,7 @@ import 'package:wrestling_app/services/constants.dart';
 
 import '../models/wrestler_weight_category_model.dart';
 import '../models/wrestler_verification_model.dart';
+import '../views/shared/widgets/toast_helper.dart';
 
 class RefereeServices {
   // ← acceptă client injectabil
@@ -14,6 +15,7 @@ class RefereeServices {
 
   // folosește-l în loc de http.get/post direct
   final http.Client _client;
+  static const Color primary  = Color(0xFFB4182D);
 
   Future<void> updateInvitationStatus({
     required BuildContext context,
@@ -23,13 +25,17 @@ class RefereeServices {
     required String invitationStatus,
   }) async {
     try {
+      // Afișează indicator de loading
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (_) => const Center(child: CircularProgressIndicator()),
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(color: primary),
+        ),
       );
 
-      final response = await _client.post(
+      // Trimite request-ul
+      final response = await http.post(
         Uri.parse(AppConstants.baseUrl + "sendInvitationResponse"),
         headers: {"Content-Type": "application/json"},
         body: json.encode({
@@ -40,26 +46,49 @@ class RefereeServices {
         }),
       );
 
+      // Închide indicatorul de loading
       if (context.mounted) Navigator.pop(context);
 
+      // Procesare răspuns API
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final color = data.containsKey("message") ? Colors.green : Colors.red;
-        final text = data["message"] ?? data["error"] ?? "Unknown error";
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(text), backgroundColor: color));
+        final responseData = json.decode(response.body) as Map<String, dynamic>;
+
+        if (responseData.containsKey("body") &&
+            responseData["body"] is Map<String, dynamic>) {
+          final body = responseData["body"] as Map<String, dynamic>;
+
+          if (body.containsKey("message")) {
+            ToastHelper.succes("Raspuns trimis cu succes !");
+          } else {
+            // Dacă nu există câmpul "message" în interiorul "body"
+            ToastHelper.eroare("Eroare la trimiterea raspunsului !");
+          }
+        } else {
+          // Dacă nu există câmpul "body" în răspunsul JSON
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Răspuns neașteptat de la server"),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       } else {
+        // Dacă status code != 200
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text("Failed to update invitation"),
+            content: Text("Nu s-a putut actualiza starea invitației"),
             backgroundColor: Colors.red,
           ),
         );
       }
     } catch (e) {
-      if (context.mounted) Navigator.pop(context);
+      if (context.mounted) Navigator.pop(context); // Închide indicatorul de loading
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text("Eroare: $e"),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -138,7 +167,8 @@ class RefereeServices {
     required String refereeVerification,
   }) async {
     final uri = Uri.parse(
-        '${AppConstants.baseUrl}referee/sendWrestlerVerificationStatus');
+      '${AppConstants.baseUrl}referee/sendWrestlerVerificationStatus',
+    );
     try {
       final response = await _client.post(
         uri,
@@ -150,19 +180,76 @@ class RefereeServices {
           "referee_verification": refereeVerification,
         }),
       );
+
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
         final rawBody = decoded['body'];
         final body = rawBody is String ? json.decode(rawBody) : rawBody;
-        if (body is Map && body.containsKey('success')) return true;
-        if (body is Map && body.containsKey('error')) throw Exception(body['error']);
+
+        if (body is Map && body.containsKey('success')) {
+          ToastHelper.succes('Verificare trimisă cu succes !');
+          return true;
+        }
+        if (body is Map && body.containsKey('error')) {
+          ToastHelper.eroare('Eroare la trimiterea răspunsului !');
+          throw Exception(body['error']);
+        }
+
+        ToastHelper.eroare('Răspuns neașteptat de la server');
         throw Exception('Unknown response format');
       } else {
+        final errorMsg = 'Eroare server: HTTP ${response.statusCode}';
+        ToastHelper.eroare(errorMsg);
         throw Exception('Failed status: ${response.statusCode}');
       }
     } catch (e) {
       if (kDebugMode) print('Error updating referee verification: $e');
+      ToastHelper.eroare('Nu s-a putut actualiza statusul. Încearcă din nou.');
       return false;
     }
   }
+
+  Future<int> postFights(int competitionUUID) async {
+
+    final uri = Uri.parse(
+      '${AppConstants.baseUrl}referee/postFights?competition_UUID=$competitionUUID',
+    );
+
+    try {
+      final response = await _client.get(uri);
+
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+        final rawBody = decoded['body'];
+        final body = rawBody is String ? json.decode(rawBody) : rawBody;
+
+        if (body is Map<String, dynamic> && body.containsKey('inserted_fights')) {
+          final count = body['inserted_fights'] as int;
+          ToastHelper.succes('Au fost inserate $count lupte.');
+          return count;
+        } else {
+          ToastHelper.eroare('Răspuns neașteptat de la server.');
+          return 0;
+        }
+      } else if (response.statusCode == 404) {
+        final decoded = json.decode(response.body);
+        final rawBody = decoded['body'];
+        final body = rawBody is String ? json.decode(rawBody) : rawBody;
+
+        final message = (body is Map<String, dynamic> && body.containsKey('message'))
+            ? body['message']
+            : 'No fights generated';
+        ToastHelper.eroare(message);
+        return 0;
+      } else {
+        ToastHelper.eroare('Eroare server: HTTP ${response.statusCode}');
+        return 0;
+      }
+    } catch (e) {
+      if (kDebugMode) print('Error calling postFights: $e');
+      ToastHelper.eroare('Nu s-a putut genera luptele.');
+      return 0;
+    }
+  }
+
 }

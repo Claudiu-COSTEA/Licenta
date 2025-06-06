@@ -60,7 +60,7 @@ class _RefereeWrestlersVerificationState extends State<RefereeWrestlersVerificat
           centerTitle: true,
         ),
         body: Padding(
-        padding: const EdgeInsets.only(left: 16.0, top: 50.0, right: 16.0, bottom: 16.0),
+        padding: const EdgeInsets.only(left: 16.0, top: 0.0, right: 16.0, bottom: 16.0),
     child: _isLoading
     ? const Center(child: CircularProgressIndicator())
         : Column(
@@ -68,12 +68,13 @@ class _RefereeWrestlersVerificationState extends State<RefereeWrestlersVerificat
     children: [
       Row(
         children: [
+          const SizedBox(width: 20),
             Text(
-              'Lista luptatori - ${widget.wrestlerWeightCategory} Kg',
+              'Lista luptători - ${widget.wrestlerWeightCategory} Kg',
               style: const TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.black),
             ),
 
-          const SizedBox(width: 50),
+          const SizedBox(width: 60),
 
           IconButton(
             icon: Icon(Icons.qr_code_scanner, size: 50, color: Colors.black),

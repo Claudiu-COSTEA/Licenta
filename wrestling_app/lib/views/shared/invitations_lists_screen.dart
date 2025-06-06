@@ -44,8 +44,6 @@ class _InvitationsListsScreenState extends State<InvitationsListsScreen> {
       List<CompetitionInvitation> invitations =
       await _eventsService.fetchInvitations(widget.user!.userUUID);
 
-      if (kDebugMode) print(invitations);
-
       // 2) Separăm invitațiile „Pending” de cele cu răspuns
       final pending = <Map<String, dynamic>>[];
       final responded = <Map<String, dynamic>>[];

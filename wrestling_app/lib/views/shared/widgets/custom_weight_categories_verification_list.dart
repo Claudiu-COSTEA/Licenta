@@ -3,14 +3,15 @@ import 'package:wrestling_app/views/referee/referee_wrestlers_verification.dart'
 import '../../../models/wrestler_weight_category_model.dart';
 
 class CustomWeightCategoriesVerificationList extends StatefulWidget {
-  final List<WrestlerWeightCategory> items; // List of competition invitations
-  final VoidCallback onRefresh; // ✅ Callback to refresh the parent screen
+  final List<WrestlerWeightCategory> items;
+  final VoidCallback onRefresh;
   final int competitionUUID;
 
   const CustomWeightCategoriesVerificationList({
     super.key,
     required this.items,
-    required this.onRefresh, required this.competitionUUID, // ✅ Receive callback
+    required this.onRefresh,
+    required this.competitionUUID,
   });
 
   @override
@@ -20,32 +21,55 @@ class CustomWeightCategoriesVerificationList extends StatefulWidget {
 
 class _CustomWeightCategoriesVerificationListState
     extends State<CustomWeightCategoriesVerificationList> {
-  String selectedStyle = "All"; // ✅ Default: Show all styles
+  String selectedStyle = "Toate"; // Default: afișează toate stilurile
 
-  final List<String> wrestlingStyles = [
-    "All",
-    "Greco Roman",
-    "Freestyle",
-    "Women"
-  ]; // ✅ Wrestling styles
+  // Opțiuni în română
+  final List<String> wrestlingStylesRO = [
+    "Toate",
+    "Greco-romane",
+    "Libere",
+    "Feminine",
+  ];
+
+  String _roStyle(String en) {
+    switch (en) {
+      case 'Greco Roman':
+        return 'Greco-romane';
+      case 'Freestyle':
+        return 'Libere';
+      case 'Women':
+        return 'Feminine';
+      default:
+        return en;
+    }
+  }
+
+  // Mapare RO → EN pentru comparare
+  final Map<String, String> roToEnStyle = {
+    "Greco-romane": "Greco Roman",
+    "Libere": "Freestyle",
+    "Feminine": "Women",
+  };
 
   @override
   Widget build(BuildContext context) {
-    // **Filter items based on selected wrestling style**
+    // Filtrăm elementele pe baza stilului selectat în română
     List<WrestlerWeightCategory> filteredItems = widget.items.where((item) {
-      return selectedStyle == "All" || item.wrestlingStyle == selectedStyle;
+      if (selectedStyle == "Toate") return true;
+      final String? enForSelected = roToEnStyle[selectedStyle];
+      return item.wrestlingStyle == enForSelected;
     }).toList();
 
     return Column(
       children: [
-        const SizedBox(height: 10),
+        const SizedBox(height: 20),
 
-        // **Wrestling Style Filter Buttons**
+        // Butoane de filtrare în română
         _buildFilterButtons(),
 
-        const SizedBox(height: 10),
+        const SizedBox(height: 30),
 
-        // **Filtered ListView**
+        // Lista filtrată
         Expanded(
           child: filteredItems.isEmpty
               ? const Center(
@@ -59,35 +83,39 @@ class _CustomWeightCategoriesVerificationListState
             itemBuilder: (context, index) {
               final item = filteredItems[index];
               final weightCategory = item.weightCategory ?? 'Unknown';
-              final wrestlingStyle = item.wrestlingStyle ?? 'Unknown';
+              final wrestlingStyleEN = item.wrestlingStyle ?? 'Unknown';
+              final wrestlingStyleRO = _roStyle(wrestlingStyleEN);
 
               return Padding(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFFB4182D), // Red background
+                    color: const Color(0xFFB4182D),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: ListTile(
                     title: Text(
-                      "$weightCategory",
+                      '$weightCategory Kg',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
                     subtitle: Text(
-                      'Stil de luptă: $wrestlingStyle',
+                      'Stil de luptă: $wrestlingStyleRO',
                       style: const TextStyle(color: Colors.white70),
                     ),
                     onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => RefereeWrestlersVerification(wrestlerStyle: wrestlingStyle, wrestlerWeightCategory: weightCategory, competitionUUID: widget.competitionUUID,)),
-                        );
-                      // Handle tap action if needed
+                          builder: (context) => RefereeWrestlersVerification(
+                            wrestlerStyle: wrestlingStyleEN,
+                            wrestlerWeightCategory: weightCategory,
+                            competitionUUID: widget.competitionUUID,
+                          ),
+                        ),
+                      );
                     },
                   ),
                 ),
@@ -99,23 +127,23 @@ class _CustomWeightCategoriesVerificationListState
     );
   }
 
-  // **Builds Filter Buttons for Wrestling Styles**
+  // Construiește butoanele de filtrare (în română)
   Widget _buildFilterButtons() {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Wrap(
         spacing: 8,
-        children: wrestlingStyles.map((style) {
+        children: wrestlingStylesRO.map((styleRO) {
+          final bool isSelected = styleRO == selectedStyle;
           return ElevatedButton(
             onPressed: () {
               setState(() {
-                selectedStyle = style;
+                selectedStyle = styleRO;
               });
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: selectedStyle == style
-                  ? const Color(0xFFB4182D) // Selected: Red
-                  : Colors.white, // Default: White
+              backgroundColor:
+              isSelected ? const Color(0xFFB4182D) : Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
@@ -123,11 +151,9 @@ class _CustomWeightCategoriesVerificationListState
               ),
             ),
             child: Text(
-              style,
+              styleRO,
               style: TextStyle(
-                color: selectedStyle == style
-                    ? Colors.white
-                    : const Color(0xFFB4182D), // Text color
+                color: isSelected ? Colors.white : const Color(0xFFB4182D),
                 fontWeight: FontWeight.bold,
               ),
             ),

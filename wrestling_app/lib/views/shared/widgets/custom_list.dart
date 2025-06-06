@@ -105,6 +105,7 @@ class CustomList extends StatelessWidget {
                           RefereeCompetitionManageScreen(
                             competitionInvitation: item,
                             userUUID: userUUID,
+                            competitionUUID: item['competition_UUID'] as int,
                           ),
                     ),
                   ).then((_) => onRefresh());

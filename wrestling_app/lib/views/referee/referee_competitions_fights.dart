@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:wrestling_app/services/referee_api_services.dart';
+import 'package:wrestling_app/views/shared/widgets/toast_helper.dart';
 
 class RefereeFightDashboard extends StatefulWidget {
-  const RefereeFightDashboard({super.key});
+  final int competitionUUID;
+
+  const RefereeFightDashboard({super.key, required this.competitionUUID});
 
   @override
   State<RefereeFightDashboard> createState() => _RefereeFightDashboardState();
@@ -14,11 +18,13 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
   int wrestler1Points = 0;
   int wrestler2Points = 0;
 
+  final RefereeServices _refereeServices = RefereeServices();
+
   // Sample fights list
   final List<Map<String, String>> fights = [
     {
       "round": "Round 16",
-      "fightNumber": '123',
+      "fightNumber": "123",
       "style": "Greco-Roman",
       "weight": "74 Kg",
       "wrestler1": "John Doe",
@@ -30,7 +36,7 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
     },
     {
       "round": "Round 8",
-      "fightNumber": '124',
+      "fightNumber": "124",
       "style": "Freestyle",
       "weight": "82 Kg",
       "wrestler1": "Mike Tyson",
@@ -42,7 +48,7 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
     },
     {
       "round": "Round 4",
-      "fightNumber": '125',
+      "fightNumber": "125",
       "style": "Greco-Roman",
       "weight": "60 Kg",
       "wrestler1": "Bruce Lee",
@@ -62,6 +68,7 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ]);
+    _generateFights();
   }
 
   @override
@@ -74,6 +81,13 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
     super.dispose();
   }
 
+  Future<void> _generateFights() async {
+    final count = await _refereeServices.postFights(/* competitionUUID */ 0);
+    if (count > 0) {
+      ToastHelper.succes("Au fost inserate $count lupte.");
+    }
+  }
+
   void _finalizeFight() {
     if (selectedWinner == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -81,7 +95,6 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
       );
       return;
     }
-
     if (currentFightIndex < fights.length - 1) {
       setState(() {
         currentFightIndex++;
@@ -99,7 +112,6 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
   @override
   Widget build(BuildContext context) {
     final fight = fights[currentFightIndex];
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -117,7 +129,6 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
                   _buildInfoBox(fight["weight"]!),
                 ],
               ),
-
               // Wrestlers Information
               Expanded(
                 child: Row(
@@ -130,7 +141,6 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
                   ],
                 ),
               ),
-
               // Select Winner Row
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -155,9 +165,7 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
                   ),
                 ],
               ),
-
               const SizedBox(height: 10),
-
               ElevatedButton(
                 onPressed: _finalizeFight,
                 style: ElevatedButton.styleFrom(
@@ -246,9 +254,15 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
   Widget _buildPointCounter(String label, int points, Function(int) onChanged) {
     return Row(
       children: [
-        IconButton(icon: const Icon(Icons.remove_circle, color: Colors.red), onPressed: () => onChanged(points > 0 ? points - 1 : points)),
+        IconButton(
+          icon: const Icon(Icons.remove_circle, color: Colors.red),
+          onPressed: () => onChanged(points > 0 ? points - 1 : points),
+        ),
         Text(points.toString(), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        IconButton(icon: const Icon(Icons.add_circle, color: Colors.green), onPressed: () => onChanged(points + 1)),
+        IconButton(
+          icon: const Icon(Icons.add_circle, color: Colors.green),
+          onPressed: () => onChanged(points + 1),
+        ),
       ],
     );
   }
