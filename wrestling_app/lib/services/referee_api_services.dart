@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:wrestling_app/services/constants.dart';
 
+import '../models/fight_model.dart';
+import '../models/wrestler_fight_info.dart';
 import '../models/wrestler_weight_category_model.dart';
 import '../models/wrestler_verification_model.dart';
 import '../views/shared/widgets/toast_helper.dart';
@@ -209,33 +211,38 @@ class RefereeServices {
     }
   }
 
-  Future<int> postFights(int competitionUUID) async {
-
-    final uri = Uri.parse(
-      '${AppConstants.baseUrl}referee/postFights?competition_UUID=$competitionUUID',
-    );
-
+  Future<int> postFights({
+    required int competitionUUID,
+    required String wrestlingStyle,
+  }) async {
+    final uri = Uri.parse('${AppConstants.baseUrl}referee/postFights');
     try {
-      final response = await _client.get(uri);
+      final response = await _client.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'competition_UUID': competitionUUID,
+          'wrestling_style': wrestlingStyle,
+        }),
+      );
 
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
         final rawBody = decoded['body'];
         final body = rawBody is String ? json.decode(rawBody) : rawBody;
-
+        print("AAAAAAAAAAAAAAAA");
+        print(body);
         if (body is Map<String, dynamic> && body.containsKey('inserted_fights')) {
           final count = body['inserted_fights'] as int;
-          ToastHelper.succes('Au fost inserate $count lupte.');
+          ToastHelper.succes('Au fost generate $count lupte.');
           return count;
-        } else {
-          ToastHelper.eroare('Răspuns neașteptat de la server.');
-          return 0;
         }
+        ToastHelper.eroare('Răspuns neașteptat de la server.');
+        return 0;
       } else if (response.statusCode == 404) {
         final decoded = json.decode(response.body);
         final rawBody = decoded['body'];
         final body = rawBody is String ? json.decode(rawBody) : rawBody;
-
         final message = (body is Map<String, dynamic> && body.containsKey('message'))
             ? body['message']
             : 'No fights generated';
@@ -248,6 +255,179 @@ class RefereeServices {
     } catch (e) {
       if (kDebugMode) print('Error calling postFights: $e');
       ToastHelper.eroare('Nu s-a putut genera luptele.');
+      return 0;
+    }
+  }
+
+  Future<List<CompetitionFight>> fetchFights({
+    required int competitionUUID,
+    required String wrestlingStyle,
+  }) async {
+    final uri = Uri.parse(
+        '${AppConstants.baseUrl}referee/getFights'
+            '?competition_UUID=$competitionUUID'
+            '&wrestling_style=${Uri.encodeComponent(wrestlingStyle)}'
+    );
+
+    try {
+      final response = await _client.get(uri);
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+        if (decoded is Map<String, dynamic> && decoded['body'] is List) {
+          final List<dynamic> body = decoded['body'];
+          return body
+              .map((item) => CompetitionFight.fromJson(item as Map<String, dynamic>))
+              .toList();
+        } else {
+          if (kDebugMode) {
+            print('Unexpected response format: ${response.body}');
+          }
+          return [];
+        }
+      } else {
+        if (kDebugMode) {
+          print('Error ${response.statusCode}: ${response.body}');
+        }
+        return [];
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Exception fetching fights: $e');
+      }
+      return [];
+    }
+  }
+
+  Future<WrestlerDetails?> fetchWrestlerDetails({
+    required int wrestlerUUID,
+  }) async {
+    final uri = Uri.parse(
+        '${AppConstants.baseUrl}referee/getWrestlerCoachWClub'
+            '?wrestler_UUID=$wrestlerUUID'
+    );
+
+    try {
+      final response = await _client.get(uri);
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+        if (decoded is Map<String, dynamic> && decoded['body'] is Map<String, dynamic>) {
+          return WrestlerDetails.fromJson(
+              decoded['body'] as Map<String, dynamic>
+          );
+        } else {
+          if (kDebugMode) {
+            print('Unexpected response format: ${response.body}');
+          }
+          return null;
+        }
+      } else {
+        if (kDebugMode) {
+          print('Error fetching details: ${response.statusCode} ${response.body}');
+        }
+        return null;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Exception fetching wrestler details: $e');
+      }
+      return null;
+    }
+  }
+
+  Future<void> postFightResult({
+    required BuildContext context,
+    required int competitionUUID,
+    required int competitionFightUUID,
+    required int wrestlerPointsRed,
+    required int wrestlerPointsBlue,
+    required int wrestlerUUIDWinner,
+  }) async {
+    const _url = AppConstants.baseUrl + "referee/postFightResult";
+
+    // Construim body-ul cererii
+    final body = {
+      "competition_UUID": competitionUUID,
+      "competition_fight_UUID": competitionFightUUID,
+      "wrestler_points_red": wrestlerPointsRed,
+      "wrestler_points_blue": wrestlerPointsBlue,
+      "wrestler_UUID_winner": wrestlerUUIDWinner,
+    };
+
+    try {
+      // Afișăm indicator de încărcare
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      final response = await http.post(
+        Uri.parse(_url),
+        headers: {"Content-Type": "application/json"},
+        body: json.encode(body),
+      );
+
+      // Închidem indicatorul
+      if (context.mounted) Navigator.of(context).pop();
+
+      if (response.statusCode == 200) {
+        // Așteptăm un JSON de forma:
+        // { "statusCode": 200, "body": "{\"message\":\"...\"}" }
+        final decoded = json.decode(response.body) as Map<String, dynamic>;
+        // `body` aici e un string JSON, îl mai decodăm o dată:
+        final rawBody = decoded["body"];
+        final payload = rawBody is String ? json.decode(rawBody) : rawBody;
+
+        if (payload is Map<String, dynamic> && payload.containsKey("message")) {
+          ToastHelper.succes(payload["message"]);
+        } else {
+          // fallback generic
+          ToastHelper.succes("Rezultatul a fost trimis cu succes.");
+        }
+      } else {
+        // orice cod ≠200
+        ToastHelper.eroare(
+          "Eroare server (${response.statusCode}). Încearcă din nou.",
+        );
+      }
+    } catch (e) {
+      // Închidem indicatorul dacă era încă deschis
+      if (context.mounted) Navigator.of(context).pop();
+      ToastHelper.eroare("Eroare la transmitere: $e");
+      if (kDebugMode) print("postFightResult error: $e");
+    }
+  }
+
+  Future<int> generateBronzeRound({
+    required int competitionUUID,
+    required String wrestlingStyle,
+  }) async {
+    final uri = Uri.parse('${AppConstants.baseUrl}referee/genBronze');
+    try {
+      final response = await _client.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'competition_UUID': competitionUUID,
+          'wrestling_style': wrestlingStyle,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body) as Map<String, dynamic>;
+        final rawBody = decoded['body'];
+        final body = rawBody is String ? json.decode(rawBody) : rawBody;
+        if (body is Map<String, dynamic> && body.containsKey('inserted_fights')) {
+          return body['inserted_fights'] as int;
+        }
+        throw Exception('Unexpected response payload');
+      } else {
+        throw Exception('Server error ${response.statusCode}');
+      }
+    } catch (e) {
+      if (kDebugMode) print('genBronze error: $e');
       return 0;
     }
   }

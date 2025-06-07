@@ -15,8 +15,10 @@ class UserService {
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = json.decode(response.body);
 
-        if (responseData.containsKey("body")) {
-          final userData = responseData["body"];
+        if (responseData.containsKey("body") && responseData["body"] is Map<String, dynamic>) {
+          final userData = responseData["body"] as Map<String, dynamic>;
+
+          // Now includes 'wrestling_style' (nullable)
           return UserModel.fromJson(userData);
         } else {
           if (kDebugMode) {

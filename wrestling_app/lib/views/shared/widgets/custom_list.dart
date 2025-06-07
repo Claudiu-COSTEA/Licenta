@@ -8,6 +8,7 @@ class CustomList extends StatelessWidget {
   final List<Map<String, dynamic>> items; // List of competition invitations
   final int userUUID;
   final String userType;
+  final String wrestlingStyle;
   final VoidCallback onRefresh; // ✅ Callback to refresh the parent screen
 
   const CustomList({
@@ -15,7 +16,8 @@ class CustomList extends StatelessWidget {
     required this.items,
     required this.userUUID,
     required this.userType,
-    required this.onRefresh, // ✅ Receive callback
+    required this.onRefresh,
+    required this.wrestlingStyle, // ✅ Receive callback
   });
 
   /// Traduce `invitation_status` din engleză în română
@@ -106,6 +108,7 @@ class CustomList extends StatelessWidget {
                             competitionInvitation: item,
                             userUUID: userUUID,
                             competitionUUID: item['competition_UUID'] as int,
+                            wrestlingStyle: wrestlingStyle,
                           ),
                     ),
                   ).then((_) => onRefresh());

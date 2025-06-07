@@ -14,12 +14,14 @@ class RefereeCompetitionManageScreen extends StatefulWidget {
   final Map<String, dynamic> competitionInvitation;
   final int userUUID;
   final int competitionUUID;
+  final String wrestlingStyle;
 
   const RefereeCompetitionManageScreen({
     required this.competitionInvitation,
     super.key,
     required this.userUUID,
     required this.competitionUUID,
+    required this.wrestlingStyle,
   });
 
   @override
@@ -326,7 +328,7 @@ class _RefereeCompetitionManageScreenState
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => RefereeFightDashboard(competitionUUID: widget.competitionUUID,),
+                          builder: (context) => RefereeFightDashboard(competitionUUID: widget.competitionUUID, wrestlingStyle: widget.wrestlingStyle,),
                         ),
                       );
                     },
