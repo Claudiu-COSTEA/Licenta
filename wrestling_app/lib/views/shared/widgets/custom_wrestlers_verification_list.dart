@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-
 import '../../../models/wrestler_verification_model.dart';
 import '../../../services/referee_api_services.dart';
 
@@ -56,7 +54,6 @@ class _CustomWrestlersVerificationList extends State<CustomWrestlersVerification
 
   @override
   Widget build(BuildContext context) {
-    final wrestlingStyleRO = _roStyle(widget.wrestlingStyle);
 
     return Column(
       children: [
@@ -98,7 +95,7 @@ class _CustomWrestlersVerificationList extends State<CustomWrestlersVerification
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Wrestler Info
+                            // ───────────── Wrestler Details ─────────────
                             Text(
                               wrestler.wrestlerName,
                               style: const TextStyle(
@@ -107,90 +104,87 @@ class _CustomWrestlersVerificationList extends State<CustomWrestlersVerification
                                 fontSize: 18,
                               ),
                             ),
-                            const SizedBox(height: 5),
+                            const SizedBox(height: 6),
                             Text(
-                              'Club: ${wrestler.wrestlingClubName}\n'
-                                  'Antrenor: ${wrestler.coachName}\n'
-                                  'Greutate: ${wrestler.weightCategory} Kg\n'
-                                  'Stil: $wrestlingStyleRO',
-                              style: GoogleFonts.roboto(
-                                color: Colors.white70,
-                                fontSize: 14,
-                              ),
+                              'Club: ${wrestler.wrestlingClubName}',
+                              style: const TextStyle(color: Colors.white70),
                             ),
+                            Text(
+                              'Antrenor: ${wrestler.coachName}',
+                              style: const TextStyle(color: Colors.white70),
+                            ),
+                            const SizedBox(height: 12),
 
-                            const SizedBox(height: 10),
-
-                            // Buttons Row or Status
-                            if (wrestler.refereeVerification == "")
+                            // ───────────── Buttons or Status ─────────────
+                            if (wrestler.refereeVerification == null || wrestler.refereeVerification!.isEmpty) ...[
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Expanded(
                                     child: ElevatedButton(
                                       onPressed: () {
-                                        _refereeServices.updateRefereeVerification(
+                                        _refereeServices
+                                            .updateRefereeVerification(
                                           competitionUUID: widget.competitionUUID,
                                           recipientUUID: wrestler.wrestlerUUID,
                                           recipientRole: 'Wrestler',
                                           refereeVerification: "Confirmed",
-                                        ).then((_) => _fetchWrestlers());
+                                        )
+                                            .then((_) => _fetchWrestlers());
                                       },
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.black,
+                                        padding: const EdgeInsets.symmetric(vertical: 12),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(50),
+                                        ),
                                       ),
                                       child: const Text(
                                         "Confirmă",
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(width: 10),
+                                  const SizedBox(width: 8),
                                   Expanded(
                                     child: ElevatedButton(
                                       onPressed: () {
-                                        _refereeServices.updateRefereeVerification(
+                                        _refereeServices
+                                            .updateRefereeVerification(
                                           competitionUUID: widget.competitionUUID,
                                           recipientUUID: wrestler.wrestlerUUID,
                                           recipientRole: 'Wrestler',
                                           refereeVerification: "Declined",
-                                        ).then((_) => _fetchWrestlers());
+                                        )
+                                            .then((_) => _fetchWrestlers());
                                       },
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.black,
+                                        padding: const EdgeInsets.symmetric(vertical: 12),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(50),
+                                        ),
                                       ),
                                       child: const Text(
                                         "Refuză",
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                                       ),
                                     ),
                                   ),
                                 ],
-                              )
-                            else if (wrestler.refereeVerification == 'Confirmed')
-                              const Text(
-                                'Status verificare: Confirmat',
-                                style: TextStyle(
+                              ),
+                            ] else ...[
+                              Text(
+                                wrestler.refereeVerification == 'Confirmed'
+                                    ? 'Status verificare: Confirmat'
+                                    : 'Status verificare: Refuzat',
+                                style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
                                   fontSize: 18,
                                 ),
-                              )
-                            else if (wrestler.refereeVerification == 'Declined')
-                                const Text(
-                                  'Status verificare: Refuzat',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                  ),
-                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ),

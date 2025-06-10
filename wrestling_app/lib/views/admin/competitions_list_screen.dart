@@ -121,11 +121,11 @@ class _CompetitionsListScreenState extends State<CompetitionsListScreen> {
                     itemCount: comps.length,
                     itemBuilder: (context, i) {
                       final c = comps[i];
-                      final statusRo = _statusInRomana(c.status);
+                      final statusRo = _statusInRomana(c.competitionStatus);
 
                       // Dacă location e de forma "lat, lon", rotunjim la 7 zecimale:
                       String locRo;
-                      final parts = c.location.split(',');
+                      final parts = c.competitionLocation.split(',');
                       if (parts.length == 2) {
                         final lat = double.tryParse(parts[0].trim());
                         final lng = double.tryParse(parts[1].trim());
@@ -134,10 +134,10 @@ class _CompetitionsListScreenState extends State<CompetitionsListScreen> {
                           '${lat.toStringAsFixed(7)}, ${lng.toStringAsFixed(
                               7)}';
                         } else {
-                          locRo = c.location;
+                          locRo = c.competitionStatus;
                         }
                       } else {
-                        locRo = c.location;
+                        locRo = c.competitionLocation;
                       }
 
                       return GestureDetector(
@@ -151,48 +151,48 @@ class _CompetitionsListScreenState extends State<CompetitionsListScreen> {
                           );
                         },
                         child: Container(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: primaryColor,
-                              border: Border.all(color: primaryColor),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Column(
-                              crossAxisAlignment:
-                              CrossAxisAlignment.start,
-                              children: [
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: primaryColor,
+                            border: Border.all(color: primaryColor),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            crossAxisAlignment:
+                            CrossAxisAlignment.start,
+                            children: [
                               Text(
-                              c.name,
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                c.competitionName,
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                                '${_dataInRomana(c.startDate)} – ${_dataInRomana(c.endDate)}',
+                              const SizedBox(height: 8),
+                              Text(
+                                '${_dataInRomana(c.competitionStartDate)} – ${_dataInRomana(c.competitionEndDate)}',
                                 style: const TextStyle(color: Colors.white),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                      'Locație: $locRo',
-                      style:
-                      const TextStyle(color: Colors.white),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                      'Status: $statusRo',
-                      style:
-                      const TextStyle(color: Colors.white),
-                      ),
-                      ]
-                      ,
-                      )
-                      ,
-                      )
-                      ,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Locație: $locRo',
+                                style:
+                                const TextStyle(color: Colors.white),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Status: $statusRo',
+                                style:
+                                const TextStyle(color: Colors.white),
+                              ),
+                            ]
+                            ,
+                          )
+                          ,
+                        )
+                        ,
                       );
                     },
                   );

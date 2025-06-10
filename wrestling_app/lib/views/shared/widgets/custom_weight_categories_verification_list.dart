@@ -82,8 +82,8 @@ class _CustomWeightCategoriesVerificationListState
             itemCount: filteredItems.length,
             itemBuilder: (context, index) {
               final item = filteredItems[index];
-              final weightCategory = item.weightCategory ?? 'Unknown';
-              final wrestlingStyleEN = item.wrestlingStyle ?? 'Unknown';
+              final weightCategory = item.weightCategory;
+              final wrestlingStyleEN = item.wrestlingStyle;
               final wrestlingStyleRO = _roStyle(wrestlingStyleEN);
 
               return Padding(

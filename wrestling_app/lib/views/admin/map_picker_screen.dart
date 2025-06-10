@@ -8,7 +8,8 @@ const kPrimaryRed   = Color(0xFFB4182D);
 
 class MapPickerScreen extends StatefulWidget {
   const MapPickerScreen({super.key});
-  @override State<MapPickerScreen> createState() => _MapPickerScreenState();
+  @override
+  State<MapPickerScreen> createState() => _MapPickerScreenState();
 }
 
 class _MapPickerScreenState extends State<MapPickerScreen> {
@@ -19,7 +20,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
 
   // ======== GOOGLE PLACES AUTOCOMPLETE =============
   Future<void> _search(String input) async {
-    if (input.length < 3) {                      // nu spama API-ul
+    if (input.length < 3) {
       setState(() => _suggestions = []);
       return;
     }
@@ -27,10 +28,10 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
       'maps.googleapis.com',
       '/maps/api/place/autocomplete/json',
       {
-        'input'        : input,
-        'key'          : kGoogleApiKey,
-        'components'   : 'country:ro',           // doar România
-        'language'     : 'ro'
+        'input'      : input,
+        'key'        : kGoogleApiKey,
+        'components' : 'country:ro',
+        'language'   : 'ro',
       },
     );
 
@@ -43,7 +44,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
     setState(() {
       _suggestions = (data['predictions'] as List)
           .map((p) => _PlaceSuggestion(
-        desc   : p['description'],
+        desc: p['description'],
         placeId: p['place_id'],
       ))
           .toList();
@@ -52,14 +53,18 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
 
   // ======== PLACE DETAILS (lat/lng) =============
   Future<void> _selectSuggestion(_PlaceSuggestion s) async {
+    // 1) populate the search field
+    _searchCtrl.text = s.desc;
+    // 2) clear suggestions
     setState(() => _suggestions = []);
+
     final url = Uri.https(
       'maps.googleapis.com',
       '/maps/api/place/details/json',
       {
         'place_id': s.placeId,
         'key'     : kGoogleApiKey,
-        'fields'  : 'geometry'
+        'fields'  : 'geometry',
       },
     );
     final resp = await http.get(url);
@@ -99,11 +104,14 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
           if (_suggestions.isNotEmpty) _buildOverlaySuggestions(),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed:
-        _picked == null ? null : () => Navigator.pop(context, _picked),
-        backgroundColor: kPrimaryRed,
-        child: const Icon(Icons.check, color: Colors.white),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 25),
+        child: FloatingActionButton(
+          onPressed:
+          _picked == null ? null : () => Navigator.pop(context, _picked),
+          backgroundColor: kPrimaryRed,
+          child: const Icon(Icons.check, color: Colors.white),
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
     );
@@ -125,15 +133,15 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
             child: TextField(
               controller: _searchCtrl,
               onChanged: _search,
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold),
               decoration: InputDecoration(
                 hintText: 'Caută o locație',
                 hintStyle: const TextStyle(color: Colors.white),
                 border: InputBorder.none,
                 contentPadding:
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                suffixIcon:
-                _searchCtrl.text.isEmpty
+                suffixIcon: _searchCtrl.text.isEmpty
                     ? null
                     : IconButton(
                   icon: const Icon(Icons.clear, color: Colors.white),
@@ -151,15 +159,12 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
   }
 
   Widget _buildOverlaySuggestions() {
-    // înălţimea barei de stare (notch) + AppBar
-    final double topOffset =
-        MediaQuery.of(context).padding.top + kToolbarHeight + 4;
-
     final maxH = MediaQuery.of(context).size.height * .45;
 
-    return Positioned(// ⇦ mai sus decât înainte
-      left: 16,
-      right: 16,
+    return Positioned(
+      left: 0,
+      right: 0,
+      top: 0,
       child: Material(
         elevation: 6,
         borderRadius: BorderRadius.circular(8),
@@ -190,7 +195,6 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
   }
 }
 
-// ======== helper small class =========
 class _PlaceSuggestion {
   final String desc;
   final String placeId;

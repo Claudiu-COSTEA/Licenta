@@ -13,11 +13,14 @@ class AuthService {
         email: email,
         password: password,
       );
+
       return result.user;
     } catch (e) {
       if (kDebugMode) {
         print('Sign-in error: $e');
       }
+
+
       return null;
     }
   }

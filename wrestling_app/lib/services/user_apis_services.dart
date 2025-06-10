@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:googleapis/admob/v1.dart';
 import 'package:http/http.dart' as http;
 import '../models/user_model.dart';
 import 'package:wrestling_app/services/constants.dart';
@@ -15,10 +14,14 @@ class UserService {
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = json.decode(response.body);
 
-        if (responseData.containsKey("body") && responseData["body"] is Map<String, dynamic>) {
+        if (responseData.containsKey("body") &&
+            responseData["body"] is Map<String, dynamic>) {
           final userData = responseData["body"] as Map<String, dynamic>;
 
-          // Now includes 'wrestling_style' (nullable)
+          // Ensure wrestling_style is a String (empty if null)
+          userData['wrestling_style'] =
+              (userData['wrestling_style'] as String?) ?? '';
+
           return UserModel.fromJson(userData);
         } else {
           if (kDebugMode) {
@@ -28,7 +31,8 @@ class UserService {
         }
       } else {
         if (kDebugMode) {
-          print("Error fetching user: ${response.statusCode}, ${response.body}");
+          print(
+              "Error fetching user: ${response.statusCode}, ${response.body}");
         }
         return null;
       }

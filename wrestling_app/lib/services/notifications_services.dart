@@ -12,7 +12,6 @@ class NotificationsServices {
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
   FlutterLocalNotificationsPlugin();
 
-  // Initialize Firebase Messaging
   Future<void> storeFcmToken(int userUUID, String fcmToken) async {
     try {
       final response = await http.post(
@@ -43,7 +42,7 @@ class NotificationsServices {
       }
     } catch (e) {
       if (kDebugMode) {
-        print("🚨 Error storing FCM token: $e");
+        print(" Error storing FCM token: $e");
       }
     }
   }
@@ -116,7 +115,6 @@ class NotificationsServices {
     });
   }
 
-  // Show Local Notification
   Future<void> _showNotification(String title, String body) async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
     AndroidNotificationDetails(
@@ -137,40 +135,62 @@ class NotificationsServices {
     );
   }
 
-  // Send notification functions
-
   Future<String?> getUserFCMToken(int userUUID) async {
-    final String apiUrl = "https://rhybb6zgsb.execute-api.us-east-1.amazonaws.com/wrestling/getUserFcmToken?user_UUID=$userUUID";
+    // 1. Construiește URL-ul cu query-param user_UUID
+    final uri = Uri.parse('${AppConstants.baseUrl}getUserFcmToken')
+        .replace(queryParameters: {'user_UUID': userUUID.toString()});
 
     try {
-      final response = await http.get(Uri.parse(apiUrl));
+      // 2. Apelează endpoint-ul
+      final response = await http.get(uri);
 
-      if (response.statusCode == 200) {
-        final decodedResponse = json.decode(response.body);
-        // This is the nested object containing the actual token
-        final dynamic rawBody = decodedResponse["body"];
-
-        // In some cases, 'body' might be returned as a string. Let's handle both:
-        final body = rawBody is String ? json.decode(rawBody) : rawBody;
-
-        if (body is Map<String, dynamic> && body.containsKey("fcm_token")) {
-          return body["fcm_token"];
-        } else {
-          throw Exception("FCM token not found in response");
+      // 3. Dacă nu e 200, renunță
+      if (response.statusCode != 200) {
+        if (kDebugMode) {
+          print('HTTP error: ${response.statusCode}');
         }
-      } else if (response.statusCode == 404) {
-        throw Exception("User not found");
-      } else {
-        throw Exception("Failed to fetch FCM token. Status code: ${response.statusCode}");
+        return null;
       }
+
+      // 4. Decodează JSON-ul principal
+      final Map<String, dynamic> decoded = json.decode(response.body);
+
+      // 5. Extrage direct body-ul (e deja Map, nu String)
+      final dynamic rawBody = decoded['body'];
+      if (rawBody is! Map<String, dynamic>) {
+        if (kDebugMode) {
+          print('Unexpected body type: $rawBody');
+        }
+        return null;
+      }
+      final Map<String, dynamic> bodyMap = rawBody;
+
+      // 6. Dacă vine un error în body, loghează și renunță
+      if (bodyMap.containsKey('error')) {
+        if (kDebugMode) {
+          print('API error: ${bodyMap['error']}');
+        }
+        return null;
+      }
+
+      // 7. Ia fcm_token și returnează
+      final token = bodyMap['fcm_token'] as String?;
+      if (token == null || token.isEmpty) {
+        if (kDebugMode) {
+          print('Missing fcm_token in response body: $bodyMap');
+        }
+        return null;
+      }
+
+      return token;
     } catch (e) {
+      // 8. Orice excepție neașteptată → null
       if (kDebugMode) {
-        print("Error fetching FCM token: $e");
+        print('Exception fetching FCM token: $e');
       }
       return null;
     }
   }
-
 
   Future<String> getAccessToken() async {
     // Your client ID and client secret obtained from Google Cloud Console
@@ -225,8 +245,8 @@ class NotificationsServices {
       'message': {
         'token': currentFCMToken, // Token of the device you want to send the message to
         'notification': {
-          'body': "Invitatie pentru competitie primita !",
-          'title': 'Invitatie competitie'
+          'body': "Invitație competiție primita !",
+          'title': 'Invitație competiție'
         },
         'data': {
           'current_user_fcm_token': currentFCMToken, // Include the current user's FCM token in data payload
@@ -254,5 +274,16 @@ class NotificationsServices {
     }
   }
 
+  //-------------------------------------------------------------------------
+  // Helpers
+  //-------------------------------------------------------------------------
+
+  /// Lambda proxy integrations wrap the *real* payload in a string-encoded
+  /// JSON found in the "body" key.  This helper unwraps it automatically.
+  static dynamic _unwrapProxy(Map<String, dynamic> maybeWrapped) {
+    final dynamic rawBody = maybeWrapped['body'];
+    if (rawBody == null) return maybeWrapped;
+    return rawBody is String ? json.decode(rawBody) : rawBody;
+  }
 
 }

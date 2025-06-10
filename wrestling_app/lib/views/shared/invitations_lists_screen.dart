@@ -84,12 +84,8 @@ class _InvitationsListsScreenState extends State<InvitationsListsScreen> {
     }
   }
 
-  /// Construiește fiecare card din GridView
-  Widget _buildGridCard({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildGridCard({ required IconData icon, required String label, required VoidCallback onTap,})
+  {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -126,6 +122,16 @@ class _InvitationsListsScreenState extends State<InvitationsListsScreen> {
     );
   }
 
+  String? get _userTypeLabel {
+    switch (widget.user?.userType) {
+      case 'Wrestler':       return 'Luptător';
+      case 'Wrestling club': return 'Club Sportiv';
+      case 'Coach':          return 'Antrenor';
+      case 'Referee':        return 'Arbitru';
+      default:               return widget.user?.userType;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final userType = widget.user!.userType.toLowerCase();
@@ -137,6 +143,23 @@ class _InvitationsListsScreenState extends State<InvitationsListsScreen> {
         elevation: 0,
         centerTitle: true,
         automaticallyImplyLeading: false,
+        // give the leading slot enough width for your label
+        leadingWidth: 160,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 25),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              _userTypeLabel!,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.black),
@@ -153,6 +176,7 @@ class _InvitationsListsScreenState extends State<InvitationsListsScreen> {
             : Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+
             // ───────── GRID ─────────
             if (userType == 'wrestler')
               ...[
@@ -165,7 +189,6 @@ class _InvitationsListsScreenState extends State<InvitationsListsScreen> {
                     crossAxisSpacing: 12,
                     childAspectRatio: 0.8,
                     children: [
-                      // 1) Locații cluburi sportive
                       _buildGridCard(
                         icon: Icons.map,
                         label: 'Locații\ncluburi\nsportive',

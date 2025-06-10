@@ -90,12 +90,11 @@ class AdminServices {
     }
   }
 
-  Future<ServiceResult> updateCompetitionStatus({
+  Future<void> updateCompetitionStatus({
     required int competitionUUID,
-    required String status, // e.g. "open" | "closed"
+    required String status, // e.g. "Confirmed" | "Postponed"
   }) async {
-    final uri = Uri.parse('${AppConstants.baseUrl}admin/postCompetitionStatus');
-
+    final uri = Uri.parse('${AppConstants.baseUrl}/admin/postCompetitionStatus');
     try {
       final res = await _client.post(
         uri,
@@ -108,12 +107,18 @@ class AdminServices {
 
       if (res.statusCode == 200) {
         final decoded = json.decode(res.body) as Map<String, dynamic>;
-        final body = _unwrapProxy(decoded);
-        return ServiceResult(success: true, message: body['message'] as String?);
+        // if your API wraps the real body as a JSON string, you may need:
+        final rawBody = decoded['body'];
+        final body = rawBody is String ? json.decode(rawBody) : rawBody;
+        final msg = (body is Map && body.containsKey('message'))
+            ? body['message'] as String
+            : 'Stare actualizată cu succes!';
+        ToastHelper.succes(msg);
+      } else {
+        ToastHelper.eroare('Eroare server: HTTP ${res.statusCode}');
       }
-      return ServiceResult(success: false, message: 'HTTP ${res.statusCode}');
     } catch (e) {
-      return ServiceResult(success: false, message: '$e');
+      ToastHelper.eroare('Eroare la actualizarea competiției: $e');
     }
   }
 
@@ -167,6 +172,10 @@ class AdminServices {
         try {
           final String? token = await _notifications.getUserFCMToken(recipientUUID);
           if (token != null) await _notifications.sendFCMMessage(token);
+
+          print("WWWWWWWWWWWWWWOWWWWWWWWWWWWW");
+          print("Trimis !");
+          print(token);
         } catch (_) {
           // swallow notification errors in service layer
         }

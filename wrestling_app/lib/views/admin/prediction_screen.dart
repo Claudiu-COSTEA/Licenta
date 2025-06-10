@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:wrestling_app/services/admin_apis_services.dart';
 
 class PredictionScreen extends StatefulWidget {
@@ -12,18 +11,28 @@ class PredictionScreen extends StatefulWidget {
 class _PredictionScreenState extends State<PredictionScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  // Map de controllere pentru fiecare câmp numeric
+  // Map de controllere pentru fiecare câmp numeric, cu valori default
   final Map<String, TextEditingController> _controllers = {
-    "wrestler1_win_rate_last_50": TextEditingController(),
-    "wrestler1_experience_years": TextEditingController(),
-    "wrestler1_technical_points_won_last_50": TextEditingController(),
-    "wrestler1_technical_points_lost_last_50": TextEditingController(),
-    "wrestler1_wins_against_wrestler2": TextEditingController(),
-    "wrestler2_win_rate_last_50": TextEditingController(),
-    "wrestler2_experience_years": TextEditingController(),
-    "wrestler2_technical_points_won_last_50": TextEditingController(),
-    "wrestler2_technical_points_lost_last_50": TextEditingController(),
-    "wrestler2_wins_against_wrestler1": TextEditingController(),
+    "wrestler1_win_rate_last_50":
+    TextEditingController(text: "0.5"),
+    "wrestler1_experience_years":
+    TextEditingController(text: "5"),
+    "wrestler1_technical_points_won_last_50":
+    TextEditingController(text: "230"),
+    "wrestler1_technical_points_lost_last_50":
+    TextEditingController(text: "140"),
+    "wrestler1_wins_against_wrestler2":
+    TextEditingController(text: "3"),
+    "wrestler2_win_rate_last_50":
+    TextEditingController(text: "0.6"),
+    "wrestler2_experience_years":
+    TextEditingController(text: "5"),
+    "wrestler2_technical_points_won_last_50":
+    TextEditingController(text: "250"),
+    "wrestler2_technical_points_lost_last_50":
+    TextEditingController(text: "120"),
+    "wrestler2_wins_against_wrestler1":
+    TextEditingController(text: "2"),
   };
 
   String? _winner;

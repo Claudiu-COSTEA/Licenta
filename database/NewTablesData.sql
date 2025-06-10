@@ -114,7 +114,7 @@ INSERT INTO competitions
   (competition_UUID, competition_name, competition_start_date,
    competition_end_date, competition_location, competition_status)
 VALUES
-  (1, 'Cupa Primăverii'          , '2025-05-10 09:00:00', '2025-05-12 18:00:00', 'București'    , 'Confirmed'),
+  (1, 'Cupa Primăverii'          , '2025-05-10 09:00:00', '2025-05-12 18:00:00', 'București'    , 'Pending'),
   (2, 'Campionatul Național U21' , '2025-07-18 09:00:00', '2025-07-20 18:00:00', 'Cluj-Napoca'  , 'Confirmed'),
   (3, 'Trofeul Carpați'          , '2025-09-05 09:00:00', '2025-09-07 18:00:00', 'Iași'         , 'Confirmed');
 

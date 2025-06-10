@@ -44,7 +44,7 @@ class _GeneratePdfScreenState extends State<GeneratePdfScreen> {
       final res = await http.post(
         uri,
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'competition_UUID': _selected!.uuid}),
+        body: jsonEncode({'competition_UUID': _selected!.competitionUUID}),
       );
 
       setState(() => _isLoading = false);
@@ -159,7 +159,7 @@ class _GeneratePdfScreenState extends State<GeneratePdfScreen> {
                   items: comps.map((c) {
                     return DropdownMenuItem<Competition>(
                       value: c,
-                      child: Text(c.name),
+                      child: Text(c.competitionName),
                     );
                   }).toList(),
 

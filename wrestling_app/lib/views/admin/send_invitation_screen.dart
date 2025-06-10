@@ -93,7 +93,7 @@ class _SendInvitationScreen extends State<SendInvitationScreen> {
         child: Column(
           children: [
 
-            const SizedBox(height: 20,),
+            const SizedBox(height: 30,),
 
             Align(
               alignment: Alignment.centerLeft,
@@ -149,11 +149,11 @@ class _SendInvitationScreen extends State<SendInvitationScreen> {
               value: _selected,
               items: _competitions.map((c) {
                 final date =
-                DateFormat('yyyy-MM-dd').format(c.startDate);
+                DateFormat('yyyy-MM-dd').format(c.competitionStartDate);
                 return DropdownMenuItem(
                   value: c,
                   child: Text(
-                    '${c.name} ($date)',
+                    '${c.competitionName} ($date)',
                     style: const TextStyle(fontSize: 16),
                   ),
                 );
@@ -179,7 +179,7 @@ class _SendInvitationScreen extends State<SendInvitationScreen> {
                         context,
                         MaterialPageRoute(
                           builder: (_) => ClubsListScreen(
-                            competitionUUID: _selected!.uuid,
+                            competitionUUID: _selected!.competitionUUID,
                           ),
                         ),
                       );
@@ -194,7 +194,7 @@ class _SendInvitationScreen extends State<SendInvitationScreen> {
                         context,
                         MaterialPageRoute(
                           builder: (_) => RefereesListScreen(
-                            competitionUUID: _selected!.uuid,
+                            competitionUUID: _selected!.competitionUUID,
                           ),
                         ),
                       );
@@ -209,7 +209,7 @@ class _SendInvitationScreen extends State<SendInvitationScreen> {
                         context,
                         MaterialPageRoute(
                           builder: (_) => CoachesListScreen(
-                            competitionUUID: _selected!.uuid,
+                            competitionUUID: _selected!.competitionUUID,
                           ),
                         ),
                       );
@@ -224,7 +224,7 @@ class _SendInvitationScreen extends State<SendInvitationScreen> {
                         context,
                         MaterialPageRoute(
                           builder: (_) => WrestlersListScreen(
-                            competitionUUID: _selected!.uuid,
+                            competitionUUID: _selected!.competitionUUID,
                           ),
                         ),
                       );
@@ -239,7 +239,7 @@ class _SendInvitationScreen extends State<SendInvitationScreen> {
                   children: [
                     Image.asset(
                       'assets/images/wrestling_logo.png',
-                      height: 300,
+                      height: 280,
                     ),
                     const SizedBox(height: 20),
                   ],
