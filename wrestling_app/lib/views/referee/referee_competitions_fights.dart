@@ -31,6 +31,7 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
   @override
   void initState() {
     super.initState();
+    // forțează landscape
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
@@ -41,7 +42,6 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
   Future<void> _initFights() async {
     setState(() => _isLoading = true);
 
-    // 1) Generate main bracket
     final mainCount = await _refereeServices.postFights(
       competitionUUID: widget.competitionUUID,
       wrestlingStyle: widget.wrestlingStyle,
@@ -50,7 +50,6 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
       ToastHelper.succes("Au fost generate $mainCount lupte principale.");
     }
 
-    // 2) Generate bronze‐round bracket
     final bronzeCount = await _refereeServices.generateBronzeRound(
       competitionUUID: widget.competitionUUID,
       wrestlingStyle: widget.wrestlingStyle,
@@ -59,43 +58,39 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
       ToastHelper.succes("Au fost generate $bronzeCount lupte pentru bronz.");
     }
 
-    // 3) Fetch all fights (main + bronze)
     final fights = await _refereeServices.fetchFights(
       competitionUUID: widget.competitionUUID,
       wrestlingStyle: widget.wrestlingStyle,
     );
 
-    // 4) Enrich each fight with wrestler/coach/club names
     for (final f in fights) {
-      final red  = await _refereeServices.fetchWrestlerDetails(
+      final red = await _refereeServices.fetchWrestlerDetails(
         wrestlerUUID: f.wrestlerUUIDRed,
       );
       final blue = await _refereeServices.fetchWrestlerDetails(
         wrestlerUUID: f.wrestlerUUIDBlue,
       );
-
-      f.wrestlerNameRed  = red?.wrestlerName;
-      f.coachNameRed     = red?.coachName;
-      f.clubNameRed      = red?.clubName;
-
+      f.wrestlerNameRed = red?.wrestlerName;
+      f.coachNameRed = red?.coachName;
+      f.clubNameRed = red?.clubName;
       f.wrestlerNameBlue = blue?.wrestlerName;
-      f.coachNameBlue    = blue?.coachName;
-      f.clubNameBlue     = blue?.clubName;
+      f.coachNameBlue = blue?.coachName;
+      f.clubNameBlue = blue?.clubName;
     }
 
     setState(() {
-      _fights    = fights;
+      _fights = fights;
       _isLoading = false;
       _currentFightIndex = 0;
-      _wrestler1Points   = 0;
-      _wrestler2Points   = 0;
-      _selectedWinner    = null;
+      _wrestler1Points = 0;
+      _wrestler2Points = 0;
+      _selectedWinner = null;
     });
   }
 
-
   @override
   void dispose() {
+    // readuce la portret la ieșire
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
@@ -142,7 +137,9 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Scaffold(
-        body: Center(child: CircularProgressIndicator(color: Color(0xFFB4182D))),
+        body: Center(
+          child: CircularProgressIndicator(color: Color(0xFFB4182D)),
+        ),
       );
     }
     if (_fights.isEmpty) {
@@ -156,8 +153,12 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            bottom: MediaQuery.of(context).padding.bottom + 16,
+          ),
           child: Column(
             children: [
               // Header row
@@ -171,8 +172,9 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
                 ],
               ),
               const SizedBox(height: 16),
-              // Main fight UI
-              Expanded(
+              // Main fight UI — aici am înlocuit Expanded cu un SizedBox pentru a nu crește prea mult
+              SizedBox(
+                height: 200,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -187,7 +189,10 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text("Câștigător:", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  const Text(
+                    "Câștigător:",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(width: 12),
                   DropdownButton<String>(
                     hint: const Text("Selectează"),
@@ -210,7 +215,8 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
                   }
                   _onAdvance();
                 },
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFB4182D)),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFB4182D)),
                 child: Text(
                   _currentFightIndex < _fights.length - 1
                       ? "Finalizează lupta"
@@ -218,6 +224,7 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
                   style: const TextStyle(color: Colors.white, fontSize: 18),
                 ),
               ),
+              const SizedBox(height: 16),
             ],
           ),
         ),
@@ -232,13 +239,14 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
       border: Border.all(color: const Color(0xFFB4182D), width: 2),
       borderRadius: BorderRadius.circular(10),
     ),
-    child: Text(txt, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+    child: Text(txt,
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
   );
 
   Widget _wrestlerBox(String label, CompetitionFight f, bool isRed) {
-    final name  = isRed ? f.wrestlerNameRed : f.wrestlerNameBlue;
-    final coach = isRed ? f.coachNameRed    : f.coachNameBlue;
-    final club  = isRed ? f.clubNameRed     : f.clubNameBlue;
+    final name = isRed ? f.wrestlerNameRed : f.wrestlerNameBlue;
+    final coach = isRed ? f.coachNameRed : f.coachNameBlue;
+    final club = isRed ? f.clubNameRed : f.clubNameBlue;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
       decoration: BoxDecoration(
@@ -253,8 +261,8 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
           Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 6),
           Text("Luptător: ${name ?? '—'}", textAlign: TextAlign.center),
-          Text("Antrenor: ${coach ?? '—'}",   textAlign: TextAlign.center),
-          Text("Club: ${club ?? '—'}",         textAlign: TextAlign.center),
+          Text("Antrenor: ${coach ?? '—'}", textAlign: TextAlign.center),
+          Text("Club: ${club ?? '—'}", textAlign: TextAlign.center),
         ],
       ),
     );
@@ -274,7 +282,8 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
         icon: const Icon(Icons.remove_circle, color: Colors.red),
         onPressed: () => onChanged(pts > 0 ? pts - 1 : 0),
       ),
-      Text(pts.toString(), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+      Text(pts.toString(),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
       IconButton(
         icon: const Icon(Icons.add_circle, color: Colors.green),
         onPressed: () => onChanged(pts + 1),
@@ -296,7 +305,6 @@ class EndOfFightsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final services = RefereeServices();
     return Scaffold(
-
       body: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
@@ -306,12 +314,11 @@ class EndOfFightsScreen extends StatelessWidget {
             Align(
               alignment: Alignment.centerLeft,
               child: IconButton(
-                icon: const Icon(Icons.arrow_back,
-                    size: 28, color: Colors.black),
+                icon: const Icon(Icons.arrow_back, size: 28, color: Colors.black),
                 onPressed: () => Navigator.pop(context),
               ),
             ),
-            const SizedBox(height: 250,),
+            const SizedBox(height: 250),
             const Text(
               "Ai finalizat toate luptele din rundă!",
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -319,15 +326,13 @@ class EndOfFightsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 32),
             ElevatedButton(
-              onPressed: () {
-                //Navigator.of(context).popUntil((r) => r.isFirst);
-                Navigator.of(context).pop();
-              },
+              onPressed: () => Navigator.of(context).pop(),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFB4182D),
                 minimumSize: const Size.fromHeight(50),
               ),
-              child: const Text("Finalizează turneu", style: TextStyle(fontSize: 18, color: Colors.white)),
+              child: const Text("Finalizează turneu",
+                  style: TextStyle(fontSize: 18, color: Colors.white)),
             ),
             const SizedBox(height: 16),
             ElevatedButton(
@@ -338,7 +343,6 @@ class EndOfFightsScreen extends StatelessWidget {
                 );
                 if (count > 0) {
                   ToastHelper.succes("Au fost generate $count lupte noi");
-                  // Replace current screen with a fresh dashboard
                   Navigator.of(context).pushReplacement(
                     MaterialPageRoute(
                       builder: (_) => RefereeFightDashboard(
@@ -347,17 +351,16 @@ class EndOfFightsScreen extends StatelessWidget {
                       ),
                     ),
                   );
+                } else {
+                  ToastHelper.succes('Nu mai există lupte !');
                 }
-                else
-                  {
-                    ToastHelper.succes('Nu mai există lupte !');
-                  }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
                 minimumSize: const Size.fromHeight(50),
               ),
-              child: const Text("Runda următoare", style: TextStyle(fontSize: 18, color: Colors.white)),
+              child: const Text("Runda următoare",
+                  style: TextStyle(fontSize: 18, color: Colors.white)),
             ),
           ],
         ),
