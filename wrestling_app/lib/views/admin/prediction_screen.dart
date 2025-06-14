@@ -43,7 +43,6 @@ class _PredictionScreenState extends State<PredictionScreen> {
 
   @override
   void dispose() {
-    // Eliberăm controllerele când widget-ul este distrus
     for (final c in _controllers.values) {
       c.dispose();
     }
@@ -51,12 +50,10 @@ class _PredictionScreenState extends State<PredictionScreen> {
   }
 
   Future<void> _handlePredict() async {
-    // 1) Dacă Form-ul NU e valid, ieșim:
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _loading = true);
     try {
-      // 2) Datele de intrare sunt garantat nenule și parse-abile datorită validării
       final result = await _adminServices.predictWinner(
         w1WinRate: double.parse(_controllers["wrestler1_win_rate_last_50"]!.text),
         w1Years: int.parse(_controllers["wrestler1_experience_years"]!.text),
@@ -75,7 +72,6 @@ class _PredictionScreenState extends State<PredictionScreen> {
         _probability = (result['probability'] as num).toDouble();
       });
     } catch (e) {
-      // În caz de eroare (ex. rețea, parse-fail, server) afișăm un mesaj generic:
       setState(() {
         _winner = 'Eroare la predicție';
         _probability = 0.0;
@@ -85,7 +81,6 @@ class _PredictionScreenState extends State<PredictionScreen> {
     }
   }
 
-  // Creează un TextFormField stilizat cu validare „nul sau gol”
   Widget _buildInputField(String label, String key) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -98,14 +93,17 @@ class _PredictionScreenState extends State<PredictionScreen> {
           labelStyle: const TextStyle(color: Colors.black87),
           filled: true,
           fillColor: Colors.white,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding:
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Color(0xFFB4182D), width: 1.5),
+            borderSide:
+            const BorderSide(color: Color(0xFFB4182D), width: 1.5),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Color(0xFFB4182D), width: 2.5),
+            borderSide:
+            const BorderSide(color: Color(0xFFB4182D), width: 2.5),
           ),
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
@@ -120,7 +118,6 @@ class _PredictionScreenState extends State<PredictionScreen> {
           if (value == null || value.isEmpty) {
             return 'Câmp obligatoriu';
           }
-          // De aici poți adăuga validări stricte de tip numeric / interval, dacă vrei
           return null;
         },
       ),
@@ -133,100 +130,108 @@ class _PredictionScreenState extends State<PredictionScreen> {
 
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      body: Form(
-        key: _formKey, // 1) Legăm FormKey-ul aici
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
+      resizeToAvoidBottomInset: true,
+      body: SafeArea(
+        bottom: true, // asigură spațiu sub conținut, peste bara de navigare
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            padding: EdgeInsets.only(
+              left: 16,
+              right: 16,
+              bottom: MediaQuery.of(context).padding.bottom + 16,
+            ),
             child: Column(
               children: [
-
-                const SizedBox(height: 20,),
-
+                const SizedBox(height: 20),
                 Align(
                   alignment: Alignment.centerLeft,
                   child: IconButton(
-                    icon: const Icon(Icons.arrow_back, size: 28, color: Colors.black),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+                    icon: const Icon(Icons.arrow_back,
+                        size: 28, color: Colors.black),
+                    onPressed: () => Navigator.pop(context),
                   ),
                 ),
-                Center(
+                const Center(
                   child: Text(
                     "Predicție luptă",
-                    style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 28),
+                    style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 28),
                   ),
                 ),
+                const SizedBox(height: 20),
 
-                const SizedBox(height: 20,),
-                // ─── Card „Luptător 1” ─────────────────────────────────
+                // Card „Luptător 1”
                 Card(
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                      borderRadius: BorderRadius.circular(12)),
                   color: Colors.white,
                   elevation: 4,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 16.0, horizontal: 16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          "Luptător 1",
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: primaryRed,
-                          ),
-                        ),
+                        Text("Luptător 1",
+                            style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: primaryRed)),
                         const SizedBox(height: 12),
-                        _buildInputField("Rata de câștig (ex. 0.5)", "wrestler1_win_rate_last_50"),
-                        _buildInputField("Ani de experiență", "wrestler1_experience_years"),
-                        _buildInputField("Puncte tehnice câștigate", "wrestler1_technical_points_won_last_50"),
-                        _buildInputField("Puncte tehnice pierdute", "wrestler1_technical_points_lost_last_50"),
-                        _buildInputField("Victorii vs. Luptător 2", "wrestler1_wins_against_wrestler2"),
+                        _buildInputField("Rata de câștig (ex. 0.5)",
+                            "wrestler1_win_rate_last_50"),
+                        _buildInputField(
+                            "Ani de experiență", "wrestler1_experience_years"),
+                        _buildInputField("Puncte tehnice câștigate",
+                            "wrestler1_technical_points_won_last_50"),
+                        _buildInputField("Puncte tehnice pierdute",
+                            "wrestler1_technical_points_lost_last_50"),
+                        _buildInputField("Victorii vs. Luptător 2",
+                            "wrestler1_wins_against_wrestler2"),
                       ],
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 16),
 
-                // ─── Card „Luptător 2” ─────────────────────────────────
+                // Card „Luptător 2”
                 Card(
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                      borderRadius: BorderRadius.circular(12)),
                   color: Colors.white,
                   elevation: 4,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 16.0, horizontal: 16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          "Luptător 2",
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: primaryRed,
-                          ),
-                        ),
+                        Text("Luptător 2",
+                            style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: primaryRed)),
                         const SizedBox(height: 12),
-                        _buildInputField("Rata de câștig (ex. 0.5)", "wrestler2_win_rate_last_50"),
-                        _buildInputField("Ani de experiență", "wrestler2_experience_years"),
-                        _buildInputField("Puncte tehnice câștigate", "wrestler2_technical_points_won_last_50"),
-                        _buildInputField("Puncte tehnice pierdute", "wrestler2_technical_points_lost_last_50"),
-                        _buildInputField("Victorii vs. Luptător 1", "wrestler2_wins_against_wrestler1"),
+                        _buildInputField("Rata de câștig (ex. 0.5)",
+                            "wrestler2_win_rate_last_50"),
+                        _buildInputField(
+                            "Ani de experiență", "wrestler2_experience_years"),
+                        _buildInputField("Puncte tehnice câștigate",
+                            "wrestler2_technical_points_won_last_50"),
+                        _buildInputField("Puncte tehnice pierdute",
+                            "wrestler2_technical_points_lost_last_50"),
+                        _buildInputField("Victorii vs. Luptător 1",
+                            "wrestler2_wins_against_wrestler1"),
                       ],
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 24),
 
-                // ─── Butonul de predicție ───────────────────────────────
+                // Butonul de predicție
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -235,8 +240,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
                       backgroundColor: primaryRed,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                          borderRadius: BorderRadius.circular(12)),
                     ),
                     child: _loading
                         ? const SizedBox(
@@ -249,37 +253,37 @@ class _PredictionScreenState extends State<PredictionScreen> {
                     )
                         : const Text(
                       "Prezicere câștigătorul",
-                      style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 24),
 
-                // ─── Afișarea rezultatului ─────────────────────────────
+                // Afișarea rezultatului
                 if (_winner != null)
                   Card(
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                        borderRadius: BorderRadius.circular(12)),
                     color: Colors.white,
                     elevation: 4,
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 16.0),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 20.0, horizontal: 16.0),
                       child: Column(
                         children: [
-                          Text(
-                            "Rezultat Predicție",
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: primaryRed,
-                            ),
-                          ),
+                          Text("Rezultat Predicție",
+                              style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: primaryRed)),
                           const SizedBox(height: 12),
                           Text(
                             "Câștigător prezis: ${_winner == 'wrestler1' ? 'Luptător 1' : 'Luptător 2'}",
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                            style: const TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.w500),
                           ),
                           const SizedBox(height: 8),
                           Text(
@@ -290,6 +294,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
                       ),
                     ),
                   ),
+                const SizedBox(height: 16),
               ],
             ),
           ),

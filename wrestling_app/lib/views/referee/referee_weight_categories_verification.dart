@@ -50,7 +50,7 @@ class _RefereeWeightCategoriesVerification extends State<RefereeWeightCategories
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
       ),

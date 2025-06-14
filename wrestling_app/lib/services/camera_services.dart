@@ -61,11 +61,11 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                     ? Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("Informație scanată:", style: TextStyle(fontSize: 16)),
+                    const Text("Informație scanată:", style: TextStyle(fontSize: 14)),
                     const SizedBox(height: 5),
                     Text(
                       scannedData!,
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue),
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.blue),
                       textAlign: TextAlign.center, // Prevent text overflow
                     ),
                     const SizedBox(height: 10),

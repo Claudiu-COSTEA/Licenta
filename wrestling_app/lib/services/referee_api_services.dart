@@ -230,14 +230,11 @@ class RefereeServices {
         final decoded = json.decode(response.body);
         final rawBody = decoded['body'];
         final body = rawBody is String ? json.decode(rawBody) : rawBody;
-        print("AAAAAAAAAAAAAAAA");
-        print(body);
         if (body is Map<String, dynamic> && body.containsKey('inserted_fights')) {
           final count = body['inserted_fights'] as int;
-          ToastHelper.succes('Au fost generate $count lupte.');
           return count;
         }
-        ToastHelper.eroare('Răspuns neașteptat de la server.');
+
         return 0;
       } else if (response.statusCode == 404) {
         final decoded = json.decode(response.body);
@@ -249,7 +246,7 @@ class RefereeServices {
         ToastHelper.eroare(message);
         return 0;
       } else {
-        ToastHelper.eroare('Eroare server: HTTP ${response.statusCode}');
+        ToastHelper.eroare('Nu s-a putut genera luptele.');
         return 0;
       }
     } catch (e) {
@@ -315,21 +312,12 @@ class RefereeServices {
               decoded['body'] as Map<String, dynamic>
           );
         } else {
-          if (kDebugMode) {
-            print('Unexpected response format: ${response.body}');
-          }
           return null;
         }
       } else {
-        if (kDebugMode) {
-          print('Error fetching details: ${response.statusCode} ${response.body}');
-        }
         return null;
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Exception fetching wrestler details: $e');
-      }
       return null;
     }
   }
@@ -381,7 +369,7 @@ class RefereeServices {
         final payload = rawBody is String ? json.decode(rawBody) : rawBody;
 
         if (payload is Map<String, dynamic> && payload.containsKey("message")) {
-          ToastHelper.succes(payload["message"]);
+          ToastHelper.succes("Rezultatul a fost trimis cu succes.");
         } else {
           // fallback generic
           ToastHelper.succes("Rezultatul a fost trimis cu succes.");

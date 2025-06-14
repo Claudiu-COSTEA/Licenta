@@ -48,7 +48,7 @@ class _WrestlerCompetitionManageScreen extends State<WrestlerCompetitionManageSc
     final deadlineFormatted = _formatDateTime(deadlineRaw);
 
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 1,

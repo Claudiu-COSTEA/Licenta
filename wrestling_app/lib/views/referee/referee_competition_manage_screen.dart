@@ -63,8 +63,8 @@ class _RefereeCompetitionManageScreenState
 
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
+      appBar:  AppBar(
+        backgroundColor: Colors.white,
         elevation: 1,
         centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.black),

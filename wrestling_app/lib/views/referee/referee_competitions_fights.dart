@@ -205,9 +205,7 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
               ElevatedButton(
                 onPressed: () {
                   if (_selectedWinner == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Selectează câștigător!")),
-                    );
+                    ToastHelper.eroare("Selectează câștigător !");
                     return;
                   }
                   _onAdvance();
@@ -298,17 +296,22 @@ class EndOfFightsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final services = RefereeServices();
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Runde finalizate"),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 1,
-      ),
+
       body: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(12.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
+            const SizedBox(height: 30),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back,
+                    size: 28, color: Colors.black),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+            const SizedBox(height: 250,),
             const Text(
               "Ai finalizat toate luptele din rundă!",
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -345,6 +348,10 @@ class EndOfFightsScreen extends StatelessWidget {
                     ),
                   );
                 }
+                else
+                  {
+                    ToastHelper.succes('Nu mai există lupte !');
+                  }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,

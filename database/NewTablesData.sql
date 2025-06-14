@@ -50,6 +50,8 @@ VALUES
 (37,'daniel.tudor@example.ro'       ,'Daniel Tudor'        ,'Referee',NULL),
 (38,'bogdan.pavel@example.ro'       ,'Bogdan Pavel'        ,'Referee',NULL),
 (39,'claudiu.pop@example.ro'        ,'Claudiu Pop'         ,'Referee',NULL),
+(38,'paul.stoia@example.ro'       ,'Bogdan Pavel'        ,'Referee',NULL),
+(39,'claudiu.pop@example.ro'        ,'Claudiu Pop'         ,'Referee',NULL),
 
 /* 40  Admin */
 (40,'admin@frl.ro'                  ,'Admin FRL'           ,'Admin',NULL);

@@ -7,3 +7,5 @@ COPY my_model.h5 ./
 COPY scaler.pkl ./
 
 CMD ["lambda_function.lambda_handler"]
+
+
