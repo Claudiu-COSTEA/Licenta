@@ -134,6 +134,7 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Scaffold(
@@ -153,26 +154,22 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            bottom: MediaQuery.of(context).padding.bottom + 16,
-          ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           child: Column(
             children: [
               // Header row
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _infoBox("Ordine: ${fight.competitionFightOrderNumber}"),
+                  _infoBox("Nr. ${fight.competitionFightOrderNumber}"),
                   _infoBox(fight.competitionRound),
                   _infoBox(fight.wrestlingStyle),
                   _infoBox("${fight.competitionFightWeightCategory} Kg"),
                 ],
               ),
               const SizedBox(height: 16),
-              // Main fight UI — aici am înlocuit Expanded cu un SizedBox pentru a nu crește prea mult
+              // Main fight UI
               SizedBox(
                 height: 200,
                 child: Row(
@@ -184,7 +181,6 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
               // Winner selector
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -193,19 +189,48 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
                     "Câștigător:",
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
+                  const SizedBox(width: 16),
+                  ChoiceChip(
+                    label: const Text("Roșu"),
+                    selected: _selectedWinner == 'red',
+                    selectedColor: Colors.red.shade300,
+                    backgroundColor: Colors.white,
+                    shape: StadiumBorder(
+                      side: BorderSide(color: Colors.red, width: 3),
+                    ),
+                    onSelected: (selected) {
+                      setState(() {
+                        _selectedWinner = selected ? 'red' : null;
+                      });
+                    },
+                    labelStyle: TextStyle(
+                      color: _selectedWinner == 'red' ? Colors.white : Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   const SizedBox(width: 12),
-                  DropdownButton<String>(
-                    hint: const Text("Selectează"),
-                    value: _selectedWinner,
-                    items: const [
-                      DropdownMenuItem(value: "red", child: Text("Roșu")),
-                      DropdownMenuItem(value: "blue", child: Text("Albastru")),
-                    ],
-                    onChanged: (v) => setState(() => _selectedWinner = v),
+                  ChoiceChip(
+                    label: const Text("Albastru"),
+                    selected: _selectedWinner == 'blue',
+                    selectedColor: Colors.blue.shade300,
+                    backgroundColor: Colors.white,
+                    shape: StadiumBorder(
+                      side: BorderSide(color: Colors.blue, width: 3),
+                    ),
+                    onSelected: (selected) {
+                      setState(() {
+                        _selectedWinner = selected ? 'blue' : null;
+                      });
+                    },
+                    labelStyle: TextStyle(
+                      color: _selectedWinner == 'blue' ? Colors.white : Colors.blue,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+
+              const SizedBox(height: 6,),
               // Advance button
               ElevatedButton(
                 onPressed: () {
@@ -224,7 +249,6 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
                   style: const TextStyle(color: Colors.white, fontSize: 18),
                 ),
               ),
-              const SizedBox(height: 16),
             ],
           ),
         ),
@@ -236,7 +260,7 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
     padding: const EdgeInsets.all(10),
     decoration: BoxDecoration(
       color: Colors.white,
-      border: Border.all(color: const Color(0xFFB4182D), width: 2),
+      border: Border.all(color: const Color(0xFFB4182D), width: 3),
       borderRadius: BorderRadius.circular(10),
     ),
     child: Text(txt,
@@ -244,14 +268,22 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
   );
 
   Widget _wrestlerBox(String label, CompetitionFight f, bool isRed) {
-    final name = isRed ? f.wrestlerNameRed : f.wrestlerNameBlue;
-    final coach = isRed ? f.coachNameRed : f.coachNameBlue;
-    final club = isRed ? f.clubNameRed : f.clubNameBlue;
+    final name  = isRed ? f.wrestlerNameRed  : f.wrestlerNameBlue;
+    final coach = isRed ? f.coachNameRed     : f.coachNameBlue;
+    final club  = isRed ? f.clubNameRed      : f.clubNameBlue;
+
+    // definește culorile o dată, ca să nu repeți codul
+    const redBorder   = Colors.red;
+    const blueBorder  = Colors.blue;
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: const Color(0xFFB4182D), width: 2),
+        border: Border.all(
+          color: isRed ? redBorder : blueBorder,
+          width: 6,
+        ),
         borderRadius: BorderRadius.circular(10),
       ),
       constraints: const BoxConstraints(minWidth: 150, maxWidth: 250),
@@ -260,18 +292,19 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
         children: [
           Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 6),
-          Text("Luptător: ${name ?? '—'}", textAlign: TextAlign.center),
-          Text("Antrenor: ${coach ?? '—'}", textAlign: TextAlign.center),
-          Text("Club: ${club ?? '—'}", textAlign: TextAlign.center),
+          Text("Luptător: ${name ?? '—'}", textAlign: TextAlign.center, style: TextStyle(fontSize: 16),),
+          Text("Antrenor: ${coach ?? '—'}", textAlign: TextAlign.center, style: TextStyle(fontSize: 16)),
+          Text("Club: ${club ?? '—'}", textAlign: TextAlign.center, style: TextStyle(fontSize: 16)),
         ],
       ),
     );
   }
 
+
   Widget _pointsColumn() => Row(
     children: [
       _pointControl(_wrestler1Points, (v) => setState(() => _wrestler1Points = v)),
-      const SizedBox(width: 100),
+      const SizedBox(width: 25),
       _pointControl(_wrestler2Points, (v) => setState(() => _wrestler2Points = v)),
     ],
   );
@@ -279,13 +312,13 @@ class _RefereeFightDashboardState extends State<RefereeFightDashboard> {
   Widget _pointControl(int pts, void Function(int) onChanged) => Row(
     children: [
       IconButton(
-        icon: const Icon(Icons.remove_circle, color: Colors.red),
+        icon: const Icon(Icons.remove_circle, color: Colors.red, size: 25,),
         onPressed: () => onChanged(pts > 0 ? pts - 1 : 0),
       ),
       Text(pts.toString(),
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold)),
       IconButton(
-        icon: const Icon(Icons.add_circle, color: Colors.green),
+        icon: const Icon(Icons.add_circle, color: Colors.green, size: 25,),
         onPressed: () => onChanged(pts + 1),
       ),
     ],
@@ -305,64 +338,68 @@ class EndOfFightsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final services = RefereeServices();
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            const SizedBox(height: 30),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back, size: 28, color: Colors.black),
-                onPressed: () => Navigator.pop(context),
-              ),
+      body: SingleChildScrollView(
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                const SizedBox(height: 30),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back, size: 28, color: Colors.black),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ),
+                const SizedBox(height: 250),
+                const Text(
+                  "Ai finalizat toate luptele din rundă!",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFB4182D),
+                    minimumSize: const Size.fromHeight(50),
+                  ),
+                  child: const Text("Finalizează turneu",
+                      style: TextStyle(fontSize: 18, color: Colors.white)),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () async {
+                    final count = await services.postFights(
+                      competitionUUID: competitionUUID,
+                      wrestlingStyle: wrestlingStyle,
+                    );
+                    if (count > 0) {
+                      ToastHelper.succes("Au fost generate $count lupte noi");
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (_) => RefereeFightDashboard(
+                            competitionUUID: competitionUUID,
+                            wrestlingStyle: wrestlingStyle,
+                          ),
+                        ),
+                      );
+                    } else {
+                      ToastHelper.succes('Nu mai există lupte !');
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    minimumSize: const Size.fromHeight(50),
+                  ),
+                  child: const Text("Runda următoare",
+                      style: TextStyle(fontSize: 18, color: Colors.white)),
+                ),
+              ],
             ),
-            const SizedBox(height: 250),
-            const Text(
-              "Ai finalizat toate luptele din rundă!",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFB4182D),
-                minimumSize: const Size.fromHeight(50),
-              ),
-              child: const Text("Finalizează turneu",
-                  style: TextStyle(fontSize: 18, color: Colors.white)),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () async {
-                final count = await services.postFights(
-                  competitionUUID: competitionUUID,
-                  wrestlingStyle: wrestlingStyle,
-                );
-                if (count > 0) {
-                  ToastHelper.succes("Au fost generate $count lupte noi");
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                      builder: (_) => RefereeFightDashboard(
-                        competitionUUID: competitionUUID,
-                        wrestlingStyle: wrestlingStyle,
-                      ),
-                    ),
-                  );
-                } else {
-                  ToastHelper.succes('Nu mai există lupte !');
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                minimumSize: const Size.fromHeight(50),
-              ),
-              child: const Text("Runda următoare",
-                  style: TextStyle(fontSize: 18, color: Colors.white)),
-            ),
-          ],
+          ),
         ),
       ),
     );

@@ -347,7 +347,7 @@ class RefereeServices {
         context: context,
         barrierDismissible: false,
         builder: (_) => const Center(
-          child: CircularProgressIndicator(),
+          child: CircularProgressIndicator(color: Color(0xFFB4182D),),
         ),
       );
 
