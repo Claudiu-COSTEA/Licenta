@@ -19,6 +19,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
   List<_PlaceSuggestion> _suggestions = [];
 
   // ======== GOOGLE PLACES AUTOCOMPLETE =============
+
   Future<void> _search(String input) async {
     if (input.length < 3) {
       setState(() => _suggestions = []);
@@ -52,6 +53,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
   }
 
   // ======== PLACE DETAILS (lat/lng) =============
+
   Future<void> _selectSuggestion(_PlaceSuggestion s) async {
     // 1) populate the search field
     _searchCtrl.text = s.desc;
@@ -90,6 +92,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
       appBar: _buildRedAppBar(context),
       body: Stack(
         children: [
+
           GoogleMap(
             initialCameraPosition: const CameraPosition(
               target: LatLng(44.4268, 26.1025),
@@ -101,6 +104,8 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
                 ? {}
                 : {Marker(markerId: const MarkerId('sel'), position: _picked!)},
           ),
+
+
           if (_suggestions.isNotEmpty) _buildOverlaySuggestions(),
         ],
       ),

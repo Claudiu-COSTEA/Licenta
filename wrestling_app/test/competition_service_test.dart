@@ -39,7 +39,7 @@ void main() {
       )).thenAnswer((_) async => http.Response(responseBody, 200));
 
       final result = await adminServices.addCompetition(
-        name: 'Demo',
+        name: 'C.N.I. Senori 2025',
         startDate: '2025-06-01 10:00:00',
         endDate: '2025-06-02 18:00:00',
         location: 'Cluj',

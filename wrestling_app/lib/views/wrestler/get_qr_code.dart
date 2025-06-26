@@ -34,7 +34,7 @@ class QRCodeScreen extends StatelessWidget {
     }
   }
 
-  /// Încearcă să deschidă URL-ul în browser/external app
+
   Future<void> _launchDocument(BuildContext context) async {
     final uri = Uri.tryParse(url);
     if (uri == null) {

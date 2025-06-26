@@ -173,9 +173,6 @@ class AdminServices {
           final String? token = await _notifications.getUserFCMToken(recipientUUID);
           if (token != null) await _notifications.sendFCMMessage(token);
 
-          print("WWWWWWWWWWWWWWOWWWWWWWWWWWWW");
-          print("Trimis !");
-          print(token);
         } catch (_) {
           // swallow notification errors in service layer
         }
@@ -305,6 +302,7 @@ class AdminServices {
   }) async {
     try {
       // 1) Alegerea fișierului PDF
+
       final picked = await _pickPdf();
       if (picked == null) {
         ToastHelper.eroare('Operațiune anulată');
@@ -312,10 +310,11 @@ class AdminServices {
       }
 
       // 2) Extragem UUID-ul din numele fișierului (prefix „11_…”)
+
       final fileName = picked.name; // ex: "11_Alex_Popescu.pdf"
       final parts = fileName.split('_');
       if (parts.isEmpty) {
-        ToastHelper.eroare('Numele fișierului trebuie să înceapă cu UUID-ul sportivului');
+        ToastHelper.eroare('Denumirea documentului incorectă !');
         return;
       }
       final uuid = int.tryParse(parts[0]);
@@ -325,12 +324,12 @@ class AdminServices {
       }
 
       // 3) Construim URI-ul pentru upload în S3
+      // 4) Citim bytes și facem PUT către S3
+
       final uploadUri = Uri.https(
         'wrestlingdocumentsbucket.s3.us-east-1.amazonaws.com',
         '/$folder/${Uri.encodeComponent(fileName)}',
       );
-
-      // 4) Citim bytes și facem PUT către S3
       final bytes = await _readBytes(picked.path!);
       final uploadRes = await _client.put(
         uploadUri,
