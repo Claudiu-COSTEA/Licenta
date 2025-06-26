@@ -2,19 +2,26 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/user_model.dart';
+import 'package:wrestling_app/services/constants.dart';
 
 class UserService {
-  final String _baseUrl = "https://rhybb6zgsb.execute-api.us-east-1.amazonaws.com/wrestling/getUser";
+  final String _url = AppConstants.baseUrl + "getUserByEmail";
 
   Future<UserModel?> fetchUserByEmail(String email) async {
     try {
-      final response = await http.get(Uri.parse("$_baseUrl?email=$email"));
+      final response = await http.get(Uri.parse("$_url?email=$email"));
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = json.decode(response.body);
 
-        if (responseData.containsKey("body")) {
-          final userData = responseData["body"];
+        if (responseData.containsKey("body") &&
+            responseData["body"] is Map<String, dynamic>) {
+          final userData = responseData["body"] as Map<String, dynamic>;
+
+          // Ensure wrestling_style is a String (empty if null)
+          userData['wrestling_style'] =
+              (userData['wrestling_style'] as String?) ?? '';
+
           return UserModel.fromJson(userData);
         } else {
           if (kDebugMode) {
@@ -24,7 +31,8 @@ class UserService {
         }
       } else {
         if (kDebugMode) {
-          print("Error fetching user: ${response.statusCode}, ${response.body}");
+          print(
+              "Error fetching user: ${response.statusCode}, ${response.body}");
         }
         return null;
       }

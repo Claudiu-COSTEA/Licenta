@@ -1,88 +1,65 @@
-class Fight {
-  final int fightUUID;
-  final int competitionUUID;
-  final String fightRound;
-  final String fightNumber;
+class CompetitionFight {
+  final int competitionUUID;                // Nou
+  final int competitionFightUUID;
+  final int competitionFightOrderNumber;
+  final String competitionRound;
   final String wrestlingStyle;
-  final String weightCategory;
+  final String competitionFightWeightCategory;
+  final int refereeUUID1, refereeUUID2, refereeUUID3;
+  final int wrestlingClubUUIDRed, wrestlingClubUUIDBlue;
+  final int coachUUIDRed, coachUUIDBlue;
+  final int wrestlerUUIDRed, wrestlerUUIDBlue;
+  final int wrestlerPointsRed, wrestlerPointsBlue;
 
-  final int wrestlerUUIDRed;
-  final String wrestlerNameRed;
-  final String coachNameRed;
-  final String clubNameRed;
-  int pointsRed;
+  // Câmpuri opționale pentru nume
+  String? wrestlerNameRed, coachNameRed, clubNameRed;
+  String? wrestlerNameBlue, coachNameBlue, clubNameBlue;
 
-  final int wrestlerUUIDBlue;
-  final String wrestlerNameBlue;
-  final String coachNameBlue;
-  final String clubNameBlue;
-  int pointsBlue;
-
-  int? winnerUUID; // Nullable: Set when the match has a winner
-
-  Fight({
-    required this.fightUUID,
-    required this.competitionUUID,
-    required this.fightRound,
-    required this.fightNumber,
+  CompetitionFight({
+    required this.competitionUUID,                // Nou
+    required this.competitionFightUUID,
+    required this.competitionFightOrderNumber,
+    required this.competitionRound,
     required this.wrestlingStyle,
-    required this.weightCategory,
+    required this.competitionFightWeightCategory,
+    required this.refereeUUID1,
+    required this.refereeUUID2,
+    required this.refereeUUID3,
+    required this.wrestlingClubUUIDRed,
+    required this.wrestlingClubUUIDBlue,
+    required this.coachUUIDRed,
+    required this.coachUUIDBlue,
     required this.wrestlerUUIDRed,
-    required this.wrestlerNameRed,
-    required this.coachNameRed,
-    required this.clubNameRed,
-    this.pointsRed = 0,
     required this.wrestlerUUIDBlue,
-    required this.wrestlerNameBlue,
-    required this.coachNameBlue,
-    required this.clubNameBlue,
-    this.pointsBlue = 0,
-    this.winnerUUID, // Initially null
+    required this.wrestlerPointsRed,
+    required this.wrestlerPointsBlue,
+    this.wrestlerNameRed,
+    this.coachNameRed,
+    this.clubNameRed,
+    this.wrestlerNameBlue,
+    this.coachNameBlue,
+    this.clubNameBlue,
   });
 
-  // Factory constructor to create a Fight from JSON
-  factory Fight.fromJson(Map<String, dynamic> json) {
-    return Fight(
-      fightUUID: json['fightUUID'],
-      competitionUUID: json['competitionUUID'],
-      fightRound: json['fightRound'],
-      fightNumber: json['competition_fight_order_number'],
-      wrestlingStyle: json['wrestlingStyle'],
-      weightCategory: json['weightCategory'],
-      wrestlerUUIDRed: json['wrestlerUUIDRed'],
-      wrestlerNameRed: json['wrestlerNameRed'],
-      coachNameRed: json['coachNameRed'],
-      clubNameRed: json['clubNameRed'],
-      pointsRed: json['pointsRed'] ?? 0,
-      wrestlerUUIDBlue: json['wrestlerUUIDBlue'],
-      wrestlerNameBlue: json['wrestlerNameBlue'],
-      coachNameBlue: json['coachNameBlue'],
-      clubNameBlue: json['clubNameBlue'],
-      pointsBlue: json['pointsBlue'] ?? 0,
-      winnerUUID: json['winnerUUID'],
+  factory CompetitionFight.fromJson(Map<String, dynamic> json) {
+    return CompetitionFight(
+      competitionUUID: json['competition_UUID'] as int,               // Nou
+      competitionFightUUID: json['competition_fight_UUID'] as int,
+      competitionFightOrderNumber: json['competition_fight_order_number'] as int,
+      competitionRound: json['competition_round'] as String,
+      wrestlingStyle: json['wrestling_style'] as String,
+      competitionFightWeightCategory: json['competition_fight_weight_category'] as String,
+      refereeUUID1: json['referee_UUID_1'] as int,
+      refereeUUID2: json['referee_UUID_2'] as int,
+      refereeUUID3: json['referee_UUID_3'] as int,
+      wrestlingClubUUIDRed: json['wrestling_club_UUID_red'] as int,
+      wrestlingClubUUIDBlue: json['wrestling_club_UUID_blue'] as int,
+      coachUUIDRed: json['coach_UUID_red'] as int,
+      coachUUIDBlue: json['coach_UUID_blue'] as int,
+      wrestlerUUIDRed: json['wrestler_UUID_red'] as int,
+      wrestlerUUIDBlue: json['wrestler_UUID_blue'] as int,
+      wrestlerPointsRed: json['wrestler_points_red'] as int,
+      wrestlerPointsBlue: json['wrestler_points_blue'] as int,
     );
-  }
-
-  // Convert Fight instance to JSON
-  Map<String, dynamic> toJson() {
-    return {
-      'fightUUID': fightUUID,
-      'competitionUUID': competitionUUID,
-      'fightRound': fightRound,
-      'fightNumber': fightNumber,
-      'wrestlingStyle': wrestlingStyle,
-      'weightCategory': weightCategory,
-      'wrestlerUUIDRed': wrestlerUUIDRed,
-      'wrestlerNameRed': wrestlerNameRed,
-      'coachNameRed': coachNameRed,
-      'clubNameRed': clubNameRed,
-      'pointsRed': pointsRed,
-      'wrestlerUUIDBlue': wrestlerUUIDBlue,
-      'wrestlerNameBlue': wrestlerNameBlue,
-      'coachNameBlue': coachNameBlue,
-      'clubNameBlue': clubNameBlue,
-      'pointsBlue': pointsBlue,
-      'winnerUUID': winnerUUID,
-    };
   }
 }

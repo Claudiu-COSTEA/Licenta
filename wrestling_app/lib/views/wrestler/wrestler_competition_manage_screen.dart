@@ -1,206 +1,301 @@
 import 'package:flutter/material.dart';
-import 'package:wrestling_app/models/wrestler_documents_model.dart';
+import 'package:intl/intl.dart';
 import 'package:wrestling_app/services/wrestler_apis_services.dart';
-
 import 'package:wrestling_app/services/google_maps_lunch.dart';
-
-import 'get_qr_code.dart';
-
 
 class WrestlerCompetitionManageScreen extends StatefulWidget {
   final Map<String, dynamic> competitionInvitation;
   final int userUUID;
 
-  const WrestlerCompetitionManageScreen({required this.competitionInvitation, super.key, required this.userUUID});
+  const WrestlerCompetitionManageScreen({
+    required this.competitionInvitation,
+    super.key,
+    required this.userUUID,
+  });
 
   @override
-  State<WrestlerCompetitionManageScreen> createState() => _WrestlerCompetitionManageScreen();
+  State<WrestlerCompetitionManageScreen> createState() =>
+      _WrestlerCompetitionManageScreen();
 }
 
 class _WrestlerCompetitionManageScreen extends State<WrestlerCompetitionManageScreen> {
-
   final WrestlerService _wrestlerService = WrestlerService();
   final bool _isLoading = false;
+  static const Color primary = Color(0xFFB4182D);
+
+  String _formatDateTime(String raw) {
+    try {
+      final dt = DateTime.parse(raw);
+      return DateFormat('dd.MM.yyyy HH:mm').format(dt);
+    } catch (_) {
+      return raw;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final invitation = widget.competitionInvitation;
 
+    final compName = invitation['competition_name'] ?? "Competiție necunoscută";
+    final startRaw = invitation['competition_start_date'] as String? ?? "";
+    final endRaw = invitation['competition_end_date'] as String? ?? "";
+    final deadlineRaw = invitation['invitation_deadline'] as String? ?? "";
+    final weightCat = invitation['weight_category'] ?? "-";
+    final location = invitation['competition_location'] ?? "";
+
+    final startFormatted = _formatDateTime(startRaw);
+    final endFormatted = _formatDateTime(endRaw);
+    final deadlineFormatted = _formatDateTime(deadlineRaw);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 0,
+        elevation: 1,
         centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.black),
+        title: const Text(
+          "Detalii invitație",
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
         child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? const Center(
+          child: CircularProgressIndicator(color: primary),
+        )
             : Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(height: 70),
+            const SizedBox(height: 16),
 
-            // Competition Name
-            Center(
-              child: Text(
-                invitation['competition_name'] ?? "Unknown Competition",
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
+            // Competition Name Card
+            Card(
+              elevation: 5,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              color: Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 8),
+                    Text(
+                      compName,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
-                textAlign: TextAlign.center,
               ),
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 60),
 
-            // Competition Period
-            _buildInfoBox(
-              child: Text(
-                "Perioada : ${invitation['competition_start_date']} - ${invitation['competition_end_date']}",
-                style: const TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.bold),
+            // Competition Period Card
+            Card(
+              color: Colors.white,
+              elevation: 3,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: primary,
+                  child: const Icon(Icons.calendar_today, color: Colors.white, size: 20),
+                ),
+                title: Text(
+                  "Perioada",
+                  style: TextStyle(
+                    color: primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: 4.0),
+                  child: Text(
+                    "$startFormatted  –  $endFormatted",
+                    style: const TextStyle(fontSize: 15),
+                  ),
+                ),
               ),
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 12),
 
-            // Invitation Deadline
-            _buildInfoBox(
-              child: Text(
-                "Data limita : ${invitation['invitation_deadline']}",
-                style: const TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.bold),
+            // Invitation Deadline Card
+            Card(
+              color: Colors.white,
+              elevation: 3,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: primary,
+                  child: const Icon(Icons.hourglass_bottom, color: Colors.white, size: 20),
+                ),
+                title: Text(
+                  "Data limită de răspuns",
+                  style: TextStyle(
+                    color: primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: 4.0),
+                  child: Text(
+                    deadlineFormatted,
+                    style: const TextStyle(fontSize: 15),
+                  ),
+                ),
               ),
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 12),
 
-            // Invitation Deadline
-            _buildInfoBox(
-              child: Text(
-                "Categoria de greutate : ${invitation['weight_category']} Kg",
-                style: const TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.bold),
+            // Weight Category Card
+            Card(
+              color: Colors.white,
+              elevation: 3,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: primary,
+                  child: const Icon(Icons.fitness_center, color: Colors.white, size: 20),
+                ),
+                title: Text(
+                  "Categoriea de greutate",
+                  style: TextStyle(
+                    color: primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: 4.0),
+                  child: Text(
+                    '$weightCat' + ' Kg',
+                    style: const TextStyle(fontSize: 15),
+                  ),
+                ),
               ),
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 12),
 
-            // Location Button
-            ElevatedButton.icon(
-              onPressed: () {
-                openGoogleMaps(invitation['competition_location']);
-              },
-              icon: const Icon(Icons.location_on, color: Colors.white),
-              label: const Text(
-                "Vizualizare locatie",
-                style: TextStyle(color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold),
+            // Location Card
+            Card(
+              color: Colors.white,
+              elevation: 3,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFB4182D),
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 12),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
+              child: ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: primary,
+                  child: const Icon(Icons.place, color: Colors.white, size: 20),
+                ),
+                title: Text(
+                  "Locație competiție",
+                  style: TextStyle(
+                    color: primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                trailing: IconButton(
+                  icon: Icon(Icons.map, color: primary),
+                  onPressed: () {
+                    openGoogleMaps(context, location);
+                  },
+                ),
               ),
             ),
-
-            const SizedBox(height: 100),
 
             if (invitation['invitation_status'] == "Pending")
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                // Ensures spacing between buttons
                 children: [
-                  Expanded( // Ensures buttons take equal width
-                    child: _buildActionButton("Accepta", () {
-                      _wrestlerService.updateWrestlerInvitationStatus(
-                        context: context,
-                        competitionUUID: invitation['competition_UUID'],
-                        recipientUUID: widget.userUUID,
-                        recipientRole: invitation['recipient_role'],
-                        invitationStatus: 'Accepted',
-                      );
-                    }),
-                  ),
-                  const SizedBox(width: 10), // Spacing between buttons
+                  const SizedBox(height: 200),
                   Expanded(
-                    child: _buildActionButton("Refuza", () {
-                      _wrestlerService.updateWrestlerInvitationStatus(
-                        context: context,
-                        competitionUUID: invitation['competition_UUID'],
-                        recipientUUID: widget.userUUID,
-                        recipientRole: invitation['recipient_role'],
-                        invitationStatus: 'Declined',
-                      );
-                    }),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        _wrestlerService.updateInvitationStatus(
+                          context: context,
+                          competitionUUID: invitation['competition_UUID'],
+                          recipientUUID: widget.userUUID,
+                          recipientRole: invitation['recipient_role'],
+                          invitationStatus: 'Confirmed',
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primary,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text(
+                        "Acceptă",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 32),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        _wrestlerService.updateInvitationStatus(
+                          context: context,
+                          competitionUUID: invitation['competition_UUID'],
+                          recipientUUID: widget.userUUID,
+                          recipientRole: invitation['recipient_role'],
+                          invitationStatus: 'Declined',
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primary,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text(
+                        "Refuză",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
+              )
+            else
+              Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image.asset(
+                      'assets/images/wrestling_logo.png',
+                      height: 250,
+                    ),
+                  ],
+                ),
               ),
 
-            if (invitation['invitation_status'] == "Accepted") ...[
-              const SizedBox(height: 20),
-              _buildActionButton("Documente medicale", () async {
-                WrestlerDocuments? documentsUrls = await _wrestlerService.fetchWrestlerUrls(widget.userUUID);
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                    builder: (context) => QRCodeScreen(url: documentsUrls?.medicalDocument))
-                );
-              }),
-              const SizedBox(height: 10),
-              _buildActionButton("Documente sportive", () async {
-                WrestlerDocuments? documentsUrls = await _wrestlerService.fetchWrestlerUrls(widget.userUUID);
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => QRCodeScreen(url: documentsUrls?.licenseDocument))
-                );
-              }),
-            ],
-
           ],
-        ),
-      ),
-    );
-  }
-
-  // Box Wrapper for Information Sections
-  Widget _buildInfoBox({required Widget child}) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: const Color(0xFFB4182D), width: 2),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Center(child: child),
-    );
-  }
-
-  // Button for Actions
-  Widget _buildActionButton(String text, VoidCallback onPressed) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFB4182D),
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10)),
-        ),
-        child: Text(
-          text,
-          style: const TextStyle(
-              color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
         ),
       ),
     );

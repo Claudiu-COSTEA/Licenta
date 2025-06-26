@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class AppConstants {
   // ✅ API URLs
-  static const String baseUrl = "https://rhybb6zgsb.execute-api.us-east-1.amazonaws.com/wrestling/";
+  static const String baseUrl = "https://b0i2d55s30.execute-api.us-east-1.amazonaws.com/wrestling/";
 
 
   // ✅ UI Colors

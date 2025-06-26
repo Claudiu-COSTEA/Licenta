@@ -2,13 +2,14 @@ class WrestlerVerification {
   final int wrestlerUUID;
   final String wrestlerName;
   final String wrestlingStyle;
-  final int weightCategory;
+  final String weightCategory;
   final int coachUUID;
   final String coachName;
   final int wrestlingClubUUID;
   final String wrestlingClubName;
   final int competitionUUID;
   final String competitionName;
+  final String invitationStatus;
   final String? refereeVerification;
 
   WrestlerVerification({
@@ -22,6 +23,7 @@ class WrestlerVerification {
     required this.wrestlingClubName,
     required this.competitionUUID,
     required this.competitionName,
+    required this.invitationStatus,
     this.refereeVerification,
   });
 
@@ -31,13 +33,14 @@ class WrestlerVerification {
       wrestlerUUID: json['wrestler_UUID'],
       wrestlerName: json['wrestler_name'],
       wrestlingStyle: json['wrestling_style'],
-      weightCategory: int.tryParse(json['weight_category'].toString()) ?? 0,
+      weightCategory: json['weight_category'],
       coachUUID: json['coach_UUID'],
       coachName: json['coach_name'],
       wrestlingClubUUID: json['wrestling_club_UUID'],
       wrestlingClubName: json['wrestling_club_name'],
       competitionUUID: json['competition_UUID'],
       competitionName: json['competition_name'],
+      invitationStatus: json['invitation_status'],
       refereeVerification: json['referee_verification'],
     );
   }

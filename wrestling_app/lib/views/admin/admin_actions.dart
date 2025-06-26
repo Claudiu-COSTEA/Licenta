@@ -1,72 +1,107 @@
 import 'package:flutter/material.dart';
-import 'package:wrestling_app/views/admin/send_invitation_screen.dart';
+import 'package:wrestling_app/services/auth_service.dart';
+import 'package:wrestling_app/services/admin_apis_services.dart';
 
-import '../../services/auth_service.dart';
 import 'add_competition_screen.dart';
+import 'competitions_list_screen.dart';
+import 'send_invitation_screen.dart';
+import 'prediction_screen.dart';
+import 'generate_pdf_screen.dart';
 
 class AdminActions extends StatelessWidget {
+  AdminActions({super.key});
 
-  final AuthService _authService = AuthService();
+  final _auth  = AuthService();
+  final _admin = AdminServices();
 
-   AdminActions({super.key});
+  // ——— cele 7 definiții scurte ———
+  List<_Action> get _items => [
+    _Action('Adaugă\ncompetiție',     Icons.add,            (ctx) => Navigator.push(ctx, MaterialPageRoute(builder: (_) => AddCompetitionScreen()))),
+    _Action('Evidență\ncompetiții',   Icons.list_alt,       (ctx) => Navigator.push(ctx, MaterialPageRoute(builder: (_) => CompetitionsListScreen()))),
+    _Action('Trimite\ninvitație',     Icons.send,           (ctx) => Navigator.push(ctx, MaterialPageRoute(builder: (_) => SendInvitationScreen()))),
+    _Action('Predicție',              Icons.analytics,      (ctx) => Navigator.push(ctx, MaterialPageRoute(builder: (_) => PredictionScreen()))),
+    _Action('Licență\nPDF',           Icons.file_upload,    (_)  => _admin.pickAndUploadLicensePdf()),
+    _Action('Medical\nPDF',           Icons.local_hospital, (_)  => _admin.pickAndUploadMedicalPdf()),
+    _Action('Generare\nPDF',          Icons.picture_as_pdf, (ctx) => Navigator.push(ctx, MaterialPageRoute(builder: (_) => GeneratePdfScreen()))),
+  ];
+
+  static const _primary = Color(0xFFB4182D);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Center(
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.black),
+            onPressed: () => _auth.signOut(context),
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
-                  const SizedBox(width: 275),
-                  Align(
-                    alignment: Alignment.topRight,
-                    child: IconButton(
-                      icon: const Icon(Icons.logout, color: Colors.black),
-                      onPressed: () => _authService.signOut(context),
-                    ),
-                  ),
-
-
-              const SizedBox(height: 200),
-          
-              ElevatedButton(
-                onPressed: (){
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => AddCompetitionScreen()),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFB4182D),
-                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 50),
-                ),
+              // ─── Titlul de deasupra gridului ───
+              Center(
                 child: const Text(
-                  "Adauga competitie",
-                  style: TextStyle(color: Colors.white, fontSize: 18),
+                  'Listă acțiuni administrator',
+                  style: TextStyle(
+                    fontSize: 27,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
                 ),
               ),
-
-              const SizedBox(height: 10),
-
-              ElevatedButton(
-                onPressed: (){
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => SendInvitationScreen()),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFB4182D),
-                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 50),
-                ),
-                child: const Text(
-                  "Trimite invitatie club de lupte",
-                  style: TextStyle(color: Colors.white, fontSize: 18),
+        
+              const SizedBox(height: 20),
+              // ─── Grid-ul cu carduri ───
+              Expanded(
+                child: GridView.count(
+                  crossAxisCount: 2, // 2 coloane
+                  physics: const NeverScrollableScrollPhysics(),
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  childAspectRatio: 1.15,
+                  children: _items.map((a) {
+                    return GestureDetector(
+                      onTap: () => a.onTap(context),
+                      child: Card(
+                        elevation: 3,
+                        color: _primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(a.icon, size: 35, color: Colors.white),
+                              const SizedBox(height: 6),
+                              Text(
+                                a.title,
+                                textAlign: TextAlign.center,
+                                maxLines: 2,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  height: 1.2,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
                 ),
               ),
             ],
@@ -75,4 +110,11 @@ class AdminActions extends StatelessWidget {
       ),
     );
   }
+}
+
+class _Action {
+  final String    title;
+  final IconData  icon;
+  final void Function(BuildContext) onTap;
+  _Action(this.title, this.icon, this.onTap);
 }

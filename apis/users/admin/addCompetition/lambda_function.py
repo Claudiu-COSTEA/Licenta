@@ -1,5 +1,4 @@
 import pymysql
-import json
 
 # Database connection details
 DB_HOST = "database.csvci28ie14d.us-east-1.rds.amazonaws.com"
@@ -24,33 +23,30 @@ def connect_to_db():
 
 def lambda_handler(event, context):
     """AWS Lambda function to insert a new competition into the database."""
-    
-    print("Full event received:", json.dumps(event))  # ✅ Debugging
 
-    # ✅ Check if "body" exists in event
+    #Check if "body" exists in event
     if "body" not in event or event["body"] is None:
         return {
             "statusCode": 400,
             "body": {"error": "Request body is required"}
         }
 
-    # ✅ Directly use the parsed body (no need for json.loads() since it's already a dict)
     body = event["body"]
 
-    # ✅ Extract competition details from request body
+    # Extract competition details from request body
     competition_name = body.get("competition_name")
     competition_start_date = body.get("competition_start_date")
     competition_end_date = body.get("competition_end_date")
     competition_location = body.get("competition_location")
 
-    # ✅ Validate required fields
+    # Validate required fields
     if not all([competition_name, competition_start_date, competition_end_date]):
         return {
             "statusCode": 400,
             "body": {"error": "competition_name, competition_start_date, and competition_end_date are required"}
         }
 
-    # ✅ Connect to the database
+    # Connect to the database
     connection = connect_to_db()
     if not connection:
         return {

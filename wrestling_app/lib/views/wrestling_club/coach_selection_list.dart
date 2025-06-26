@@ -31,11 +31,11 @@ class _CoachSelectionListState extends State<CoachSelectionList> {
 
   Future<void> _fetchWrestlingClubCoaches() async {
     try {
-      List<Map<String, dynamic>> fetchedCoaches =
+      List<Map<String, dynamic>>? fetchedCoaches =
       await _wrestlingClubService.fetchCoachesForClub(widget.userUUID, widget.competitionUUID);
 
       setState(() {
-        wrestlingClubCoaches = fetchedCoaches;
+        wrestlingClubCoaches = fetchedCoaches!;
       });
     } catch (e) {
       if (kDebugMode) {
@@ -78,13 +78,13 @@ class _CoachSelectionListState extends State<CoachSelectionList> {
           const SizedBox(height: 30),
 
           if(widget.invitationStatus == 'Pending')
-          Expanded(
-            child: CustomCoachesList(
-              userUUID: widget.userUUID,
-              competitionUUID: widget.competitionUUID,
-              competitionDeadline: widget.competitionDeadline, coaches: wrestlingClubCoaches,
-            ),
-          )
+            Expanded(
+              child: CustomCoachesList(
+                userUUID: widget.userUUID,
+                competitionUUID: widget.competitionUUID,
+                competitionDeadline: widget.competitionDeadline, coaches: wrestlingClubCoaches,
+              ),
+            )
           else
             Expanded(
               child: CustomListCoachesRespond(

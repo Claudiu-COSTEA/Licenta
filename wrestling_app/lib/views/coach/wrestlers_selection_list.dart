@@ -22,6 +22,7 @@ class _WrestlersSelectionList extends State<WrestlersSelectionList> {
   final CoachService _coachService = CoachService();
   List<Map<String, dynamic>> coachWrestlers = [];
   bool _isLoading = true;
+  static const Color primaryColor = Color(0xFFB4182D);
 
   @override
   void initState() {
@@ -32,7 +33,7 @@ class _WrestlersSelectionList extends State<WrestlersSelectionList> {
   Future<void> _fetchWrestlingClubCoaches() async {
     try {
       List<Map<String, dynamic>> fetchedCoaches =
-      await _coachService.fetchWrestlersForCoach(widget.userUUID, widget.competitionUUID);
+      await _coachService.fetchCoachWrestlers(coachUUID: widget.userUUID, competitionUUID: widget.competitionUUID);
 
       setState(() {
         coachWrestlers = fetchedCoaches;
@@ -60,7 +61,7 @@ class _WrestlersSelectionList extends State<WrestlersSelectionList> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? const Center(child: CircularProgressIndicator(color: primaryColor))
             : Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

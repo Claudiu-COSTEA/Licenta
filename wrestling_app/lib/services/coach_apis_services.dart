@@ -4,65 +4,78 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:wrestling_app/services/constants.dart';
 
-class CoachService {
-  final String _baseUrl = '${AppConstants.baseUrl}/coach/get_coache_wrestlers.php';
+import '../views/shared/widgets/toast_helper.dart';
 
-  Future<List<Map<String, dynamic>>> fetchWrestlersForCoach(int coachUUID,
-      int competitionUUID) async {
+class CoachService {
+
+  static const Color primary  = Color(0xFFB4182D);
+
+  Future<List<Map<String, dynamic>>> fetchCoachWrestlers({
+    required int coachUUID,
+    required int competitionUUID,
+  }) async {
     try {
-      final response = await http.get(
-        Uri.parse(
-            '$_baseUrl?coach_UUID=$coachUUID&competition_UUID=$competitionUUID'),
-      );
+
+      const String _url = AppConstants.baseUrl + "coach/getCoachWrestlers";
+
+      final uri = Uri.parse(
+          '$_url?coach_UUID=$coachUUID&competition_UUID=$competitionUUID');
+
+      final response = await http.get(uri);
 
       if (response.statusCode == 200) {
-        var decodedResponse = json.decode(response.body);
+        final decoded = json.decode(response.body);
 
-        // 🔹 Check if the response contains an error message
-        if (decodedResponse is Map<String, dynamic> &&
-            decodedResponse.containsKey("error")) {
-          throw Exception(decodedResponse["error"]);
+        if (decoded is Map<String, dynamic>) {
+          final body = decoded["body"];
+
+          // 'body' is already a List
+          if (body is List) {
+            return body
+                .map((item) => Map<String, dynamic>.from(item))
+                .toList();
+          }
+
+          // Optional: handle API message
+          if (body is Map<String, dynamic> && body.containsKey("message")) {
+            if (kDebugMode) print("Message: ${body['message']}");
+            return [];
+          }
         }
 
-        // 🔹 Ensure it's a List before mapping
-        if (decodedResponse is List) {
-          return decodedResponse.map((wrestler) =>
-          Map<String, dynamic>.from(wrestler)).toList();
-        } else {
-          throw Exception("Unexpected API response format.");
-        }
+        throw Exception("Unexpected response format.");
       } else {
         throw Exception(
-            'Failed to load wrestlers. Status code: ${response.statusCode}');
+            'Failed to fetch wrestlers. Status code: ${response.statusCode}');
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error fetching wrestlers: $e');
+        print("Error fetching coach wrestlers: $e");
       }
       return [];
     }
   }
 
-  Future<void> updateCoachInvitationStatus({
+  Future<void> updateInvitationStatus({
     required BuildContext context,
     required int competitionUUID,
     required int recipientUUID,
     required String recipientRole,
     required String invitationStatus,
   }) async {
-    String apiUrl = "http://192.168.0.154/wrestling_app/post_invitation_response.php"; // Update with your API URL
-
     try {
-      // Show loading indicator
+      // Afișează indicator de loading
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const Center(child: CircularProgressIndicator()),
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(color: primary),
+        ),
       );
 
-      // Prepare request body
+      // Trimite request-ul
       final response = await http.post(
-        Uri.parse(apiUrl),
+        Uri.parse(AppConstants.baseUrl + "sendInvitationResponse"),
         headers: {"Content-Type": "application/json"},
         body: json.encode({
           "competition_UUID": competitionUUID,
@@ -72,36 +85,49 @@ class CoachService {
         }),
       );
 
-      // Close loading dialog
+      // Închide indicatorul de loading
       if (context.mounted) Navigator.pop(context);
 
-      // Handle response
+      // Procesare răspuns API
       if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
+        final responseData = json.decode(response.body) as Map<String, dynamic>;
 
-        if (responseData.containsKey("success")) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(responseData["success"]),
-                backgroundColor: Colors.green),
-          );
+        if (responseData.containsKey("body") &&
+            responseData["body"] is Map<String, dynamic>) {
+          final body = responseData["body"] as Map<String, dynamic>;
+
+          if (body.containsKey("message")) {
+            ToastHelper.succes("Raspuns trimis cu succes !");
+          } else {
+            // Dacă nu există câmpul "message" în interiorul "body"
+            ToastHelper.eroare("Eroare la trimiterea raspunsului !");
+          }
         } else {
+          // Dacă nu există câmpul "body" în răspunsul JSON
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(responseData["error"] ?? "Unknown error"),
-                backgroundColor: Colors.red),
+            const SnackBar(
+              content: Text("Răspuns neașteptat de la server"),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       } else {
+        // Dacă status code != 200
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Failed to update invitation"),
-              backgroundColor: Colors.red),
+          const SnackBar(
+            content: Text("Nu s-a putut actualiza starea invitației"),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } catch (e) {
-      if (context.mounted) Navigator.pop(
-          context); // Close loading dialog if error occurs
+      if (context.mounted) Navigator.pop(context); // Închide indicatorul de loading
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text("Eroare: $e"),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }

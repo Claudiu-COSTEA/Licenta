@@ -50,12 +50,12 @@ class _RefereeWeightCategoriesVerification extends State<RefereeWeightCategories
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
       ),
       body: Padding(
-        padding: const EdgeInsets.only(left: 16.0, top: 50.0, right: 16.0, bottom: 16.0),
+        padding: const EdgeInsets.only(left: 16.0, top: 0.0, right: 16.0, bottom: 16.0),
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : Column(

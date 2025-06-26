@@ -13,11 +13,14 @@ class AuthService {
         email: email,
         password: password,
       );
+
       return result.user;
     } catch (e) {
       if (kDebugMode) {
         print('Sign-in error: $e');
       }
+
+
       return null;
     }
   }
@@ -38,7 +41,7 @@ class AuthService {
     }
   }
 
-  // ✅ Sign-out function (No Changes Needed Here)
+  // Sign-out function (No Changes Needed Here)
   Future<void> signOut(BuildContext context) async {
     try {
       await _auth.signOut();

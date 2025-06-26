@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../views/shared/widgets/toast_helper.dart';
+
 class QRScannerScreen extends StatefulWidget {
   @override
   _QRScannerScreenState createState() => _QRScannerScreenState();
@@ -9,8 +11,10 @@ class QRScannerScreen extends StatefulWidget {
 
 class _QRScannerScreenState extends State<QRScannerScreen> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
-  QRViewController? controller;
+
   String? scannedData; // Store scanned QR result
+
+
 
   @override
   void reassemble() {
@@ -26,9 +30,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Nu s-a putut deschide link-ul: $url")),
-      );
+     ToastHelper.eroare("Nu s-a putut deschide link-ul");
     }
   }
 
@@ -44,6 +46,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       body: Column(
         children: [
           // QR Scanner View
+
           Expanded(
             flex: 5,
             child: QRView(
@@ -61,11 +64,11 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                     ? Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("Informație scanată:", style: TextStyle(fontSize: 16)),
+                    const Text("Informație scanată:", style: TextStyle(fontSize: 14)),
                     const SizedBox(height: 5),
                     Text(
                       scannedData!,
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue),
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.blue),
                       textAlign: TextAlign.center, // Prevent text overflow
                     ),
                     const SizedBox(height: 10),
@@ -102,13 +105,15 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     );
   }
 
+  QRViewController? controller;
+
   void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
     controller.scannedDataStream.listen((scanData) {
       setState(() {
-        scannedData = scanData.code; // Save scanned data
+        scannedData = scanData.code;
       });
-      controller.pauseCamera(); // Pause after scanning
+      controller.pauseCamera();
     });
   }
 
