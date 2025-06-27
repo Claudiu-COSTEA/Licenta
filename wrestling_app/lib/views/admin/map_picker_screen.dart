@@ -55,9 +55,8 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
   // ======== PLACE DETAILS (lat/lng) =============
 
   Future<void> _selectSuggestion(_PlaceSuggestion s) async {
-    // 1) populate the search field
+
     _searchCtrl.text = s.desc;
-    // 2) clear suggestions
     setState(() => _suggestions = []);
 
     final url = Uri.https(
